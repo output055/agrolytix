@@ -61,20 +61,22 @@ npm run build      # output in dist/agrolytix/
 | Toast notifications | ✅ Complete | Success/error/warning/info |
 | Shared KPI card component | ✅ Complete | Reusable across views |
 | Confirm modal | ✅ Complete | Reusable delete/action dialog |
+| Retail Inventory | ✅ Complete | Product list, add/edit, restock, categories, SVG sort/filter |
+| Wholesale Inventory | ✅ Complete | Product list, add/edit, restock, categories, SVG sort/filter |
 
-### 🔧 In Progress (Placeholder UI)
+### 🔧 In Progress / Next Steps
 | Feature | Route | Next Step |
 |---|---|---|
-| Retail Inventory | `/inventory/retail` | Product list, add/edit/restock forms |
-| Wholesale Inventory | `/inventory/wholesale` | Same as retail |
+| **Wholesale POS** | `/pos/wholesale` | Client selector + cart + debt **(NEXT)** |
 | Retail POS | `/pos/retail` | Product grid + localStorage cart |
-| Wholesale POS | `/pos/wholesale` | Client selector + cart + debt |
 | Retail Sales | `/sales/retail` | Table + date filter + reversal |
 | Wholesale Sales | `/sales/wholesale` | Table + pay debt modal |
 | Reversals | `/reversals` | Log of reversed sales |
 | Clients | `/clients` | Wholesale customer CRUD |
 | Workers | `/admin/workers` | Worker account management |
 | Reports | `/reports` | Date-range financial summary |
+
+> **Development Rule**: From this point forward, all newly generated Angular components must separate their template and styles into dedicated `.html` and `.css`/`.scss` files (using `templateUrl` and `styleUrl`). No inline templates in `.ts` files allowed.
 
 | Feature | Route | Admin | Worker |
 |---|---|:---:|:---:|
