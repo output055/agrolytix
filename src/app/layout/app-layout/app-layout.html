@@ -1,0 +1,33 @@
+<div class="h-screen w-full flex overflow-hidden relative" style="background: #0a150a;">
+
+  <!-- Ambient Gradient Blobs -->
+  <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] mix-blend-screen pointer-events-none"
+       style="background: rgba(22,163,74,0.15);"></div>
+  <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] mix-blend-screen pointer-events-none"
+       style="background: rgba(245,158,11,0.12);"></div>
+
+  <!-- Mobile Overlay -->
+  @if (layoutService.isMobileSidebarOpen()) {
+    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-20 lg:hidden"
+         (click)="layoutService.closeSidebar()"></div>
+  }
+
+  <!-- Sidebar -->
+  <div class="fixed inset-y-0 left-0 z-30 lg:relative lg:flex w-72 lg:w-64 h-full shadow-2xl lg:shadow-none transform transition-transform duration-300 ease-in-out"
+       [class.-translate-x-full]="!layoutService.isMobileSidebarOpen()"
+       [class.translate-x-0]="layoutService.isMobileSidebarOpen()"
+       [class.lg:translate-x-0]="true">
+    <app-sidebar class="w-full h-full"></app-sidebar>
+  </div>
+
+  <!-- Main Content -->
+  <div class="flex-1 flex flex-col min-w-0 z-10 h-full overflow-hidden">
+    <app-header class="z-20 shrink-0"></app-header>
+    <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6 md:p-8 custom-scrollbar relative scroll-smooth">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <!-- Toast overlay -->
+  <app-toast></app-toast>
+</div>

@@ -1,0 +1,41 @@
+<header class="h-16 flex items-center justify-between px-4 sm:px-6 shrink-0 border-b"
+        style="background: rgba(10,21,10,0.9); backdrop-filter: blur(12px); border-color: rgba(255,255,255,0.08);">
+
+  <!-- Left: Hamburger + Title area -->
+  <div class="flex items-center gap-4">
+    <button (click)="layoutService.toggleSidebar()"
+            class="lg:hidden p-2 rounded-xl transition-colors"
+            style="color: #6b7280;">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+    <div class="hidden sm:block">
+      <div class="text-xs font-semibold tracking-widest uppercase" style="color: #4ade80;">Agrolytix</div>
+    </div>
+  </div>
+
+  <!-- Right: User Chip + Logout -->
+  <div class="flex items-center gap-3">
+    @if (user()) {
+      <div class="hidden sm:flex flex-col items-end">
+        <span class="text-sm font-semibold" style="color: #f0fdf4;">{{ user().name }}</span>
+        <span class="text-[10px] tracking-widest uppercase"
+              [style.color]="user().role === 'Admin' ? '#f59e0b' : '#4ade80'">{{ user().role }}</span>
+      </div>
+      <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+           style="background: linear-gradient(135deg, #16a34a, #4ade80); color: #0a150a;">
+        {{ initials() }}
+      </div>
+      <button (click)="logout()"
+              class="p-2 rounded-xl transition-colors group"
+              style="color: #6b7280;"
+              title="Logout">
+        <svg class="w-5 h-5 group-hover:text-red-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
+      </button>
+    }
+  </div>
+</header>

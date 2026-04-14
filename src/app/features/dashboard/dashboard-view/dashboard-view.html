@@ -1,0 +1,83 @@
+<div class="space-y-6">
+
+  <!-- Page Header -->
+  <div>
+    <h1 class="text-2xl font-bold" style="color: #f0fdf4;">
+      Good day, {{ user()?.name?.split(' ')[0] ?? 'there' }} 👋
+    </h1>
+    <p class="text-sm mt-1" style="color: #6b7280;">
+      Here's what's happening in your agribusiness today.
+    </p>
+  </div>
+
+  @if (loading()) {
+    <!-- Skeleton -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+      @for (_ of [1,2,3,4,5,6]; track $index) {
+        <div class="rounded-2xl p-5 h-28 animate-pulse border"
+             style="background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.06);"></div>
+      }
+    </div>
+  } @else if (stats()) {
+    <!-- KPI Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+      <app-kpi-card
+        label="Retail Revenue (Today)"
+        [value]="formatCurrency(stats().retail_revenue)"
+        icon="🛒"
+        colorRgb="74,222,128"
+        subtitle="Completed retail sales today">
+      </app-kpi-card>
+
+      <app-kpi-card
+        label="Retail Profit (Today)"
+        [value]="formatCurrency(stats().retail_profit)"
+        icon="📈"
+        colorRgb="74,222,128"
+        subtitle="Revenue minus cost">
+      </app-kpi-card>
+
+      <app-kpi-card
+        label="Wholesale Revenue (Today)"
+        [value]="formatCurrency(stats().wholesale_revenue)"
+        icon="📦"
+        colorRgb="245,158,11"
+        subtitle="Wholesale sales today">
+      </app-kpi-card>
+
+      <app-kpi-card
+        label="Wholesale Profit (Today)"
+        [value]="formatCurrency(stats().wholesale_profit)"
+        icon="💹"
+        colorRgb="245,158,11"
+        subtitle="Revenue minus cost">
+      </app-kpi-card>
+
+      <app-kpi-card
+        label="Outstanding Debt"
+        [value]="formatCurrency(stats().total_debt)"
+        icon="⚠️"
+        colorRgb="248,113,113"
+        subtitle="Total unpaid wholesale balance">
+      </app-kpi-card>
+
+      <app-kpi-card
+        [label]="'Low Stock Products'"
+        [value]="stats().low_stock_count.toString()"
+        icon="📉"
+        colorRgb="251,191,36"
+        subtitle="Items at or below alert threshold">
+      </app-kpi-card>
+    </div>
+
+    <!-- Date indicator -->
+    <p class="text-xs" style="color: #374151;">
+      Statistics for {{ stats().date }}
+    </p>
+  } @else {
+    <div class="rounded-2xl p-8 border text-center" style="background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.06);">
+      <p style="color: #6b7280;">Could not load stats. Make sure the API server is running on port 8001.</p>
+    </div>
+  }
+
+</div>
