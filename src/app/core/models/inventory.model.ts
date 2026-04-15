@@ -21,6 +21,7 @@ export interface Product {
   quantity: number;
   base_unit: string;
   low_stock_alert: number;
+  sales_count?: number;
   last_added_qty?: number;
   units?: ProductUnit[];
   created_at?: string;
