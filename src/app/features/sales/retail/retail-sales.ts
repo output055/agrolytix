@@ -2,6 +2,7 @@ import { Component, OnInit, inject, computed, ChangeDetectorRef } from '@angular
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SalesService } from '../../../core/services/sales.service';
+import { ReversalService } from '../../../core/services/reversal.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { RetailSale, RetailSummary, SalesMeta, SalesFilter } from '../../../core/models/sales.model';
@@ -148,8 +149,9 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
                     }
                     <td>
                       <span class="pill" [class.pill-green]="sale.status === 'completed'"
-                            [class.pill-red]="sale.status === 'reversed'">
-                        {{ sale.status | titlecase }}
+                            [class.pill-red]="sale.status === 'reversed'"
+                            [class.pill-orange]="sale.status === 'partial_reversal'">
+                        {{ sale.status === 'partial_reversal' ? 'Partial' : (sale.status | titlecase) }}
                       </span>
                     </td>
                     <td class="text-muted">{{ sale.worker?.name ?? '—' }}</td>
@@ -279,6 +281,93 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
               </div>
             }
           </div>
+
+          <!-- Reverse Sale (Admin only, non-reversed sales) -->
+          @if (isAdmin && selectedSale.status !== 'reversed') {
+            <div class="reverse-section">
+              @if (!showReverseForm) {
+                <button class="reverse-btn" (click)="initReverseForm()">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                  </svg>
+                  Reverse Items
+                </button>
+              } @else {
+                <div class="reverse-form">
+                  <p class="reverse-warning">⚠ Select items to reverse. Stock will be restored for selected items and sale totals will be adjusted.</p>
+
+                  <!-- Item selection -->
+                  <div class="reverse-items">
+                    <label class="reverse-item select-all" (click)="toggleAll()">
+                      <div class="reverse-item-toggle">
+                        <input type="checkbox" [checked]="allSelected" class="item-checkbox">
+                        <span class="select-all-text">{{ allSelected ? 'Deselect All' : 'Select All' }}</span>
+                      </div>
+                    </label>
+                    @for (item of selectedSale.items; track item.id) {
+                      <div class="reverse-item" [class.reverse-item-selected]="!!selectedItems[item.id]">
+                        <label class="reverse-item-toggle">
+                          <input type="checkbox" [checked]="!!selectedItems[item.id]" (change)="toggleItem(item.id)" class="item-checkbox">
+                          <div class="reverse-item-info">
+                            <span class="reverse-item-name">{{ item.product_name }}</span>
+                            <span class="reverse-item-detail">{{ item.quantity }} × {{ item.unit_name }} @ GH₵{{ item.unit_price | number:'1.2-2' }}</span>
+                          </div>
+                        </label>
+                        <div class="reverse-item-actions">
+                          @if (selectedItems[item.id]) {
+                            <div class="reverse-qty-control">
+                              <span class="qty-label">Qty:</span>
+                              <input type="number" class="qty-input" 
+                                     min="1" [max]="item.quantity" 
+                                     [(ngModel)]="selectedItems[item.id]" 
+                                     (input)="checkQty(item.id, item.quantity)">
+                            </div>
+                            <span class="reverse-item-amount">GH₵{{ (item.unit_price * selectedItems[item.id]) | number:'1.2-2' }}</span>
+                          } @else {
+                            <span class="reverse-item-amount">GH₵{{ item.subtotal | number:'1.2-2' }}</span>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Reversal summary -->
+                  @if (selectedCount > 0) {
+                    <div class="reverse-summary">
+                      <div class="reverse-summary-row">
+                        <span>Items to reverse</span>
+                        <span class="font-bold">{{ selectedCount }} of {{ selectedSale.items.length }}</span>
+                      </div>
+                      <div class="reverse-summary-row">
+                        <span>Revenue to reverse</span>
+                        <span class="text-red font-bold">-GH₵{{ reverseAmount | number:'1.2-2' }}</span>
+                      </div>
+                      <div class="reverse-summary-row">
+                        <span>Cost to reverse</span>
+                        <span class="text-blue">-GH₵{{ reverseCost | number:'1.2-2' }}</span>
+                      </div>
+                      <div class="reverse-summary-row">
+                        <span>Profit impact</span>
+                        <span class="text-red">-GH₵{{ reverseProfit | number:'1.2-2' }}</span>
+                      </div>
+                    </div>
+                  }
+
+                  <div class="reverse-field">
+                    <label class="reverse-label">Reason for reversal</label>
+                    <input type="text" class="reverse-input" [(ngModel)]="reverseReason" placeholder="e.g. Customer returned items">
+                  </div>
+                  <div class="reverse-actions">
+                    <button class="reverse-cancel" (click)="cancelReverse()">Cancel</button>
+                    <button class="reverse-confirm" [disabled]="reversing || selectedCount === 0" (click)="executeReversal()">
+                      {{ reversing ? 'Reversing...' : 'Reverse Selected' }}
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
         </div>
       </div>
     }
@@ -377,13 +466,56 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
     .total-label { font-size: 0.875rem; color: #9ca3af; }
     .total-value { font-size: 1rem; font-weight: 600; }
     .profit-row  { border-top: 1px solid rgba(255,255,255,0.07); margin-top: 0.5rem; padding-top: 0.75rem; }
+
+    /* Reverse section */
+    .reverse-section { border-top: 1px solid rgba(255,255,255,0.07); padding: 1rem 1.5rem 1.5rem; }
+    .reverse-btn { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.3); color: #f87171; padding: 0.5rem 1.25rem; border-radius: 0.625rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .reverse-btn:hover { background: rgba(248,113,113,0.22); }
+    .reverse-form { display: flex; flex-direction: column; gap: 0.75rem; }
+    .reverse-warning { font-size: 0.8rem; color: #fb923c; background: rgba(251,146,60,0.1); border: 1px solid rgba(251,146,60,0.25); border-radius: 0.5rem; padding: 0.6rem 0.8rem; margin: 0; }
+    .reverse-field { display: flex; flex-direction: column; gap: 0.25rem; }
+    .reverse-label { font-size: 0.75rem; color: #9ca3af; font-weight: 500; }
+    .reverse-input { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.625rem; padding: 0.5rem 0.75rem; color: #f0fdf4; font-size: 0.875rem; outline: none; transition: border-color 0.2s; }
+    .reverse-input:focus { border-color: #f87171; }
+    .reverse-actions { display: flex; justify-content: flex-end; gap: 0.75rem; }
+    .reverse-cancel { background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #9ca3af; padding: 0.4rem 1rem; border-radius: 0.5rem; cursor: pointer; font-size: 0.875rem; transition: all 0.2s; }
+    .reverse-cancel:hover { color: #f0fdf4; }
+    .reverse-confirm { background: #dc2626; color: #fff; padding: 0.4rem 1.25rem; border-radius: 0.5rem; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 700; transition: all 0.2s; }
+    .reverse-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+    .reverse-confirm:not(:disabled):hover { background: #b91c1c; }
+
+    /* Item selection */
+    .reverse-items { display: flex; flex-direction: column; gap: 0.375rem; }
+    .reverse-item { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.2); transition: all 0.15s; }
+    .reverse-item:hover { border-color: rgba(248,113,113,0.3); }
+    .reverse-item-selected { border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.08); }
+    .reverse-item-toggle { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; flex: 1; }
+    .reverse-item-actions { display: flex; align-items: center; gap: 0.75rem; }
+    .item-checkbox { accent-color: #f87171; width: 1rem; height: 1rem; cursor: pointer; flex-shrink: 0; }
+    .reverse-item-info { flex: 1; display: flex; flex-direction: column; gap: 0.1rem; }
+    .reverse-item-name { font-size: 0.85rem; color: #e5e7eb; font-weight: 500; }
+    .reverse-item-detail { font-size: 0.75rem; color: #6b7280; }
+    .reverse-item-amount { font-size: 0.85rem; font-weight: 600; color: #f87171; white-space: nowrap; min-width: 4rem; text-align: right; }
+    .select-all { border-style: dashed; cursor: pointer; }
+    .select-all-text { font-size: 0.8rem; color: #9ca3af; font-weight: 500; }
+
+    /* Quantity inputs */
+    .reverse-qty-control { display: flex; align-items: center; gap: 0.3rem; background: rgba(0,0,0,0.3); padding: 0.15rem 0.3rem; border-radius: 0.375rem; }
+    .qty-label { font-size: 0.7rem; color: #9ca3af; }
+    .qty-input { width: 3rem; background: transparent; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 0.1rem 0.25rem; border-radius: 0.25rem; font-size: 0.8rem; outline: none; text-align: center; }
+    .qty-input:focus { border-color: #f87171; }
+
+    /* Reversal summary */
+    .reverse-summary { background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.2); border-radius: 0.5rem; padding: 0.6rem 0.8rem; }
+    .reverse-summary-row { display: flex; justify-content: space-between; padding: 0.2rem 0; font-size: 0.8rem; color: #9ca3af; }
   `]
 })
 export class RetailSales implements OnInit {
-  private salesService = inject(SalesService);
-  private authService  = inject(AuthService);
-  private toastService = inject(ToastService);
-  private cdr          = inject(ChangeDetectorRef);
+  private salesService    = inject(SalesService);
+  private reversalService = inject(ReversalService);
+  private authService     = inject(AuthService);
+  private toastService    = inject(ToastService);
+  private cdr             = inject(ChangeDetectorRef);
 
   sales: RetailSale[]    = [];
   summary: RetailSummary | null = null;
@@ -450,11 +582,122 @@ export class RetailSales implements OnInit {
     this.load(page);
   }
 
+  // Reversal state
+  showReverseForm = false;
+  reverseReason = '';
+  reversing = false;
+  selectedItems: { [id: number]: number } = {};
+
+  get selectedCount(): number {
+    return Object.keys(this.selectedItems).length;
+  }
+
+  get allSelected(): boolean {
+    return !!this.selectedSale && this.selectedCount === this.selectedSale.items.length;
+  }
+
+  get reverseAmount(): number {
+    if (!this.selectedSale) return 0;
+    return this.selectedSale.items.reduce((sum, item) => {
+      const qty = this.selectedItems[item.id] || 0;
+      return sum + (qty * item.unit_price);
+    }, 0);
+  }
+
+  get reverseCost(): number {
+    if (!this.selectedSale) return 0;
+    return this.selectedSale.items.reduce((sum, item) => {
+      const qty = this.selectedItems[item.id] || 0;
+      return sum + (qty * item.cost_price);
+    }, 0);
+  }
+
+  get reverseProfit(): number {
+    return this.reverseAmount - this.reverseCost;
+  }
+
+  initReverseForm() {
+    this.showReverseForm = true;
+    this.selectedItems = {};
+    this.reverseReason = '';
+  }
+
+  toggleItem(id: number) {
+    if (this.selectedItems[id]) {
+      delete this.selectedItems[id];
+    } else {
+      const item = this.selectedSale?.items.find(i => i.id === id);
+      if (item) this.selectedItems[id] = item.quantity;
+    }
+  }
+
+  checkQty(id: number, max: number) {
+    let val = this.selectedItems[id];
+    if (val > max) this.selectedItems[id] = max;
+    if (val < 1) this.selectedItems[id] = 1;
+  }
+
+  toggleAll() {
+    if (!this.selectedSale) return;
+    if (this.allSelected) {
+      this.selectedItems = {};
+    } else {
+      this.selectedItems = {};
+      this.selectedSale.items.forEach(i => {
+        this.selectedItems[i.id] = i.quantity;
+      });
+    }
+  }
+
+  cancelReverse() {
+    this.showReverseForm = false;
+    this.reverseReason = '';
+    this.selectedItems = {};
+  }
+
   openReceipt(sale: RetailSale) {
     this.selectedSale = sale;
+    this.showReverseForm = false;
+    this.reverseReason = '';
+    this.selectedItems = {};
   }
 
   closeReceipt() {
     this.selectedSale = null;
+    this.showReverseForm = false;
+    this.reverseReason = '';
+    this.selectedItems = {};
+  }
+
+  executeReversal() {
+    if (!this.selectedSale || this.selectedCount === 0) return;
+    this.reversing = true;
+    
+    const payloadItems = Object.entries(this.selectedItems).map(([id, qty]) => ({
+      id: +id,
+      quantity: qty
+    }));
+
+    this.reversalService.reverseSale(this.selectedSale.id, payloadItems, this.reverseReason).subscribe({
+      next: () => {
+        const count = payloadItems.length;
+        const total = this.selectedSale!.items.length;
+        const msg = count === total
+          ? 'Sale fully reversed — stock restored'
+          : `${count} item(s) reversed — stock restored, sale totals updated`;
+        this.toastService.show(msg, 'success');
+        this.selectedSale = null;
+        this.showReverseForm = false;
+        this.reverseReason = '';
+        this.selectedItems = {};
+        this.reversing = false;
+        this.load(this.meta?.current_page ?? 1);
+      },
+      error: (err) => {
+        this.toastService.show(err.error?.message || 'Reversal failed', 'error');
+        this.reversing = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 }
