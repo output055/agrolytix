@@ -38,55 +38,68 @@
     </a>
 
     <!-- POS Section -->
-    <div class="px-4 py-2 mt-4 text-[10px] font-bold uppercase tracking-widest" style="color: #4b5563;">Point of Sale</div>
+    @if (isAdmin() || hasPermission('pos.retail') || hasPermission('pos.wholesale')) {
+      <div class="px-4 py-2 mt-4 text-[10px] font-bold uppercase tracking-widest" style="color: #4b5563;">Point of Sale</div>
 
-    <a routerLink="/pos/retail" (click)="layoutService.closeSidebar()"
-       routerLinkActive="nav-active-green"
-       class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
-      <svg class="h-5 w-5 nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
-      </svg>
-      Retail POS
-    </a>
+      @if (isAdmin() || hasPermission('pos.retail')) {
+      <a routerLink="/pos/retail" (click)="layoutService.closeSidebar()"
+         routerLinkActive="nav-active-green"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+        <svg class="h-5 w-5 nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+        Retail POS
+      </a>
+      }
 
-    <a routerLink="/pos/wholesale" (click)="layoutService.closeSidebar()"
-       routerLinkActive="nav-active-amber"
-       class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
-      <svg class="h-5 w-5 nav-icon-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-      </svg>
-      Wholesale POS
-    </a>
+      @if (isAdmin() || hasPermission('pos.wholesale')) {
+      <a routerLink="/pos/wholesale" (click)="layoutService.closeSidebar()"
+         routerLinkActive="nav-active-amber"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+        <svg class="h-5 w-5 nav-icon-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+        </svg>
+        Wholesale POS
+      </a>
+      }
+    }
 
     <!-- Sales Section -->
-    <div class="px-4 py-2 mt-4 text-[10px] font-bold uppercase tracking-widest" style="color: #4b5563;">Sales</div>
+    @if (isAdmin() || hasPermission('sales.retail') || hasPermission('sales.wholesale')) {
+      <div class="px-4 py-2 mt-4 text-[10px] font-bold uppercase tracking-widest" style="color: #4b5563;">Sales</div>
 
-    <a routerLink="/sales/retail" (click)="layoutService.closeSidebar()"
-       routerLinkActive="nav-active-green"
-       class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
-      <svg class="h-5 w-5 nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-      </svg>
-      Retail Sales
-    </a>
+      @if (isAdmin() || hasPermission('sales.retail')) {
+      <a routerLink="/sales/retail" (click)="layoutService.closeSidebar()"
+         routerLinkActive="nav-active-green"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+        <svg class="h-5 w-5 nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        Retail Sales
+      </a>
+      }
 
-    <a routerLink="/sales/wholesale" (click)="layoutService.closeSidebar()"
-       routerLinkActive="nav-active-amber"
-       class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
-      <svg class="h-5 w-5 nav-icon-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-      </svg>
-      Wholesale Sales
-    </a>
+      @if (isAdmin() || hasPermission('sales.wholesale')) {
+      <a routerLink="/sales/wholesale" (click)="layoutService.closeSidebar()"
+         routerLinkActive="nav-active-amber"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+        <svg class="h-5 w-5 nav-icon-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        Wholesale Sales
+      </a>
+      }
+    }
 
-    <!-- Admin Only Section -->
-    @if (isAdmin()) {
+    <!-- Management Section -->
+    @if (isAdmin() || hasPermission('inventory.retail') || hasPermission('inventory.wholesale') || hasPermission('clients') || hasPermission('reversals')) {
       <div class="px-4 py-2 mt-4 text-[10px] font-bold uppercase tracking-widest" style="color: #4b5563;">Management</div>
 
+      @if (isAdmin() || hasPermission('inventory.retail')) {
       <a routerLink="/inventory/retail" (click)="layoutService.closeSidebar()"
          routerLinkActive="nav-active-green"
          class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
@@ -96,7 +109,9 @@
         </svg>
         Retail Inventory
       </a>
+      }
 
+      @if (isAdmin() || hasPermission('inventory.wholesale')) {
       <a routerLink="/inventory/wholesale" (click)="layoutService.closeSidebar()"
          routerLinkActive="nav-active-amber"
          class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
@@ -106,7 +121,9 @@
         </svg>
         Wholesale Inventory
       </a>
+      }
 
+      @if (isAdmin() || hasPermission('clients')) {
       <a routerLink="/clients" (click)="layoutService.closeSidebar()"
          routerLinkActive="nav-active-green"
          class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
@@ -116,7 +133,9 @@
         </svg>
         Clients
       </a>
+      }
 
+      @if (isAdmin() || hasPermission('reversals')) {
       <a routerLink="/reversals" (click)="layoutService.closeSidebar()"
          routerLinkActive="nav-active-red"
          class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
@@ -126,7 +145,11 @@
         </svg>
         Reversals
       </a>
+      }
+    }
 
+    <!-- Admin Only Section -->
+    @if (isAdmin()) {
       <div class="px-4 py-2 mt-4 text-[10px] font-bold uppercase tracking-widest" style="color: #4b5563;">Admin</div>
 
       <a routerLink="/admin/workers" (click)="layoutService.closeSidebar()"

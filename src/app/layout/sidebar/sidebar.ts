@@ -14,4 +14,8 @@ export class Sidebar {
   authService   = inject(AuthService);
   role = computed(() => this.authService.currentUser()?.role ?? 'Worker');
   isAdmin = computed(() => this.role() === 'Admin');
+
+  hasPermission(permission: string): boolean {
+    return this.authService.hasPermission(permission);
+  }
 }

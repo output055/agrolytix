@@ -24,6 +24,16 @@ export class AuthService {
     );
   }
 
+  hasPermission(permission: string): boolean {
+    const user = this.currentUser();
+    if (!user) return false;
+    if (user.role === 'Admin') return true;
+    if (user.permissions && Array.isArray(user.permissions)) {
+      return user.permissions.includes(permission);
+    }
+    return false;
+  }
+
   logout() {
     return this.http.post(`${this.apiUrl}/logout`, {}).pipe(
       tap(() => this.clearAuth())
