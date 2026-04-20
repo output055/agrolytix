@@ -70,15 +70,15 @@ import { ToastService } from '../../../core/services/toast.service';
             <div class="grid grid-cols-2 gap-4 relative z-10">
               <div>
                 <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Revenue</p>
-                <div class="text-2xl font-extrabold" style="color: #f3f4f6;">$ {{ formatCurrency(report()?.retail?.revenue) }}</div>
+                <div class="text-2xl font-extrabold" style="color: #f3f4f6;">GH₵{{ formatCurrency(report()?.retail?.revenue) }}</div>
               </div>
               <div>
                 <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Total Cost</p>
-                <div class="text-xl font-bold" style="color: #d1d5db;">$ {{ formatCurrency(report()?.retail?.cost) }}</div>
+                <div class="text-xl font-bold" style="color: #d1d5db;">GH₵{{ formatCurrency(report()?.retail?.cost) }}</div>
               </div>
               <div>
                 <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Net Profit</p>
-                <div class="text-xl font-bold text-emerald-400">$ {{ formatCurrency(report()?.retail?.profit) }}</div>
+                <div class="text-xl font-bold text-emerald-400">GH₵{{ formatCurrency(report()?.retail?.profit) }}</div>
               </div>
               <div>
                 <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Sales</p>
@@ -104,15 +104,15 @@ import { ToastService } from '../../../core/services/toast.service';
             <div class="grid grid-cols-2 gap-4 relative z-10">
               <div>
                 <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Revenue</p>
-                <div class="text-2xl font-extrabold" style="color: #f3f4f6;">$ {{ formatCurrency(report()?.wholesale?.revenue) }}</div>
+                <div class="text-2xl font-extrabold" style="color: #f3f4f6;">GH₵{{ formatCurrency(report()?.wholesale?.revenue) }}</div>
               </div>
               <div>
                 <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Total Cost</p>
-                <div class="text-xl font-bold" style="color: #d1d5db;">$ {{ formatCurrency(report()?.wholesale?.cost) }}</div>
+                <div class="text-xl font-bold" style="color: #d1d5db;">GH₵{{ formatCurrency(report()?.wholesale?.cost) }}</div>
               </div>
               <div>
                 <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Net Profit</p>
-                <div class="text-xl font-bold text-blue-400">$ {{ formatCurrency(report()?.wholesale?.profit) }}</div>
+                <div class="text-xl font-bold text-blue-400">GH₵{{ formatCurrency(report()?.wholesale?.profit) }}</div>
               </div>
               <div>
                 <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Sales</p>
@@ -138,11 +138,11 @@ import { ToastService } from '../../../core/services/toast.service';
             <div class="grid grid-cols-2 gap-4 relative z-10">
               <div>
                 <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Amount</p>
-                <div class="text-2xl font-extrabold text-red-100">$ {{ formatCurrency(report()?.reversals?.amount) }}</div>
+                <div class="text-2xl font-extrabold text-red-100">GH₵{{ formatCurrency(report()?.reversals?.amount) }}</div>
               </div>
               <div>
                 <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Cost</p>
-                <div class="text-xl font-bold" style="color: #d1d5db;">$ {{ formatCurrency(report()?.reversals?.cost) }}</div>
+                <div class="text-xl font-bold" style="color: #d1d5db;">GH₵{{ formatCurrency(report()?.reversals?.cost) }}</div>
               </div>
               <div>
                 <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Count</p>
@@ -174,7 +174,7 @@ import { ToastService } from '../../../core/services/toast.service';
                 </div>
                 <div class="text-right">
                   <div class="text-5xl font-extrabold tracking-tight" style="color: #fbbf24; text-shadow: 0 4px 20px rgba(245,158,11,0.2);">
-                    $ {{ formatCurrency(report()?.total_outstanding_debt) }}
+                    GH₵{{ formatCurrency(report()?.total_outstanding_debt) }}
                   </div>
                 </div>
              </div>

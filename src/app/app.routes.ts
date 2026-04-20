@@ -47,6 +47,11 @@ export const routes: Routes = [
         loadChildren: () => import('./features/admin/workers/workers.routes').then(m => m.WORKERS_ROUTES)
       },
       {
+        path: 'admin/audit-logs',
+        canActivate: [adminGuard],
+        loadChildren: () => import('./features/admin/audit-logs/audit-logs.routes').then(m => m.AUDIT_LOGS_ROUTES)
+      },
+      {
         path: 'reports',
         canActivate: [adminGuard],
         loadChildren: () => import('./features/reports/reports.routes').then(m => m.REPORTS_ROUTES)

@@ -74,27 +74,27 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
           </div>
           <div class="summary-card">
             <div class="summary-label">Total Revenue</div>
-            <div class="summary-value text-green">GH&#8373;{{ summary.total_revenue | number:'1.2-2' }}</div>
+            <div class="summary-value text-green">GH₵{{ summary.total_revenue | number:'1.2-2' }}</div>
           </div>
           <div class="summary-card">
             <div class="summary-label">Collected</div>
-            <div class="summary-value text-blue">GH&#8373;{{ summary.total_collected | number:'1.2-2' }}</div>
+            <div class="summary-value text-blue">GH₵{{ summary.total_collected | number:'1.2-2' }}</div>
           </div>
           <div class="summary-card">
             <div class="summary-label">Outstanding Debt</div>
             <div class="summary-value" [class.text-red]="summary.total_outstanding_debt > 0" [class.text-green]="summary.total_outstanding_debt === 0">
-              GH&#8373;{{ summary.total_outstanding_debt | number:'1.2-2' }}
+              GH₵{{ summary.total_outstanding_debt | number:'1.2-2' }}
             </div>
           </div>
           @if (isAdmin) {
             <div class="summary-card">
               <div class="summary-label">Total Cost</div>
-              <div class="summary-value text-blue">GH&#8373;{{ summary.total_cost | number:'1.2-2' }}</div>
+              <div class="summary-value text-blue">GH₵{{ summary.total_cost | number:'1.2-2' }}</div>
             </div>
             <div class="summary-card">
               <div class="summary-label">Total Profit</div>
               <div class="summary-value" [class.text-green]="summary.total_profit >= 0" [class.text-red]="summary.total_profit < 0">
-                GH&#8373;{{ summary.total_profit | number:'1.2-2' }}
+                GH₵{{ summary.total_profit | number:'1.2-2' }}
               </div>
             </div>
           }
@@ -125,7 +125,7 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
                   <th>Client</th>
                   <th>Items</th>
                   <th>Payment</th>
-                  <th>Revenue (GH&#8373;)</th>
+                  <th>Revenue (GH₵)</th>
                   <th>Collected</th>
                   <th>Debt</th>
                   @if (isAdmin) {
@@ -258,11 +258,11 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
                     <td>{{ item.product_name }}</td>
                     <td class="text-muted">{{ item.unit_name }}</td>
                     <td class="text-right">{{ item.quantity }}</td>
-                    <td class="text-right">GH&#8373;{{ item.unit_price | number:'1.2-2' }}</td>
+                    <td class="text-right">GH₵{{ item.unit_price | number:'1.2-2' }}</td>
                     @if (isAdmin) {
-                      <td class="text-right text-blue">GH&#8373;{{ item.cost_price | number:'1.2-2' }}</td>
+                      <td class="text-right text-blue">GH₵{{ item.cost_price | number:'1.2-2' }}</td>
                     }
-                    <td class="text-right font-bold text-green">GH&#8373;{{ item.subtotal | number:'1.2-2' }}</td>
+                    <td class="text-right font-bold text-green">GH₵{{ item.subtotal | number:'1.2-2' }}</td>
                   </tr>
                 }
               </tbody>
@@ -273,29 +273,29 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
           <div class="totals-section">
             <div class="total-row">
               <span class="total-label">Total Invoice</span>
-              <span class="total-value text-white">GH&#8373;{{ selectedSale.total_amount | number:'1.2-2' }}</span>
+              <span class="total-value text-white">GH₵{{ selectedSale.total_amount | number:'1.2-2' }}</span>
             </div>
             <div class="total-row">
               <span class="total-label">Collected</span>
-              <span class="total-value text-green">GH&#8373;{{ selectedSale.amount_paid | number:'1.2-2' }}</span>
+              <span class="total-value text-green">GH₵{{ selectedSale.amount_paid | number:'1.2-2' }}</span>
             </div>
             @if (selectedSale.debt > 0) {
               <div class="total-row">
                 <span class="total-label text-red">Outstanding Debt</span>
-                <span class="total-value text-red font-bold">GH&#8373;{{ selectedSale.debt | number:'1.2-2' }}</span>
+                <span class="total-value text-red font-bold">GH₵{{ selectedSale.debt | number:'1.2-2' }}</span>
               </div>
             }
             @if (isAdmin) {
               <div class="total-row">
                 <span class="total-label">Total Cost</span>
-                <span class="total-value text-blue">GH&#8373;{{ selectedSale.total_cost | number:'1.2-2' }}</span>
+                <span class="total-value text-blue">GH₵{{ selectedSale.total_cost | number:'1.2-2' }}</span>
               </div>
               <div class="total-row profit-row">
                 <span class="total-label font-bold">Profit</span>
                 <span class="total-value font-bold"
                       [class.text-green]="selectedSale.profit >= 0"
                       [class.text-red]="selectedSale.profit < 0">
-                  GH&#8373;{{ selectedSale.profit | number:'1.2-2' }}
+                  GH₵{{ selectedSale.profit | number:'1.2-2' }}
                 </span>
               </div>
             }
@@ -309,11 +309,11 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
                 @for (payment of selectedSale.debtPayments; track payment.id) {
                   <div class="debt-item">
                     <div>
-                      <div class="meta-value text-green">GH&#8373;{{ payment.amount_paid | number:'1.2-2' }} paid</div>
+                      <div class="meta-value text-green">GH₵{{ payment.amount_paid | number:'1.2-2' }} paid</div>
                       @if (payment.note) { <div class="text-muted text-sm">{{ payment.note }}</div> }
                     </div>
                     <div class="text-right">
-                      <div class="meta-value text-muted">GH&#8373;{{ payment.old_debt | number:'1.2-2' }} &rarr; GH&#8373;{{ payment.new_debt | number:'1.2-2' }}</div>
+                      <div class="meta-value text-muted">GH₵{{ payment.old_debt | number:'1.2-2' }} &rarr; GH₵{{ payment.new_debt | number:'1.2-2' }}</div>
                       <div class="text-muted text-sm">{{ payment.created_at | date:'d MMM y' }}</div>
                     </div>
                   </div>
@@ -330,7 +330,7 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
               } @else {
                 <div class="pay-form">
                   <div class="field-group">
-                    <label class="field-label">Amount (max GH&#8373;{{ selectedSale.debt | number:'1.2-2' }})</label>
+                    <label class="field-label">Amount (max GH₵{{ selectedSale.debt | number:'1.2-2' }})</label>
                     <input type="number" class="field-input" [(ngModel)]="payAmount"
                            [max]="selectedSale.debt" min="0.01" placeholder="0.00">
                   </div>

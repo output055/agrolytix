@@ -20,7 +20,7 @@ export class DashboardView implements OnInit {
   loading = signal(true);
 
   formatCurrency(val: number) {
-    return '₦' + (val ?? 0).toLocaleString('en-NG', { minimumFractionDigits: 2 });
+    return 'GH₵' + (val ?? 0).toLocaleString('en-GH', { minimumFractionDigits: 2 });
   }
 
   ngOnInit() {
