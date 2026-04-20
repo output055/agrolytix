@@ -285,83 +285,95 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
           <!-- Reverse Sale (Admin only, non-reversed sales) -->
           @if (isAdmin && selectedSale.status !== 'reversed') {
             <div class="reverse-section">
-              @if (!showReverseForm) {
-                <button class="reverse-btn" (click)="initReverseForm()">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                  </svg>
-                  Reverse Items
-                </button>
-              } @else {
-                <div class="reverse-form">
-                  <p class="reverse-warning">⚠ Select items to reverse. Stock will be restored for selected items and sale totals will be adjusted.</p>
+              @if (canReverse(selectedSale)) {
+                @if (!showReverseForm) {
+                  <button class="reverse-btn" (click)="initReverseForm()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                    </svg>
+                    Reverse Items
+                  </button>
+                } @else {
+                  <div class="reverse-form">
+                    <p class="reverse-warning">⚠ Select items to reverse. Stock will be restored for selected items and sale totals will be adjusted.</p>
 
-                  <!-- Item selection -->
-                  <div class="reverse-items">
-                    <label class="reverse-item select-all" (click)="toggleAll()">
-                      <div class="reverse-item-toggle">
-                        <input type="checkbox" [checked]="allSelected" class="item-checkbox">
-                        <span class="select-all-text">{{ allSelected ? 'Deselect All' : 'Select All' }}</span>
-                      </div>
-                    </label>
-                    @for (item of selectedSale.items; track item.id) {
-                      <div class="reverse-item" [class.reverse-item-selected]="!!selectedItems[item.id]">
-                        <label class="reverse-item-toggle">
-                          <input type="checkbox" [checked]="!!selectedItems[item.id]" (change)="toggleItem(item.id)" class="item-checkbox">
-                          <div class="reverse-item-info">
-                            <span class="reverse-item-name">{{ item.product_name }}</span>
-                            <span class="reverse-item-detail">{{ item.quantity }} × {{ item.unit_name }} @ GH₵{{ item.unit_price | number:'1.2-2' }}</span>
-                          </div>
-                        </label>
-                        <div class="reverse-item-actions">
-                          @if (selectedItems[item.id]) {
-                            <div class="reverse-qty-control">
-                              <span class="qty-label">Qty:</span>
-                              <input type="number" class="qty-input" 
-                                     min="1" [max]="item.quantity" 
-                                     [(ngModel)]="selectedItems[item.id]" 
-                                     (input)="checkQty(item.id, item.quantity)">
+                    <!-- Item selection -->
+                    <div class="reverse-items">
+                      <label class="reverse-item select-all" (click)="toggleAll()">
+                        <div class="reverse-item-toggle">
+                          <input type="checkbox" [checked]="allSelected" class="item-checkbox">
+                          <span class="select-all-text">{{ allSelected ? 'Deselect All' : 'Select All' }}</span>
+                        </div>
+                      </label>
+                      @for (item of selectedSale.items; track item.id) {
+                        <div class="reverse-item" [class.reverse-item-selected]="!!selectedItems[item.id]">
+                          <label class="reverse-item-toggle">
+                            <input type="checkbox" [checked]="!!selectedItems[item.id]" (change)="toggleItem(item.id)" class="item-checkbox">
+                            <div class="reverse-item-info">
+                              <span class="reverse-item-name">{{ item.product_name }}</span>
+                              <span class="reverse-item-detail">{{ item.quantity }} × {{ item.unit_name }} @ GH₵{{ item.unit_price | number:'1.2-2' }}</span>
                             </div>
-                            <span class="reverse-item-amount">GH₵{{ (item.unit_price * selectedItems[item.id]) | number:'1.2-2' }}</span>
-                          } @else {
-                            <span class="reverse-item-amount">GH₵{{ item.subtotal | number:'1.2-2' }}</span>
-                          }
+                          </label>
+                          <div class="reverse-item-actions">
+                            @if (selectedItems[item.id]) {
+                              <div class="reverse-qty-control">
+                                <span class="qty-label">Qty:</span>
+                                <input type="number" class="qty-input" 
+                                       min="1" [max]="item.quantity" 
+                                       [(ngModel)]="selectedItems[item.id]" 
+                                       (input)="checkQty(item.id, item.quantity)">
+                              </div>
+                              <span class="reverse-item-amount">GH₵{{ (item.unit_price * selectedItems[item.id]) | number:'1.2-2' }}</span>
+                            } @else {
+                              <span class="reverse-item-amount">GH₵{{ item.subtotal | number:'1.2-2' }}</span>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Reversal summary -->
+                    @if (selectedCount > 0) {
+                      <div class="reverse-summary">
+                        <div class="reverse-summary-row">
+                          <span>Items to reverse</span>
+                          <span class="font-bold">{{ selectedCount }} of {{ selectedSale.items.length }}</span>
+                        </div>
+                        <div class="reverse-summary-row">
+                          <span>Revenue to reverse</span>
+                          <span class="text-red font-bold">-GH₵{{ reverseAmount | number:'1.2-2' }}</span>
+                        </div>
+                        <div class="reverse-summary-row">
+                          <span>Cost to reverse</span>
+                          <span class="text-blue">-GH₵{{ reverseCost | number:'1.2-2' }}</span>
+                        </div>
+                        <div class="reverse-summary-row">
+                          <span>Profit impact</span>
+                          <span class="text-red">-GH₵{{ reverseProfit | number:'1.2-2' }}</span>
                         </div>
                       </div>
                     }
-                  </div>
 
-                  <!-- Reversal summary -->
-                  @if (selectedCount > 0) {
-                    <div class="reverse-summary">
-                      <div class="reverse-summary-row">
-                        <span>Items to reverse</span>
-                        <span class="font-bold">{{ selectedCount }} of {{ selectedSale.items.length }}</span>
-                      </div>
-                      <div class="reverse-summary-row">
-                        <span>Revenue to reverse</span>
-                        <span class="text-red font-bold">-GH₵{{ reverseAmount | number:'1.2-2' }}</span>
-                      </div>
-                      <div class="reverse-summary-row">
-                        <span>Cost to reverse</span>
-                        <span class="text-blue">-GH₵{{ reverseCost | number:'1.2-2' }}</span>
-                      </div>
-                      <div class="reverse-summary-row">
-                        <span>Profit impact</span>
-                        <span class="text-red">-GH₵{{ reverseProfit | number:'1.2-2' }}</span>
-                      </div>
+                    <div class="reverse-field">
+                      <label class="reverse-label">Reason for reversal</label>
+                      <input type="text" class="reverse-input" [(ngModel)]="reverseReason" placeholder="e.g. Customer returned items">
                     </div>
-                  }
-
-                  <div class="reverse-field">
-                    <label class="reverse-label">Reason for reversal</label>
-                    <input type="text" class="reverse-input" [(ngModel)]="reverseReason" placeholder="e.g. Customer returned items">
+                    <div class="reverse-actions">
+                      <button class="reverse-cancel" (click)="cancelReverse()">Cancel</button>
+                      <button class="reverse-confirm" [disabled]="reversing || selectedCount === 0" (click)="executeReversal()">
+                        {{ reversing ? 'Reversing...' : 'Reverse Selected' }}
+                      </button>
+                    </div>
                   </div>
-                  <div class="reverse-actions">
-                    <button class="reverse-cancel" (click)="cancelReverse()">Cancel</button>
-                    <button class="reverse-confirm" [disabled]="reversing || selectedCount === 0" (click)="executeReversal()">
-                      {{ reversing ? 'Reversing...' : 'Reverse Selected' }}
-                    </button>
+                }
+              } @else {
+                <div class="reversal-notice" style="margin: 0; background: rgba(248,113,113,0.05); border-color: rgba(248,113,113,0.15);">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <div class="font-bold" style="color: #fca5a5;">Reversal period has expired</div>
+                    <div class="text-sm" style="color: #f87171; opacity: 0.8;">Reversals are only allowed within 24 hours of the original transaction.</div>
                   </div>
                 </div>
               }
@@ -525,6 +537,14 @@ export class RetailSales implements OnInit {
 
   get isAdmin(): boolean {
     return this.authService.currentUser()?.role === 'Admin';
+  }
+
+  canReverse(sale: RetailSale | null): boolean {
+    if (!sale || !sale.created_at) return false;
+    const saleDate = new Date(sale.created_at);
+    const now = new Date();
+    const diffInMs = now.getTime() - saleDate.getTime();
+    return diffInMs < 24 * 60 * 60 * 1000;
   }
 
   presets = [
