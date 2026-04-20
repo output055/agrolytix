@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReportService, FinancialReportData } from '../../../core/services/report.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { AuthService } from '../../../core/services/auth.service';
+
 
 @Component({
   selector: 'app-reports-view',
@@ -72,14 +74,16 @@ import { ToastService } from '../../../core/services/toast.service';
                 <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Revenue</p>
                 <div class="text-2xl font-extrabold" style="color: #f3f4f6;">GH₵{{ formatCurrency(report()?.retail?.revenue) }}</div>
               </div>
-              <div>
-                <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Total Cost</p>
-                <div class="text-xl font-bold" style="color: #d1d5db;">GH₵{{ formatCurrency(report()?.retail?.cost) }}</div>
-              </div>
-              <div>
-                <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Net Profit</p>
-                <div class="text-xl font-bold text-emerald-400">GH₵{{ formatCurrency(report()?.retail?.profit) }}</div>
-              </div>
+              @if (isAdmin) {
+                <div>
+                  <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Total Cost</p>
+                  <div class="text-xl font-bold" style="color: #d1d5db;">GH₵{{ formatCurrency(report()?.retail?.cost) }}</div>
+                </div>
+                <div>
+                  <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Net Profit</p>
+                  <div class="text-xl font-bold text-emerald-400">GH₵{{ formatCurrency(report()?.retail?.profit) }}</div>
+                </div>
+              }
               <div>
                 <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Sales</p>
                 <div class="text-xl font-medium" style="color: #d1d5db;">{{ report()?.retail?.count || 0 }}</div>
@@ -106,14 +110,16 @@ import { ToastService } from '../../../core/services/toast.service';
                 <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Revenue</p>
                 <div class="text-2xl font-extrabold" style="color: #f3f4f6;">GH₵{{ formatCurrency(report()?.wholesale?.revenue) }}</div>
               </div>
-              <div>
-                <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Total Cost</p>
-                <div class="text-xl font-bold" style="color: #d1d5db;">GH₵{{ formatCurrency(report()?.wholesale?.cost) }}</div>
-              </div>
-              <div>
-                <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Net Profit</p>
-                <div class="text-xl font-bold text-blue-400">GH₵{{ formatCurrency(report()?.wholesale?.profit) }}</div>
-              </div>
+              @if (isAdmin) {
+                <div>
+                  <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Total Cost</p>
+                  <div class="text-xl font-bold" style="color: #d1d5db;">GH₵{{ formatCurrency(report()?.wholesale?.cost) }}</div>
+                </div>
+                <div>
+                  <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Net Profit</p>
+                  <div class="text-xl font-bold text-blue-400">GH₵{{ formatCurrency(report()?.wholesale?.profit) }}</div>
+                </div>
+              }
               <div>
                 <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Sales</p>
                 <div class="text-xl font-medium" style="color: #d1d5db;">{{ report()?.wholesale?.count || 0 }}</div>
@@ -140,45 +146,51 @@ import { ToastService } from '../../../core/services/toast.service';
                 <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Amount</p>
                 <div class="text-2xl font-extrabold text-red-100">GH₵{{ formatCurrency(report()?.reversals?.amount) }}</div>
               </div>
-              <div>
-                <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Cost</p>
-                <div class="text-xl font-bold" style="color: #d1d5db;">GH₵{{ formatCurrency(report()?.reversals?.cost) }}</div>
-              </div>
+              @if (isAdmin) {
+                <div>
+                  <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Cost</p>
+                  <div class="text-xl font-bold" style="color: #d1d5db;">GH₵{{ formatCurrency(report()?.reversals?.cost) }}</div>
+                </div>
+              }
               <div>
                 <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Count</p>
                 <div class="text-xl font-medium" style="color: #d1d5db;">{{ report()?.reversals?.count || 0 }}</div>
               </div>
-              <div>
-                <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Impact</p>
-                <div class="text-[10px] font-bold text-red-400 uppercase">Loss of profit</div>
-              </div>
+              @if (isAdmin) {
+                <div>
+                  <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color: #9ca3af;">Impact</p>
+                  <div class="text-[10px] font-bold text-red-400 uppercase">Loss of profit</div>
+                </div>
+              }
             </div>
           </div>
 
           <!-- Total Outstanding Debt -->
-          <div class="col-span-1 md:col-span-2 lg:col-span-3 rounded-3xl p-6 border relative overflow-hidden"
-               style="background: linear-gradient(90deg, rgba(245,158,11,0.05) 0%, rgba(10,21,10,0.95) 100%); border-color: rgba(245,158,11,0.15);">
-             <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                  <div class="flex items-center gap-3 mb-2">
-                    <div class="w-10 h-10 flex items-center justify-center rounded-xl" style="background: rgba(245,158,11,0.1); color: #fbbf24;">
-                      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+          @if (isAdmin) {
+            <div class="col-span-1 md:col-span-2 lg:col-span-3 rounded-3xl p-6 border relative overflow-hidden"
+                 style="background: linear-gradient(90deg, rgba(245,158,11,0.05) 0%, rgba(10,21,10,0.95) 100%); border-color: rgba(245,158,11,0.15);">
+               <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div>
+                    <div class="flex items-center gap-3 mb-2">
+                      <div class="w-10 h-10 flex items-center justify-center rounded-xl" style="background: rgba(245,158,11,0.1); color: #fbbf24;">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <h3 class="text-xl font-bold" style="color: #f0fdf4;">Platform Outstanding Debt</h3>
                     </div>
-                    <h3 class="text-xl font-bold" style="color: #f0fdf4;">Platform Outstanding Debt</h3>
+                    <p class="text-sm ml-14 max-w-sm" style="color: #9ca3af;">
+                      Total active debt across all registered wholesale clients. Engage collection protocols if this number grows too fast.
+                    </p>
                   </div>
-                  <p class="text-sm ml-14 max-w-sm" style="color: #9ca3af;">
-                    Total active debt across all registered wholesale clients. Engage collection protocols if this number grows too fast.
-                  </p>
-                </div>
-                <div class="text-right">
-                  <div class="text-5xl font-extrabold tracking-tight" style="color: #fbbf24; text-shadow: 0 4px 20px rgba(245,158,11,0.2);">
-                    GH₵{{ formatCurrency(report()?.total_outstanding_debt) }}
+                  <div class="text-right">
+                    <div class="text-5xl font-extrabold tracking-tight" style="color: #fbbf24; text-shadow: 0 4px 20px rgba(245,158,11,0.2);">
+                      GH₵{{ formatCurrency(report()?.total_outstanding_debt) }}
+                    </div>
                   </div>
-                </div>
-             </div>
-          </div>
+               </div>
+            </div>
+          }
 
           <!-- Low Stock Products -->
           <div class="col-span-1 lg:col-span-2 rounded-3xl p-6 border" style="background: rgba(10,21,10,0.95); border-color: rgba(255,255,255,0.08);">
@@ -236,11 +248,16 @@ import { ToastService } from '../../../core/services/toast.service';
 export class ReportsView implements OnInit {
   reportService = inject(ReportService);
   toast = inject(ToastService);
+  private authService = inject(AuthService);
 
   loading = signal(true);
   report = signal<FinancialReportData | null>(null);
 
-  selectedPreset = 'last_month';
+  get isAdmin(): boolean {
+    return this.authService.currentUser()?.role === 'Admin';
+  }
+
+  selectedPreset = 'today';
   dateFrom = '';
   dateTo = '';
 

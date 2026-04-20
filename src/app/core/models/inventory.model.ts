@@ -28,5 +28,19 @@ export interface Product {
   updated_at?: string;
 }
 
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  stats?: {
+    total_cost_value: number;
+    total_selling_value: number;
+    low_stock_count: number;
+  };
+}
+
 // Wholesale product essentially shares the exact same schema.
 export interface WholesaleProduct extends Product {}
+

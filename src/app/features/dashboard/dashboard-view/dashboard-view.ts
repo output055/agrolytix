@@ -19,6 +19,11 @@ export class DashboardView implements OnInit {
   stats   = signal<any>(null);
   loading = signal(true);
 
+  get isAdmin(): boolean {
+    return this.auth.currentUser()?.role === 'Admin';
+  }
+
+
   formatCurrency(val: number) {
     return 'GH₵' + (val ?? 0).toLocaleString('en-GH', { minimumFractionDigits: 2 });
   }

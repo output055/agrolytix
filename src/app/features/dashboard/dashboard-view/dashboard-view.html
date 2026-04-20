@@ -29,13 +29,15 @@
         subtitle="Completed retail sales today">
       </app-kpi-card>
 
-      <app-kpi-card
-        label="Retail Profit (Today)"
-        [value]="formatCurrency(stats().retail_profit)"
-        icon="📈"
-        colorRgb="74,222,128"
-        subtitle="Revenue minus cost">
-      </app-kpi-card>
+      @if (isAdmin) {
+        <app-kpi-card
+          label="Retail Profit (Today)"
+          [value]="formatCurrency(stats().retail_profit)"
+          icon="📈"
+          colorRgb="74,222,128"
+          subtitle="Revenue minus cost">
+        </app-kpi-card>
+      }
 
       <app-kpi-card
         label="Wholesale Revenue (Today)"
@@ -45,21 +47,25 @@
         subtitle="Wholesale sales today">
       </app-kpi-card>
 
-      <app-kpi-card
-        label="Wholesale Profit (Today)"
-        [value]="formatCurrency(stats().wholesale_profit)"
-        icon="💹"
-        colorRgb="245,158,11"
-        subtitle="Revenue minus cost">
-      </app-kpi-card>
+      @if (isAdmin) {
+        <app-kpi-card
+          label="Wholesale Profit (Today)"
+          [value]="formatCurrency(stats().wholesale_profit)"
+          icon="💹"
+          colorRgb="245,158,11"
+          subtitle="Revenue minus cost">
+        </app-kpi-card>
+      }
 
-      <app-kpi-card
-        label="Outstanding Debt"
-        [value]="formatCurrency(stats().total_debt)"
-        icon="⚠️"
-        colorRgb="248,113,113"
-        subtitle="Total unpaid wholesale balance">
-      </app-kpi-card>
+      @if (isAdmin) {
+        <app-kpi-card
+          label="Outstanding Debt"
+          [value]="formatCurrency(stats().total_debt)"
+          icon="⚠️"
+          colorRgb="248,113,113"
+          subtitle="Total unpaid wholesale balance">
+        </app-kpi-card>
+      }
 
       <app-kpi-card
         [label]="'Low Stock Products'"

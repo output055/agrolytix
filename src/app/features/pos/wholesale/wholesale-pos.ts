@@ -115,7 +115,10 @@ export class WholesalePos implements OnInit {
 
   loadProducts() {
     this.inventoryService.getWholesaleProducts().subscribe({
-      next: (data) => this.products.set(data),
+      next: (res: any) => {
+        const data = Array.isArray(res) ? res : res.data;
+        this.products.set(data);
+      },
       error: () => this.toastService.show('Failed to load wholesale products', 'error')
     });
   }

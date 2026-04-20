@@ -134,7 +134,7 @@
                 <th>Unit</th>
                 <th class="text-right">Qty Restored</th>
                 <th class="text-right">Unit Price</th>
-                <th class="text-right">Cost</th>
+                @if (isAdmin) { <th class="text-right">Cost</th> }
                 <th class="text-right">Subtotal</th>
               </tr>
             </thead>
@@ -145,7 +145,7 @@
                   <td class="text-muted">{{ item.unit_name }}</td>
                   <td class="text-right text-green font-bold">+{{ item.quantity }}</td>
                   <td class="text-right">GH₵{{ item.unit_price | number:'1.2-2' }}</td>
-                  <td class="text-right text-blue">GH₵{{ item.cost_price | number:'1.2-2' }}</td>
+                  @if (isAdmin) { <td class="text-right text-blue">GH₵{{ item.cost_price | number:'1.2-2' }}</td> }
                   <td class="text-right font-bold">GH₵{{ item.subtotal | number:'1.2-2' }}</td>
                 </tr>
               }
@@ -160,16 +160,18 @@
           <span class="total-label">Revenue Reversed</span>
           <span class="total-value text-red font-bold">-GH₵{{ selectedReversal.amount_reversed | number:'1.2-2' }}</span>
         </div>
-        <div class="total-row">
-          <span class="total-label">Cost Reversed</span>
-          <span class="total-value text-blue">-GH₵{{ selectedReversal.cost_reversed | number:'1.2-2' }}</span>
-        </div>
-        <div class="total-row profit-row">
-          <span class="total-label font-bold">Profit Impact</span>
-          <span class="total-value text-red font-bold">
-            -GH₵{{ (selectedReversal.amount_reversed - selectedReversal.cost_reversed) | number:'1.2-2' }}
-          </span>
-        </div>
+        @if (isAdmin) {
+          <div class="total-row">
+            <span class="total-label">Cost Reversed</span>
+            <span class="total-value text-blue">-GH₵{{ selectedReversal.cost_reversed | number:'1.2-2' }}</span>
+          </div>
+          <div class="total-row profit-row">
+            <span class="total-label font-bold">Profit Impact</span>
+            <span class="total-value text-red font-bold">
+              -GH₵{{ (selectedReversal.amount_reversed - selectedReversal.cost_reversed) | number:'1.2-2' }}
+            </span>
+          </div>
+        }
       </div>
     </div>
   </div>

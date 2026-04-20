@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ReversalService } from '../../../core/services/reversal.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Reversal } from '../../../core/models/reversal.model';
+import { AuthService } from '../../../core/services/auth.service';
+
 
 @Component({
   selector: 'app-reversals-view',
@@ -15,10 +17,16 @@ export class ReversalsView implements OnInit {
   private reversalService = inject(ReversalService);
   private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
+  private authService = inject(AuthService);
+
 
   reversals: Reversal[] = [];
   loading = false;
   selectedReversal: Reversal | null = null;
+
+  get isAdmin(): boolean {
+    return this.authService.currentUser()?.role === 'Admin';
+  }
 
   ngOnInit() {
     this.loadReversals();

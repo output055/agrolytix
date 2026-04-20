@@ -1,10 +1,13 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { InventoryService } from '../../../core/services/inventory.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { WholesaleProduct } from '../../../core/models/inventory.model';
+import { AuthService } from '../../../core/services/auth.service';
+
+import { WholesaleProduct, PaginatedResponse } from '../../../core/models/inventory.model';
 import { ConfirmModal } from '../../../shared/confirm-modal/confirm-modal';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-wholesale-inventory',
@@ -16,33 +19,37 @@ import { ConfirmModal } from '../../../shared/confirm-modal/confirm-modal';
         <h1 class="text-2xl font-bold" style="color: #f0fdf4;">Wholesale Inventory</h1>
         <p class="text-sm" style="color: #9ca3af;">Manage wholesale products, stock levels, and bulk pricing.</p>
       </div>
-      <button (click)="openForm()" 
-              class="px-4 py-2 rounded-xl font-medium transition-colors flex items-center gap-2"
-              style="background: #4ade80; color: #064e3b;">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-        </svg>
-        Add Product
-      </button>
+      @if (isAdmin) {
+        <button (click)="openForm()" 
+                class="px-4 py-2 rounded-xl font-medium transition-colors flex items-center gap-2"
+                style="background: #4ade80; color: #064e3b;">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+          </svg>
+          Add Product
+        </button>
+      }
     </div>
 
     <!-- KPI / Stats Summary -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
       <div class="rounded-2xl p-5 border" style="background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.05);">
         <div class="text-sm font-medium mb-1" style="color: #9ca3af;">Total Products</div>
-        <div class="text-3xl font-bold" style="color: #f0fdf4;">{{ products.length }}</div>
+        <div class="text-3xl font-bold" style="color: #f0fdf4;">{{ overallStats?.total || totalItems }}</div>
       </div>
       <div class="rounded-2xl p-5 border" style="background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.05);">
         <div class="text-sm font-medium mb-1" style="color: #9ca3af;">Low Stock Alerts</div>
-        <div class="text-3xl font-bold" style="color: #f59e0b;">{{ lowStockCount }}</div>
+        <div class="text-3xl font-bold" style="color: #f59e0b;">{{ overallStats?.low_stock_count || 0 }}</div>
       </div>
-      <div class="rounded-2xl p-5 border" style="background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.05);">
-        <div class="text-sm font-medium mb-1" style="color: #9ca3af;">Total Cost Value (GH₵)</div>
-        <div class="text-3xl font-bold" style="color: #60a5fa;">{{ totalCostValue | number:'1.2-2' }}</div>
-      </div>
+      @if (isAdmin) {
+        <div class="rounded-2xl p-5 border" style="background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.05);">
+          <div class="text-sm font-medium mb-1" style="color: #9ca3af;">Total Cost Value (GH₵)</div>
+          <div class="text-3xl font-bold" style="color: #60a5fa;">{{ (overallStats?.total_cost_value || 0) | number:'1.2-2' }}</div>
+        </div>
+      }
       <div class="rounded-2xl p-5 border" style="background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.05);">
         <div class="text-sm font-medium mb-1" style="color: #9ca3af;">Total Selling Value (GH₵)</div>
-        <div class="text-3xl font-bold" style="color: #4ade80;">{{ totalSellingValue | number:'1.2-2' }}</div>
+        <div class="text-3xl font-bold" style="color: #4ade80;">{{ (overallStats?.total_selling_value || 0) | number:'1.2-2' }}</div>
       </div>
     </div>
 
@@ -50,7 +57,8 @@ import { ConfirmModal } from '../../../shared/confirm-modal/confirm-modal';
     <div class="mb-4 flex flex-col sm:flex-row gap-4 justify-between items-center p-2">
       <div class="relative w-full sm:w-96">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-2.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-        <input type="text" placeholder="Search products or categories..." [(ngModel)]="searchTerm"
+        <input type="text" placeholder="Search products or categories..." 
+               (input)="onSearch($event)"
                class="w-full bg-black/20 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-amber-400 transition-colors">
       </div>
     </div>
@@ -68,7 +76,7 @@ import { ConfirmModal } from '../../../shared/confirm-modal/confirm-modal';
                 Category <span *ngIf="sortColumn === 'category'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
               </th>
               <th class="px-6 py-4 font-medium cursor-pointer hover:text-white" (click)="sortBy('sell_price')">
-                Price (GH₵) <span *ngIf="sortColumn === 'sell_price'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                Price <span *ngIf="sortColumn === 'sell_price'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
               </th>
               <th class="px-6 py-4 font-medium cursor-pointer hover:text-white" (click)="sortBy('quantity')">
                 Stock <span *ngIf="sortColumn === 'quantity'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
@@ -80,11 +88,14 @@ import { ConfirmModal } from '../../../shared/confirm-modal/confirm-modal';
             </tr>
           </thead>
           <tbody class="divide-y" style="border-color: rgba(255,255,255,0.05);">
-            @for (product of filteredProducts; track product.id) {
+            @for (product of products; track product.id) {
               <tr class="hover:bg-white/5 transition-colors">
                 <td class="px-6 py-4">
                   <div class="font-medium" style="color: #f0fdf4;">{{ product.name }}</div>
-                  <div class="text-xs mt-1 opacity-70">{{ product.base_unit }} • Cost: GH₵{{ product.cost_price }}</div>
+                  <div class="text-xs mt-1 opacity-70">
+                    {{ product.base_unit }} 
+                    @if (isAdmin) { • Cost: GH₵{{ product.cost_price }} }
+                  </div>
                 </td>
                 <td class="px-6 py-4">
                   <span class="px-2 py-1 rounded text-xs" style="background: rgba(255,255,255,0.1);">
@@ -112,24 +123,63 @@ import { ConfirmModal } from '../../../shared/confirm-modal/confirm-modal';
                     <button (click)="openRestock(product)" title="Restock" class="text-amber-400 hover:text-amber-300 font-medium transition-colors">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </button>
-                    <button (click)="openForm(product)" title="Edit" class="text-blue-400 hover:text-blue-300 font-medium transition-colors">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                    </button>
-                    <button (click)="openDelete(product)" title="Delete" class="text-red-400 hover:text-red-300 font-medium transition-colors">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
+                    @if (isAdmin) {
+                      <button (click)="openForm(product)" title="Edit" class="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                      </button>
+                      <button (click)="openDelete(product)" title="Delete" class="text-red-400 hover:text-red-300 font-medium transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      </button>
+                    }
                   </div>
                 </td>
               </tr>
             } @empty {
               <tr>
                 <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                  No wholesale products found. Click "Add Product" to create one.
+                  No wholesale products found.
                 </td>
               </tr>
             }
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination Footer -->
+      <div class="px-6 py-4 flex items-center justify-between border-t border-white/5 bg-white/5">
+        <div class="text-xs text-gray-400">
+          Showing <span class="text-white">{{ (currentPage - 1) * perPage + 1 }}</span> to 
+          <span class="text-white">{{ Math.min(currentPage * perPage, totalItems) }}</span> of 
+          <span class="text-white">{{ totalItems }}</span> products
+        </div>
+        <div class="flex gap-2">
+          <button (click)="changePage(currentPage - 1)" 
+                  [disabled]="currentPage === 1"
+                  class="p-2 rounded-lg bg-black/20 text-gray-400 hover:text-white disabled:opacity-30 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          
+          <div class="flex items-center gap-1">
+            @for (p of [].constructor(lastPage); track i; let i = $index) {
+              @if (i + 1 === 1 || i + 1 === lastPage || (i + 1 >= currentPage - 1 && i + 1 <= currentPage + 1)) {
+                <button (click)="changePage(i + 1)"
+                      [class.bg-green-500]="currentPage === i + 1"
+                      [class.text-green-950]="currentPage === i + 1"
+                      class="w-8 h-8 rounded-lg text-xs font-bold transition-all hover:bg-green-500/20">
+                  {{ i + 1 }}
+                </button>
+              } @else if (i + 1 === 2 || i + 1 === lastPage - 1) {
+                <span class="px-1 text-gray-600">...</span>
+              }
+            }
+          </div>
+
+          <button (click)="changePage(currentPage + 1)" 
+                  [disabled]="currentPage === lastPage"
+                  class="p-2 rounded-lg bg-black/20 text-gray-400 hover:text-white disabled:opacity-30 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -296,12 +346,14 @@ import { ConfirmModal } from '../../../shared/confirm-modal/confirm-modal';
     </app-confirm-modal>
   `
 })
-export class WholesaleInventory implements OnInit {
+export class WholesaleInventory implements OnInit, OnDestroy {
   private inventoryService = inject(InventoryService);
   private toastService = inject(ToastService);
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
+  private authService = inject(AuthService);
 
+  Math = Math;
   products: WholesaleProduct[] = [];
   selectedProduct: WholesaleProduct | null = null;
   
@@ -309,31 +361,16 @@ export class WholesaleInventory implements OnInit {
   sortColumn: keyof WholesaleProduct | '' = '';
   sortDirection: 'asc' | 'desc' = 'asc';
 
-  get filteredProducts(): WholesaleProduct[] {
-    let result = this.products;
+  // Pagination state
+  currentPage = 1;
+  totalItems = 0;
+  perPage = 10;
+  lastPage = 1;
+  overallStats: any = null;
 
-    if (this.searchTerm) {
-      const term = this.searchTerm.toLowerCase();
-      result = result.filter(p => 
-        p.name.toLowerCase().includes(term) ||
-        (p.category || '').toLowerCase().includes(term)
-      );
-    }
+  private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
-    if (this.sortColumn) {
-      result = [...result].sort((a, b) => {
-        const valA = a[this.sortColumn as keyof WholesaleProduct] || '';
-        const valB = b[this.sortColumn as keyof WholesaleProduct] || '';
-        
-        if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
-        if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-
-    return result;
-  }
-  
   showFormModal = false;
   showRestockModal = false;
   showDeleteModal = false;
@@ -346,20 +383,12 @@ export class WholesaleInventory implements OnInit {
     return !!this.selectedProduct;
   }
 
-  get totalCostValue(): number {
-    return this.products.reduce((sum, p) => sum + (p.quantity * p.cost_price), 0);
-  }
-
-  get totalSellingValue(): number {
-    return this.products.reduce((sum, p) => sum + (p.quantity * p.sell_price), 0);
-  }
-
-  get lowStockCount(): number {
-    return this.products.filter(p => this.isLowStock(p)).length;
-  }
-
   get units(): FormArray {
     return this.productForm.get('units') as FormArray;
+  }
+
+  get isAdmin(): boolean {
+    return this.authService.currentUser()?.role === 'Admin';
   }
 
   constructor() {
@@ -374,20 +403,60 @@ export class WholesaleInventory implements OnInit {
       low_stock_alert: [50],
       units: this.fb.array([])
     });
+
+    this.searchSubject.pipe(
+      debounceTime(400),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(term => {
+      this.searchTerm = term;
+      this.currentPage = 1;
+      this.loadProducts();
+    });
   }
 
   ngOnInit() {
     this.loadProducts();
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  onSearch(event: any) {
+    this.searchSubject.next(event.target.value);
+  }
+
   loadProducts() {
-    this.inventoryService.getWholesaleProducts().subscribe({
-      next: (data) => {
-        this.products = data;
+    const params = {
+      paginate: 1,
+      page: this.currentPage,
+      per_page: this.perPage,
+      search: this.searchTerm,
+      sort_column: this.sortColumn,
+      sort_direction: this.sortDirection
+    };
+
+    this.inventoryService.getWholesaleProducts(params).subscribe({
+      next: (res: any) => {
+        const paginated = res as PaginatedResponse<WholesaleProduct>;
+        this.products = paginated.data;
+        this.totalItems = paginated.total;
+        this.currentPage = paginated.current_page;
+        this.lastPage = paginated.last_page;
+        this.overallStats = paginated.stats;
         this.cdr.detectChanges();
       },
       error: () => this.toastService.error('Failed to load wholesale products')
     });
+  }
+
+  changePage(page: number) {
+    if (page >= 1 && page <= this.lastPage) {
+      this.currentPage = page;
+      this.loadProducts();
+    }
   }
 
   isLowStock(product: WholesaleProduct): boolean {
@@ -401,6 +470,7 @@ export class WholesaleInventory implements OnInit {
       this.sortColumn = column;
       this.sortDirection = 'asc';
     }
+    this.loadProducts();
   }
 
   // --- Form Actions ---
@@ -512,7 +582,7 @@ export class WholesaleInventory implements OnInit {
     this.inventoryService.deleteWholesaleProduct(this.selectedProduct.id).subscribe({
       next: () => {
         this.toastService.success('Wholesale product deleted');
-        this.products = this.products.filter(p => p.id !== this.selectedProduct!.id);
+        this.loadProducts();
         this.closeDelete();
       },
       error: () => {
@@ -522,3 +592,4 @@ export class WholesaleInventory implements OnInit {
     });
   }
 }
+

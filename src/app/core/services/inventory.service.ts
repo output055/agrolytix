@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Product, WholesaleProduct } from '../models/inventory.model';
+import { Product, WholesaleProduct, PaginatedResponse } from '../models/inventory.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -14,8 +14,16 @@ export class InventoryService {
 
   // --- Retail Inventory ---
 
-  getRetailProducts(): Observable<Product[]> {
-    return this.http.get<Product[]>(`${this.apiUrl}/products`);
+  getRetailProducts(params?: any): Observable<Product[] | PaginatedResponse<Product>> {
+    let httpParams = new HttpParams();
+    if (params) {
+      Object.keys(params).forEach(key => {
+        if (params[key] !== undefined && params[key] !== null) {
+          httpParams = httpParams.set(key, String(params[key]));
+        }
+      });
+    }
+    return this.http.get<any>(`${this.apiUrl}/products`, { params: httpParams });
   }
 
   getRetailProduct(id: number): Observable<Product> {
@@ -40,9 +48,18 @@ export class InventoryService {
 
   // --- Wholesale Inventory ---
 
-  getWholesaleProducts(): Observable<WholesaleProduct[]> {
-    return this.http.get<WholesaleProduct[]>(`${this.apiUrl}/wholesale-products`);
+  getWholesaleProducts(params?: any): Observable<WholesaleProduct[] | PaginatedResponse<WholesaleProduct>> {
+    let httpParams = new HttpParams();
+    if (params) {
+      Object.keys(params).forEach(key => {
+        if (params[key] !== undefined && params[key] !== null) {
+          httpParams = httpParams.set(key, String(params[key]));
+        }
+      });
+    }
+    return this.http.get<any>(`${this.apiUrl}/wholesale-products`, { params: httpParams });
   }
+
 
   getWholesaleProduct(id: number): Observable<WholesaleProduct> {
     return this.http.get<WholesaleProduct>(`${this.apiUrl}/wholesale-products/${id}`);
