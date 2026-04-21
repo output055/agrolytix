@@ -146,6 +146,17 @@
         Reversals
       </a>
       }
+
+      <!-- Expenses: visible to all authenticated users -->
+      <a routerLink="/expenses" (click)="layoutService.closeSidebar()"
+         routerLinkActive="nav-active-amber"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+        <svg class="h-5 w-5 nav-icon-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+        Expenses
+      </a>
     }
 
     <!-- Admin Only Section -->
@@ -182,6 +193,19 @@
         Reports
       </a>
     }
+
+    <!-- Help Section -->
+    <div class="px-4 py-2 mt-4 text-[10px] font-bold uppercase tracking-widest" style="color: #4b5563;">Support</div>
+    
+    <a routerLink="/help" (click)="layoutService.closeSidebar()"
+       routerLinkActive="nav-active-green"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+      <svg class="h-5 w-5 nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      User Guide
+    </a>
 
   </nav>
 

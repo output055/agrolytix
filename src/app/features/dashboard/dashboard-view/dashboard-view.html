@@ -67,6 +67,16 @@
         </app-kpi-card>
       }
 
+      @if (isAdmin) {
+        <app-kpi-card
+          label="Expenses (Today)"
+          [value]="formatCurrency(stats().today_expenses)"
+          icon="💸"
+          colorRgb="251,146,60"
+          subtitle="Total recorded expenses today">
+        </app-kpi-card>
+      }
+
       <app-kpi-card
         [label]="'Low Stock Products'"
         [value]="stats().low_stock_count.toString()"

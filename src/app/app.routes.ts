@@ -56,6 +56,14 @@ export const routes: Routes = [
         canActivate: [adminGuard],
         loadChildren: () => import('./features/reports/reports.routes').then(m => m.REPORTS_ROUTES)
       },
+      {
+        path: 'expenses',
+        loadChildren: () => import('./features/expenses/expenses.routes').then(m => m.EXPENSES_ROUTES)
+      },
+      {
+        path: 'help',
+        loadComponent: () => import('./features/help/help-view/help-view').then(m => m.HelpView)
+      },
     ]
   },
   { path: '**', redirectTo: 'dashboard' }

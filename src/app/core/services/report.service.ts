@@ -10,6 +10,7 @@ export interface FinancialReportData {
   reversals: { count: number; amount: string; cost: string } | null;
   total_outstanding_debt: string;
   low_stock_products: any[];
+  expenses: { total: number; count: number; by_category: any[] };
 }
 
 @Injectable({ providedIn: 'root' })
