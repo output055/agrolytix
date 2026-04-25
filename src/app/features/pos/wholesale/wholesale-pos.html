@@ -1,278 +1,349 @@
-<div class="h-[calc(100vh-4rem)] flex flex-col lg:flex-row gap-6 p-4 md:p-6 overflow-hidden">
-  
-  <!-- Left Side: Product Grid -->
-  <div class="flex-1 flex flex-col overflow-hidden bg-[#0a110a]/80 rounded-2xl border border-green-900/30 backdrop-blur-xl">
-    
+<div class="h-[calc(100vh-4rem)] flex flex-col lg:flex-row gap-4 p-3 md:p-5 overflow-hidden relative">
+
+  <!-- ══ LEFT: Product Grid ══════════════════════════════════════════════ -->
+  <div class="flex-1 flex flex-col overflow-hidden rounded-2xl border agro-glass" style="border-color:rgba(245,158,11,0.1)">
+
     <!-- Header & Search -->
-    <div class="p-5 border-b border-green-900/40 shrink-0">
-      <div class="flex items-center justify-between gap-4 mb-4">
-        <h2 class="text-2xl font-bold text-green-50">Wholesale POS</h2>
-        <span class="px-3 py-1 bg-green-500/10 text-green-400 rounded-full text-sm font-medium border border-green-500/20">
-          {{ filteredProducts().length }} items
-        </span>
+    <div class="p-4 md:p-5 border-b shrink-0" style="border-color:rgba(255,255,255,0.06);background:rgba(0,0,0,0.2)">
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <div>
+          <h2 class="text-xl md:text-2xl font-black" style="color:#f0fdf4">Wholesale POS</h2>
+          <p class="text-xs mt-0.5" style="color:#6b7280">{{ filteredProducts().length }} wholesale products available</p>
+        </div>
+        <span class="agro-badge agro-badge-amber text-xs">{{ filteredProducts().length }} items</span>
       </div>
-      
-      <div class="relative">
-        <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-green-500/60" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+
+      <!-- Search input -->
+      <div class="relative mb-3">
+        <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style="color:#6b7280" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
         </svg>
-        <input 
-          type="text" 
-          [ngModel]="searchQuery()" 
-          (ngModelChange)="searchQuery.set($event)"
-          placeholder="Search wholesale products..." 
-          class="w-full bg-[#050a05] text-green-50 border border-green-900/50 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 transition-all placeholder-green-900"
-        >
+        <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+               placeholder="Search wholesale products..." class="agro-input pl-9 text-sm"
+               style="border-color: rgba(245,158,11,0.3)"/>
+      </div>
+
+      <!-- Category chips -->
+      <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
+        <button *ngFor="let cat of categories()" (click)="selectedCategory.set(cat)"
+                class="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide transition-all duration-150 border whitespace-nowrap"
+                [style.background]="selectedCategory() === cat ? '#f59e0b' : 'transparent'"
+                [style.color]="selectedCategory() === cat ? '#1c1100' : '#9ca3af'"
+                [style.border-color]="selectedCategory() === cat ? '#f59e0b' : 'rgba(255,255,255,0.08)'">
+          {{ cat }}
+        </button>
       </div>
     </div>
 
-    <!-- Grid -->
-    <div class="p-5 overflow-y-auto flex-1 custom-scroll grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 content-start">
-      <div *ngFor="let product of filteredProducts()" 
+    <!-- Product Grid -->
+    <div class="flex-1 overflow-y-auto custom-scrollbar p-3 md:p-4 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 content-start">
+      <div *ngFor="let product of filteredProducts()"
            (click)="openProductSelection(product)"
-           class="group relative bg-[#050a05] rounded-xl border border-green-900/30 p-4 cursor-pointer hover:border-green-500/50 transition-all duration-300 hover:shadow-[0_0_15px_rgba(74,222,128,0.1)] flex flex-col justify-between"
-           [class.opacity-50]="product.quantity <= 0">
-        
-        <div class="absolute top-2 right-2 flex flex-col items-end gap-1">
-          <span *ngIf="getSalesCount(product) > 0" class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/20">
-            🔥 {{ getSalesCount(product) }} sold
+           class="pos-product-card agro-fade-in group"
+           [class.out-of-stock]="product.quantity <= 0"
+           onmouseover="this.style.borderColor='rgba(245,158,11,0.3)'"
+           onmouseout="this.style.borderColor='rgba(255,255,255,0.06)'">
+
+        <!-- Badges -->
+        <div class="absolute top-2 right-2 flex flex-col items-end gap-1 z-10">
+          <span *ngIf="getSalesCount(product) > 0"
+                class="text-[9px] font-black px-1.5 py-0.5 rounded-full border"
+                style="background:rgba(251,146,60,0.1);color:#fb923c;border-color:rgba(251,146,60,0.2)">
+            🔥 {{ getSalesCount(product) }}
           </span>
-          <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full"
-                [ngClass]="product.quantity > product.low_stock_alert ? 'bg-green-500/10 text-green-400' : (product.quantity > 0 ? 'bg-amber-500/10 text-amber-400' : 'bg-red-500/10 text-red-500')">
-            {{ product.quantity > 0 ? product.quantity + ' ' + product.base_unit : 'Out of stock' }}
+          <span class="text-[9px] uppercase font-black px-2 py-0.5 rounded-full"
+                [style.background]="product.quantity > product.low_stock_alert ? 'rgba(74,222,128,0.1)' : product.quantity > 0 ? 'rgba(245,158,11,0.1)' : 'rgba(248,113,113,0.1)'"
+                [style.color]="product.quantity > product.low_stock_alert ? '#4ade80' : product.quantity > 0 ? '#f59e0b' : '#f87171'">
+            {{ product.quantity > 0 ? product.quantity + ' ' + product.base_unit : 'Out' }}
           </span>
         </div>
 
-        <div>
-          <div class="w-12 h-12 bg-green-900/20 rounded-lg flex items-center justify-center mb-3 text-green-500 border border-green-500/10 group-hover:bg-green-500/20 transition-colors">
-            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-          </div>
-          <h3 class="text-green-50 font-medium line-clamp-2 text-sm mb-1 group-hover:text-green-400 transition-colors">{{ product.name }}</h3>
-          <p class="text-green-900/70 text-xs mb-3">{{ product.category }}</p>
+        <!-- Icon -->
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-2 transition-colors duration-150"
+             style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.1)">
+          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+          </svg>
         </div>
-        
-        <div class="text-lg font-bold text-amber-400 mt-auto">
-          GH₵{{ product.sell_price | number:'1.2-2' }}
+
+        <!-- Name + Category -->
+        <div class="flex-1">
+          <h3 class="font-bold text-sm leading-tight line-clamp-2 mb-0.5 transition-colors truncate"
+              [style.color]="product.quantity > 0 ? '#f0fdf4' : '#6b7280'">{{ product.name }}</h3>
+          <p class="text-[10px] uppercase tracking-wide" style="color:#4b5563">{{ product.category }}</p>
         </div>
+
+        <!-- Price -->
+        <div class="text-base font-black mt-2" style="color:#f59e0b">GH₵{{ product.sell_price | number:'1.2-2' }}</div>
       </div>
-      
-      <div *ngIf="filteredProducts().length === 0" class="col-span-full py-12 flex flex-col items-center justify-center text-green-900/60">
-        <svg class="w-16 h-16 mb-4 opacity-50" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+
+      <!-- Empty state -->
+      <div *ngIf="filteredProducts().length === 0" class="col-span-full py-16 flex flex-col items-center justify-center">
+        <svg class="w-14 h-14 mb-4" style="color:#374151" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
         </svg>
-        <p>No products found</p>
+        <p class="font-medium" style="color:#6b7280">No wholesale products found</p>
+        <p class="text-sm mt-1" style="color:#4b5563">Try a different search or category</p>
       </div>
     </div>
   </div>
 
-  <!-- Right Side: Cart & Client Selection -->
-  <div class="w-full lg:w-96 flex flex-col overflow-hidden bg-[#050a05] rounded-2xl border border-amber-900/30 backdrop-blur-xl shrink-0">
-    <div class="p-5 border-b border-amber-900/20 bg-amber-900/5">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-xl font-bold text-amber-50">Wholesale Order</h3>
-        <button *ngIf="cart().length > 0" (click)="clearCart()" class="text-xs text-amber-500 hover:text-amber-400 uppercase tracking-widest font-bold transition-colors">
-          Clear All
+  <!-- ══ RIGHT: Cart (Desktop) ════════════════════════════════════════════ -->
+  <div class="hidden lg:flex w-96 flex-col rounded-2xl border agro-glass shrink-0 overflow-hidden" style="border-color:rgba(245,158,11,0.15)">
+    <ng-container *ngTemplateOutlet="cartPanel"></ng-container>
+  </div>
+
+  <!-- ══ FAB — Mobile Cart Toggle ════════════════════════════════════════ -->
+  <button class="lg:hidden flex items-center justify-center pos-fab" (click)="toggleMobileCart()" aria-label="Open cart">
+    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+    </svg>
+    <span *ngIf="cart().length > 0" class="pos-fab-badge">{{ cart().length }}</span>
+  </button>
+
+  <!-- ══ Mobile Cart Sheet ════════════════════════════════════════════════ -->
+  @if (showMobileCart()) {
+    <div class="lg:hidden pos-sheet-overlay" (click)="closeMobileCart()"></div>
+    <div class="lg:hidden pos-sheet">
+      <div class="pos-sheet-handle"></div>
+      <div class="flex items-center justify-between px-5 py-3 shrink-0">
+        <h3 class="text-lg font-black" style="color:#f0fdf4">Wholesale Order</h3>
+        <button (click)="closeMobileCart()" class="w-8 h-8 flex items-center justify-center rounded-full transition-colors" style="color:#6b7280;background:rgba(255,255,255,0.05)">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
+      <ng-container *ngTemplateOutlet="cartPanel"></ng-container>
+    </div>
+  }
+</div>
 
-      <!-- Client Selection -->
-      <div class="relative">
-        <select 
-          [ngModel]="selectedClientId()" 
-          (ngModelChange)="selectedClientId.set($event)"
-          class="w-full bg-[#0a110a] text-green-50 border border-green-900/50 rounded-xl px-4 py-3 focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 transition-all appearance-none">
-          <option [ngValue]="null" disabled selected>Select a Client...</option>
-          <option *ngFor="let client of clients()" [ngValue]="client.id">
-            {{ client.name }} {{ client.total_debt > 0 ? '(Debt: GH₵' + client.total_debt + ')' : '' }}
-          </option>
-        </select>
-        <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-green-500/60">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<!-- ══ CART PANEL TEMPLATE ═════════════════════════════════════════════════ -->
+<ng-template #cartPanel>
+  <!-- Header -->
+  <div class="p-4 md:p-5 border-b shrink-0 hidden lg:flex items-center justify-between" style="border-color:rgba(255,255,255,0.06);background:rgba(0,0,0,0.15)">
+    <div>
+      <h3 class="text-lg font-black" style="color:#f0fdf4">Wholesale Order</h3>
+      <p class="text-xs mt-0.5" style="color:#6b7280">{{ cart().length }} item{{ cart().length !== 1 ? 's' : '' }}</p>
+    </div>
+    <button *ngIf="cart().length > 0" (click)="clearCart()"
+            class="text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg transition-all"
+            style="color:#f87171;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.15)">
+      Clear
+    </button>
+  </div>
+
+  <!-- Client Selection -->
+  <div class="p-3 border-b shrink-0" style="border-color:rgba(255,255,255,0.06);background:rgba(245,158,11,0.03)">
+    <label class="text-[10px] font-bold uppercase tracking-widest mb-2 block" style="color:#9ca3af">Select Client</label>
+    <div class="relative">
+      <select [ngModel]="selectedClientId()" (ngModelChange)="selectedClientId.set($event)"
+              class="w-full bg-[#0a110a] text-[#f0fdf4] border rounded-xl px-3 py-2.5 focus:outline-none transition-all appearance-none text-sm"
+              style="border-color:rgba(255,255,255,0.1)">
+        <option [ngValue]="null" disabled selected>Choose a Client...</option>
+        <option *ngFor="let client of clients()" [ngValue]="client.id">
+          {{ client.name }} {{ client.total_debt > 0 ? '(Debt: GH₵' + client.total_debt + ')' : '' }}
+        </option>
+      </select>
+      <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none" style="color:#6b7280">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Items -->
+  <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
+    <!-- Empty cart -->
+    <div *ngIf="cart().length === 0" class="h-32 flex flex-col items-center justify-center text-center p-4">
+      <svg class="w-10 h-10 mb-3" style="color:#374151" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+      </svg>
+      <p class="font-medium text-sm" style="color:#6b7280">Order is empty</p>
+    </div>
+
+    <!-- Cart items -->
+    <div *ngFor="let item of cart()" class="p-3 rounded-xl border agro-fade-in" style="background:rgba(0,0,0,0.2);border-color:rgba(255,255,255,0.06)">
+      <div class="flex justify-between items-start mb-2.5">
+        <div class="flex-1 min-w-0 mr-2">
+          <div class="text-sm font-semibold leading-tight truncate" style="color:#f0fdf4">{{ item.name }}</div>
+          <div class="text-[10px] uppercase tracking-wide mt-0.5" style="color:#6b7280">{{ item.unit_name }}</div>
+        </div>
+        <button (click)="removeFromCart(item.cart_id)"
+                class="w-7 h-7 flex items-center justify-center rounded-lg transition-all shrink-0"
+                style="color:#6b7280;background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.1)">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="flex items-center justify-between">
+        <!-- Qty controls -->
+        <div class="flex items-center gap-1.5">
+          <button (click)="decreaseCartItemQty(item.cart_id)" class="qty-btn" onmouseover="this.style.borderColor='rgba(245,158,11,0.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
+          </button>
+          <span class="w-8 text-center font-black text-sm" style="color:#f0fdf4">{{ item.quantity }}</span>
+          <button (click)="increaseCartItemQty(item.cart_id)" class="qty-btn" onmouseover="this.style.borderColor='rgba(245,158,11,0.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          </button>
+        </div>
+        <!-- Subtotal -->
+        <div class="text-right">
+          <div class="font-black text-sm" style="color:#f0fdf4">GH₵{{ (item.unit_price * item.quantity) | number:'1.2-2' }}</div>
+          <div class="text-[10px]" style="color:#6b7280">@ GH₵{{ item.unit_price | number:'1.2-2' }}</div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Cart Items -->
-    <div class="flex-1 overflow-y-auto custom-scroll p-2">
-      <div *ngIf="cart().length === 0" class="h-full flex flex-col items-center justify-center text-amber-900/60 p-6 text-center">
-        <svg class="w-16 h-16 mb-4 opacity-30" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-        </svg>
-        <p>Order is empty.<br>Select products to begin.</p>
-      </div>
-
-      <div *ngFor="let item of cart()" class="p-3 mb-2 bg-[#0a110a] rounded-xl border border-green-900/20 flex flex-col gap-2">
-        <div class="flex justify-between items-start">
-          <div>
-            <div class="text-sm font-medium text-green-50 leading-tight">{{ item.name }}</div>
-            <div class="text-[10px] text-green-500/60 uppercase tracking-wide mt-0.5">{{ item.unit_name }}</div>
-          </div>
-          <button (click)="removeFromCart(item.cart_id)" class="text-red-500/60 hover:text-red-400 p-1 rounded-md hover:bg-red-500/10 transition-colors">
-            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
-        </div>
-        
-        <div class="flex items-center justify-between mt-2">
-          <div class="flex items-center gap-2 bg-[#050a05] border border-green-900/30 rounded-lg p-0.5">
-            <button (click)="decreaseCartItemQty(item.cart_id)" class="w-6 h-6 flex items-center justify-center text-green-500 hover:bg-green-500/10 rounded transition-colors">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
-            </button>
-            <span class="text-xs font-bold w-4 text-center text-green-50">{{ item.quantity }}</span>
-            <button (click)="increaseCartItemQty(item.cart_id)" class="w-6 h-6 flex items-center justify-center text-green-500 hover:bg-green-500/10 rounded transition-colors">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-            </button>
-          </div>
-          <div class="text-right">
-             <div class="font-bold text-white mb-0.5">GH₵{{ (item.unit_price * item.quantity) | number:'1.2-2' }}</div>
-             <div class="text-[10px] text-green-900/60 font-medium leading-none">GH₵{{ item.unit_price | number:'1.2-2' }}/ea</div>
-          </div>
-        </div>
+  <!-- Checkout Footer -->
+  <div class="p-3 md:p-4 border-t shrink-0" style="border-color:rgba(255,255,255,0.06);background:rgba(0,0,0,0.15)">
+    <!-- Payment method -->
+    <div class="mb-3">
+      <label class="text-[10px] font-bold uppercase tracking-widest mb-1.5 block" style="color:#9ca3af">Payment Method</label>
+      <div class="flex gap-2 p-1 rounded-xl border" style="background:rgba(0,0,0,0.2);border-color:rgba(255,255,255,0.06)">
+        <button *ngFor="let method of paymentMethods" (click)="paymentMethod.set(method)"
+                class="flex-1 py-2 text-xs font-bold rounded-lg transition-all"
+                [style.background]="paymentMethod() === method ? 'rgba(245,158,11,0.15)' : 'transparent'"
+                [style.color]="paymentMethod() === method ? '#f59e0b' : '#6b7280'"
+                [style.border]="paymentMethod() === method ? '1px solid rgba(245,158,11,0.25)' : '1px solid transparent'">
+          {{ method }}
+        </button>
       </div>
     </div>
 
-    <!-- Cart Footer (Payment & Checkout) -->
-    <div class="p-5 border-t border-amber-900/20 bg-amber-900/5">
-      <!-- Payment Method -->
-      <div class="mb-4">
-        <label class="text-xs font-medium text-amber-50/70 mb-2 block">Payment Method</label>
-        <div class="flex gap-2 bg-[#050a05] p-1 rounded-xl border border-amber-900/40">
-          <button 
-            *ngFor="let method of paymentMethods"
-            (click)="paymentMethod.set(method)"
-            class="flex-1 py-2 text-sm font-bold rounded-lg transition-all"
-            [ngClass]="paymentMethod() === method ? 'bg-amber-500/20 text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.1)]' : 'text-green-900/60 hover:text-amber-50/80 hover:bg-amber-500/5'">
-            {{ method }}
-          </button>
-        </div>
-      </div>
+    <!-- MoMo input -->
+    <div *ngIf="paymentMethod() === 'MoMo'" class="mb-3">
+      <label class="text-[10px] font-bold uppercase tracking-widest mb-1.5 block" style="color:#9ca3af">MoMo Number</label>
+      <input type="text" [ngModel]="momoNumber()" (ngModelChange)="momoNumber.set($event)"
+             placeholder="e.g. 024XXXXXXX" class="agro-input py-2 text-sm" style="border-color:rgba(245,158,11,0.3)"/>
+    </div>
 
-      <!-- MoMo Number Input -->
-      <div *ngIf="paymentMethod() === 'MoMo'" class="mb-4">
-        <label class="text-xs font-medium text-amber-50/70 mb-2 block">Mobile Money Number</label>
-        <div class="relative">
-          <input 
-            type="text" 
-            [ngModel]="momoNumber()" 
-            (ngModelChange)="momoNumber.set($event)"
-            placeholder="e.g. 024XXXXXXX" 
-            class="w-full bg-[#050a05] text-amber-50 border border-amber-900/50 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all placeholder-amber-900/50">
-        </div>
+    <div class="flex items-center justify-between mb-3 text-sm px-1">
+      <span style="color:#9ca3af">Total Amount</span>
+      <span class="font-black text-lg" style="color:#f59e0b">GH₵{{ cartTotal() | number:'1.2-2' }}</span>
+    </div>
+    
+    <!-- Payment Input -->
+    <div class="mb-3">
+      <div class="flex justify-between items-end mb-1">
+        <label class="text-[10px] font-bold uppercase tracking-widest" style="color:#4ade80">Amount Paid (GH₵)</label>
+        <button (click)="setFullPayment()" class="text-[9px] uppercase font-bold tracking-widest px-2 py-0.5 rounded transition-colors"
+                style="color:#f59e0b;background:rgba(245,158,11,0.1)">
+          Pay Full
+        </button>
       </div>
+      <input type="number" [ngModel]="amountPaidRaw()" (ngModelChange)="amountPaidRaw.set($event)"
+             placeholder="0.00" min="0"
+             class="w-full bg-[#0a110a] text-white border rounded-lg px-3 py-2 text-right focus:outline-none transition-all font-bold text-sm"
+             style="border-color:rgba(74,222,128,0.3)">
+    </div>
 
-      <div class="flex items-center justify-between mb-3 text-sm">
-        <span class="text-amber-50/70">Total Amount</span>
-        <span class="font-bold text-amber-400">GH₵{{ cartTotal() | number:'1.2-2' }}</span>
-      </div>
-      
-      <!-- Payment Input -->
-      <div class="mb-4">
-        <div class="flex justify-between items-end mb-1">
-          <label class="text-xs font-medium text-green-500/80">Amount Paid (GH₵)</label>
-          <button (click)="setFullPayment()" class="text-[10px] uppercase font-bold tracking-wider text-amber-500 hover:text-amber-400 transition-colors p-1 bg-amber-500/10 rounded">
-            Pay Full
-          </button>
-        </div>
-        <input 
-          type="number" 
-          [ngModel]="amountPaidRaw()" 
-          (ngModelChange)="amountPaidRaw.set($event)"
-          placeholder="0.00" 
-          min="0"
-          class="w-full bg-[#0a110a] text-white border border-green-900/50 rounded-lg px-3 py-2 text-right focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 transition-all font-bold">
-      </div>
+    <!-- Debt Display -->
+    <div class="flex items-center justify-between mb-4 pb-2 border-b text-xs" style="border-color:rgba(255,255,255,0.05)">
+      <span class="font-medium" style="color:#f87171">Debt to Record</span>
+      <span class="font-bold border px-1.5 py-0.5 rounded" style="color:#f87171;background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.2)">
+        GH₵{{ computedDebt() | number:'1.2-2' }}
+      </span>
+    </div>
 
-      <!-- Debt Display -->
-      <div class="flex items-center justify-between mb-6 pb-3 border-b border-white/5 text-sm">
-        <span class="text-red-400/80 font-medium">Debt to Record</span>
-        <span class="font-bold border border-red-500/20 bg-red-500/10 text-red-400 px-2 py-0.5 rounded">GH₵{{ computedDebt() | number:'1.2-2' }}</span>
-      </div>
+    <!-- Checkout button -->
+    <button [disabled]="cart().length === 0 || !selectedClientId() || isCheckingOut()"
+            (click)="checkout()"
+            class="agro-btn agro-btn-amber agro-btn-lg w-full justify-center py-3"
+            [style.opacity]="cart().length === 0 || !selectedClientId() ? '0.4' : '1'"
+            [style.cursor]="cart().length === 0 || !selectedClientId() ? 'not-allowed' : 'pointer'">
+      <svg *ngIf="isCheckingOut()" class="w-5 h-5 shrink-0" style="animation:spin 0.8s linear infinite" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="60" stroke-dashoffset="15" opacity="0.3"/>
+        <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+      <svg *ngIf="!isCheckingOut()" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      {{ isCheckingOut() ? 'Processing...' : 'Complete Wholesale' }}
+    </button>
+  </div>
+</ng-template>
 
-      <button 
-        [disabled]="cart().length === 0 || !selectedClientId() || isCheckingOut()"
-        (click)="checkout()"
-        class="w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2"
-        [ngClass]="(cart().length > 0 && selectedClientId() && !isCheckingOut()) ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-[0_0_20px_rgba(245,158,11,0.2)]' : 'bg-[#0a110a] text-amber-900/50 border border-amber-900/30 cursor-not-allowed'">
-        
-        <svg *ngIf="isCheckingOut()" class="animate-spin h-5 w-5 mr-3 border-2 border-amber-900/50 border-t-amber-500 rounded-full" viewBox="0 0 24 24"></svg>
-        <span>{{ isCheckingOut() ? 'Processing...' : 'Complete Wholesale' }}</span>
+<!-- ══ UNIT SELECTION MODAL ════════════════════════════════════════════════ -->
+<div *ngIf="selectedProduct()" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.7);backdrop-filter:blur(8px)">
+  <div class="w-full max-w-sm rounded-2xl border overflow-hidden agro-scale-in" style="background:#0d1a0d;border-color:rgba(245,158,11,0.15)" (click)="$event.stopPropagation()">
+
+    <!-- Modal header -->
+    <div class="px-5 py-4 border-b flex items-center justify-between" style="border-color:rgba(255,255,255,0.06);background:rgba(0,0,0,0.2)">
+      <div>
+        <h3 class="font-black text-base" style="color:#f0fdf4">{{ selectedProduct()?.name }}</h3>
+        <p class="text-xs mt-0.5" style="color:#6b7280">Select unit & quantity</p>
+      </div>
+      <button (click)="closeProductSelection()" class="w-8 h-8 flex items-center justify-center rounded-full transition-colors" style="color:#6b7280;background:rgba(255,255,255,0.05)">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
-  </div>
 
-  <!-- Unit Selection Modal -->
-  <div *ngIf="selectedProduct()" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-    <div class="bg-[#050a05] border border-green-500/20 rounded-2xl p-6 w-full max-w-md shadow-2xl" (click)="$event.stopPropagation()">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-bold text-green-50">{{ selectedProduct()?.name }}</h3>
-        <button (click)="closeProductSelection()" class="text-green-900/60 hover:text-green-50 w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/5 transition-colors">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-      </div>
-
-      <div class="mb-6">
-        <label class="block text-sm font-medium text-green-500/80 mb-2">Select Unit</label>
-        <div class="space-y-2 max-h-[30vh] overflow-y-auto custom-scroll pr-1">
-          
-          <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all"
-                 [ngClass]="selectedUnit() === 'base' ? 'border-green-500 bg-green-500/10' : 'border-green-900/30 hover:border-green-500/50'">
+    <div class="p-5 space-y-5">
+      <!-- Unit Selector -->
+      <div>
+        <label class="text-[10px] font-bold uppercase tracking-widest mb-2 block" style="color:#9ca3af">Select Unit</label>
+        <div class="space-y-2 max-h-[35vh] overflow-y-auto custom-scrollbar pr-1">
+          <!-- Base unit -->
+          <label class="flex items-center justify-between p-3.5 border rounded-xl cursor-pointer transition-all"
+                 [style.background]="selectedUnit() === 'base' ? 'rgba(245,158,11,0.08)' : 'rgba(0,0,0,0.2)'"
+                 [style.border-color]="selectedUnit() === 'base' ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.06)'">
             <div class="flex items-center gap-3">
-              <input type="radio" name="unitSelection" [value]="'base'" [ngModel]="selectedUnit()" (ngModelChange)="selectedUnit.set($event); itemQuantity.set(1)" class="text-green-500 focus:ring-green-500 bg-[#0a110a] border-green-900">
+              <input type="radio" name="unitSel" value="base" [ngModel]="selectedUnit()" (ngModelChange)="selectedUnit.set($event); itemQuantity.set(1)" class="accent-amber-500" style="accent-color:#f59e0b">
               <div>
-                <div class="font-medium text-green-50">{{ selectedProduct()?.base_unit }} (Base)</div>
-                <div class="text-xs text-green-900/60">Stock: {{ selectedProduct()?.quantity }}</div>
+                <div class="font-semibold text-sm" style="color:#f0fdf4">{{ selectedProduct()?.base_unit }} <span class="text-xs font-normal" style="color:#6b7280">(Base)</span></div>
+                <div class="text-xs" style="color:#6b7280">Stock: {{ selectedProduct()?.quantity }}</div>
               </div>
             </div>
-            <div class="font-bold text-amber-400">GH₵{{ selectedProduct()?.sell_price | number:'1.2-2' }}</div>
+            <div class="font-black text-sm" style="color:#f59e0b">GH₵{{ selectedProduct()?.sell_price | number:'1.2-2' }}</div>
           </label>
 
+          <!-- Other units -->
           <ng-container *ngIf="selectedProduct()?.units">
-            <label *ngFor="let unit of selectedProduct()?.units" 
-                   class="flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all"
-                   [ngClass]="selectedUnit() === unit ? 'border-green-500 bg-green-500/10' : 'border-green-900/30 hover:border-green-500/50'">
+            <label *ngFor="let unit of selectedProduct()?.units"
+                   class="flex items-center justify-between p-3.5 border rounded-xl cursor-pointer transition-all"
+                   [style.background]="selectedUnit() === unit ? 'rgba(245,158,11,0.08)' : 'rgba(0,0,0,0.2)'"
+                   [style.border-color]="selectedUnit() === unit ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.06)'">
               <div class="flex items-center gap-3">
-                <input type="radio" name="unitSelection" [value]="unit" [ngModel]="selectedUnit()" (ngModelChange)="selectedUnit.set($event); itemQuantity.set(1)" class="text-green-500 focus:ring-green-500 bg-[#0a110a] border-green-900">
+                <input type="radio" name="unitSel" [value]="unit" [ngModel]="selectedUnit()" (ngModelChange)="selectedUnit.set($event); itemQuantity.set(1)" class="accent-amber-500" style="accent-color:#f59e0b">
                 <div>
-                  <div class="font-medium text-green-50">{{ unit.unit_name }}</div>
-                  <div class="text-xs text-green-900/60">Contains {{ unit.quantity_in_base }} {{ selectedProduct()?.base_unit }}s</div>
+                  <div class="font-semibold text-sm" style="color:#f0fdf4">{{ unit.unit_name }}</div>
+                  <div class="text-xs" style="color:#6b7280">{{ unit.quantity_in_base }} {{ selectedProduct()?.base_unit }}s each</div>
                 </div>
               </div>
-              <div class="font-bold text-amber-400">GH₵{{ unit.price | number:'1.2-2' }}</div>
+              <div class="font-black text-sm" style="color:#f59e0b">GH₵{{ unit.price | number:'1.2-2' }}</div>
             </label>
           </ng-container>
-
         </div>
       </div>
 
-      <div class="mb-8">
-        <label class="block text-sm font-medium text-green-500/80 mb-2">Quantity</label>
-        <div class="flex items-center border border-green-900/50 rounded-xl bg-[#0a110a] p-1 h-14">
-          <button (click)="decreaseQuantity()" class="w-12 h-full flex items-center justify-center text-green-400 hover:bg-green-500/10 rounded-lg transition-colors">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+      <!-- Quantity Selector -->
+      <div>
+        <label class="text-[10px] font-bold uppercase tracking-widest mb-2 block" style="color:#9ca3af">Quantity</label>
+        <div class="flex items-center gap-4">
+          <button (click)="decreaseQuantity()" class="qty-btn-lg" onmouseover="this.style.borderColor='rgba(245,158,11,0.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
           </button>
-          <div class="flex-1 text-center font-bold text-xl text-white">
-            {{ itemQuantity() }}
-          </div>
-          <button (click)="increaseQuantity()" class="w-12 h-full flex items-center justify-center text-green-400 hover:bg-green-500/10 rounded-lg transition-colors">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+          <div class="flex-1 text-center text-3xl font-black" style="color:#f0fdf4">{{ itemQuantity() }}</div>
+          <button (click)="increaseQuantity()" class="qty-btn-lg" onmouseover="this.style.borderColor='rgba(245,158,11,0.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'" [style.opacity]="itemQuantity() >= getMaxQuantityForSelection() ? '0.3' : '1'">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
           </button>
         </div>
-        <div class="text-center mt-2 text-xs text-green-900/60">
-          Max availability: {{ getMaxQuantityForSelection() }}
-        </div>
+        <p class="text-center text-xs mt-2" style="color:#6b7280">Max available: {{ getMaxQuantityForSelection() }}</p>
       </div>
 
-      <button 
-        (click)="addToCart()"
-        [disabled]="getMaxQuantityForSelection() <= 0"
-        class="w-full py-4 rounded-xl font-bold bg-green-500 hover:bg-green-400 text-black shadow-[0_0_15px_rgba(74,222,128,0.2)] transition-all flex items-center justify-between px-6 disabled:opacity-50 disabled:cursor-not-allowed">
-        <span>Add to Order</span>
-        <span>GH₵{{ (itemQuantity() * getPriceForSelection()) | number:'1.2-2' }}</span>
+      <!-- Add to cart -->
+      <button (click)="addToCart()" [disabled]="getMaxQuantityForSelection() <= 0"
+              class="agro-btn agro-btn-amber agro-btn-lg w-full justify-between">
+        <span class="flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.3 2.3c-.6.6-.2 1.7.7 1.7H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          Add to Cart
+        </span>
+        <span class="font-black">GH₵{{ (itemQuantity() * getPriceForSelection()) | number:'1.2-2' }}</span>
       </button>
-
     </div>
   </div>
 </div>

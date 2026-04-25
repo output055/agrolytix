@@ -22,6 +22,20 @@ export class Header {
     return name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
   });
 
+  pageTitle = toSignal(
+    this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd),
+      map(() => this.formatRoute(this.router.url))
+    ),
+    { initialValue: this.formatRoute(this.router.url) }
+  );
+
+  private formatRoute(url: string): string {
+    const path = url.split('?')[0].split('/').filter(p => p.length > 0);
+    if (path.length === 0) return 'Dashboard';
+    return path.map(p => p.charAt(0).toUpperCase() + p.slice(1).replace('-', ' ')).join(' / ');
+  }
+
   logout() {
     this.auth.logout().subscribe();
   }

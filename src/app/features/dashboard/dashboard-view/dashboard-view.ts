@@ -1,13 +1,14 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { KpiCard } from '../../../shared/kpi-card/kpi-card';
+import { SkeletonComponent } from '../../../shared/skeleton/skeleton';
 import { AuthService } from '../../../core/services/auth.service';
 import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-dashboard-view',
   standalone: true,
-  imports: [KpiCard],
+  imports: [KpiCard, SkeletonComponent],
   templateUrl: './dashboard-view.html',
 })
 export class DashboardView implements OnInit {

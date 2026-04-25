@@ -42,6 +42,11 @@ export class WholesalePos implements OnInit {
   amountPaidRaw = signal<string>('');
 
   isCheckingOut = signal<boolean>(false);
+  showMobileCart = signal<boolean>(false);
+
+  toggleMobileCart() { this.showMobileCart.update(v => !v); }
+  closeMobileCart()  { this.showMobileCart.set(false); }
+
 
   // Computed
   categories = computed(() => {

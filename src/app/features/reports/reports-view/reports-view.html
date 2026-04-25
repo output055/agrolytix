@@ -1,0 +1,467 @@
+<div class="rpt-root">
+
+  <!-- Header + Filters -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold" style="color:#f0fdf4">Financial Analytics</h1>
+      <p class="text-sm mt-1" style="color:#9ca3af">Advanced reporting dashboard — all figures in GH₵</p>
+    </div>
+    <div class="flex flex-wrap items-end gap-3">
+      <select [(ngModel)]="selectedPreset" (change)="applyPreset()" class="rpt-select">
+        <option value="today">Today</option>
+        <option value="yesterday">Yesterday</option>
+        <option value="this_week">This Week</option>
+        <option value="this_month">This Month</option>
+        <option value="last_month">Last Month</option>
+        <option value="this_year">This Year</option>
+        <option value="custom">Custom Range</option>
+      </select>
+      @if (selectedPreset === 'custom') {
+        <div class="rpt-date-range">
+          <input type="date" [(ngModel)]="dateFrom" (change)="loadCurrentTab()" class="rpt-date-input">
+          <span style="color:#6b7280">–</span>
+          <input type="date" [(ngModel)]="dateTo" (change)="loadCurrentTab()" class="rpt-date-input">
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Tab Nav -->
+  <div class="rpt-tab-bar mb-6">
+    @for (tab of tabs; track tab.id) {
+      <button (click)="setTab(tab.id)" class="rpt-tab" [class.rpt-tab-active]="activeTab() === tab.id">
+        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="tab.icon"/>
+        </svg>
+        <span class="hidden sm:inline">{{ tab.label }}</span>
+      </button>
+    }
+  </div>
+
+  <!-- Spinner -->
+  @if (loading()) {
+    <div class="flex flex-col items-center justify-center py-24">
+      <div class="w-10 h-10 rounded-full animate-spin border-4" style="border-color:rgba(74,222,128,0.15);border-top-color:#4ade80"></div>
+      <p class="mt-4 text-sm" style="color:#9ca3af">Loading analytics...</p>
+    </div>
+  }
+
+  <!-- ══ REVENUE TAB ═══════════════════════════════════════════════════════ -->
+  @if (!loading() && activeTab() === 'revenue') {
+    @if (revenueData(); as rv) {
+      <div class="space-y-5">
+        <!-- KPIs -->
+        <div class="rpt-kpi-grid">
+          <div class="rpt-kpi">
+            <p class="rpt-kpi-label">Total Revenue</p>
+            <div class="rpt-kpi-val">GH₵{{ fmt(rv.summary.total_revenue) }}</div>
+            <p class="rpt-kpi-sub">Retail + Wholesale</p>
+          </div>
+          <div class="rpt-kpi">
+            <p class="rpt-kpi-label">Gross Profit</p>
+            <div class="rpt-kpi-val rpt-green">GH₵{{ fmt(rv.summary.total_profit) }}</div>
+            <p class="rpt-kpi-sub">Before expenses</p>
+          </div>
+          <div class="rpt-kpi">
+            <p class="rpt-kpi-label">Expenses</p>
+            <div class="rpt-kpi-val rpt-orange">GH₵{{ fmt(rv.summary.total_expenses) }}</div>
+            <p class="rpt-kpi-sub">Operational costs</p>
+          </div>
+          <div class="rpt-kpi">
+            <p class="rpt-kpi-label">Net Profit</p>
+            <div class="rpt-kpi-val" [class.rpt-green]="rv.summary.net_profit >= 0" [class.rpt-red]="rv.summary.net_profit < 0">GH₵{{ fmt(rv.summary.net_profit) }}</div>
+            <p class="rpt-kpi-sub">{{ rv.summary.net_profit >= 0 ? 'Profitable period' : 'Loss period' }}</p>
+          </div>
+        </div>
+
+        <!-- Trend Line Chart (Chart.js) -->
+        <div class="rpt-card">
+          <h3 class="rpt-card-title mb-4">Revenue Trend</h3>
+          <app-line-chart
+            [labels]="rv.charts.trend.labels"
+            [datasets]="revenueTrendDatasets(rv)"
+            height="220px">
+          </app-line-chart>
+        </div>
+
+        <!-- Channel Breakdown -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="rpt-card rpt-green-border">
+            <div class="flex items-center justify-between mb-3">
+              <p class="font-semibold text-sm" style="color:#f0fdf4">🛒 Retail Channel</p>
+              <span class="rpt-badge-green">{{ rv.summary.retail_count }} sales</span>
+            </div>
+            <div class="text-2xl font-black text-white mb-1">GH₵{{ fmt(rv.summary.retail_revenue) }}</div>
+            <div class="text-sm" style="color:#4ade80">Profit: GH₵{{ fmt(rv.summary.retail_profit) }}</div>
+          </div>
+          <div class="rpt-card rpt-amber-border">
+            <div class="flex items-center justify-between mb-3">
+              <p class="font-semibold text-sm" style="color:#f0fdf4">📦 Wholesale Channel</p>
+              <span class="rpt-badge-amber">{{ rv.summary.wholesale_count }} sales</span>
+            </div>
+            <div class="text-2xl font-black text-white mb-1">GH₵{{ fmt(rv.summary.wholesale_revenue) }}</div>
+            <div class="text-sm" style="color:#f59e0b">Profit: GH₵{{ fmt(rv.summary.wholesale_profit) }}</div>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div class="rpt-empty">No revenue data available for this period.</div>
+    }
+  }
+
+  <!-- ══ SALES TAB ═════════════════════════════════════════════════════════ -->
+  @if (!loading() && activeTab() === 'sales') {
+    @if (salesData(); as sd) {
+      <div class="space-y-5">
+        <!-- Top product highlights -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="rpt-card rpt-green-border flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0" style="background:rgba(74,222,128,0.08)">🏆</div>
+            <div>
+              <p class="rpt-kpi-label">Top Retail Product</p>
+              <p class="font-bold text-white text-sm mt-0.5">{{ sd.summary.top_retail_product || 'N/A' }}</p>
+              <p class="text-xs mt-0.5" style="color:#4ade80">GH₵{{ fmt(sd.summary.top_retail_revenue) }}</p>
+            </div>
+          </div>
+          <div class="rpt-card rpt-amber-border flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0" style="background:rgba(245,158,11,0.08)">🥇</div>
+            <div>
+              <p class="rpt-kpi-label">Top Wholesale Product</p>
+              <p class="font-bold text-white text-sm mt-0.5">{{ sd.summary.top_wholesale_product || 'N/A' }}</p>
+              <p class="text-xs mt-0.5" style="color:#f59e0b">GH₵{{ fmt(sd.summary.top_wholesale_revenue) }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Retail bar chart -->
+        <div class="rpt-card">
+          <h3 class="rpt-card-title mb-4">Top Retail Products — Revenue</h3>
+          @if (sd.charts.top_retail.labels.length) {
+            <div class="space-y-2.5">
+              @for (lbl of sd.charts.top_retail.labels; track $index) {
+                <div class="flex items-center gap-3">
+                  <span class="text-xs w-28 truncate shrink-0" style="color:#9ca3af" [title]="lbl">{{ fmtShort(lbl) }}</span>
+                  <div class="flex-1 h-5 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.04)">
+                    <div class="h-full rounded-full" style="background:linear-gradient(90deg,#16a34a,#4ade80);transition:width .6s ease" [style.width.%]="barPct(sd.charts.top_retail.data[$index], sd.charts.top_retail.data)"></div>
+                  </div>
+                  <span class="text-xs font-mono w-24 text-right shrink-0" style="color:#d1d5db">GH₵{{ fmt(sd.charts.top_retail.data[$index]) }}</span>
+                </div>
+              }
+            </div>
+          } @else { <div class="rpt-empty">No retail product data for this period.</div> }
+        </div>
+
+        <!-- Wholesale bar chart -->
+        <div class="rpt-card">
+          <h3 class="rpt-card-title mb-4">Top Wholesale Products — Revenue</h3>
+          @if (sd.charts.top_wholesale.labels.length) {
+            <div class="space-y-2.5">
+              @for (lbl of sd.charts.top_wholesale.labels; track $index) {
+                <div class="flex items-center gap-3">
+                  <span class="text-xs w-28 truncate shrink-0" style="color:#9ca3af" [title]="lbl">{{ fmtShort(lbl) }}</span>
+                  <div class="flex-1 h-5 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.04)">
+                    <div class="h-full rounded-full" style="background:linear-gradient(90deg,#b45309,#f59e0b);transition:width .6s ease" [style.width.%]="barPct(sd.charts.top_wholesale.data[$index], sd.charts.top_wholesale.data)"></div>
+                  </div>
+                  <span class="text-xs font-mono w-24 text-right shrink-0" style="color:#d1d5db">GH₵{{ fmt(sd.charts.top_wholesale.data[$index]) }}</span>
+                </div>
+              }
+            </div>
+          } @else { <div class="rpt-empty">No wholesale product data for this period.</div> }
+        </div>
+
+        <!-- Detail tables -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="rpt-card">
+            <h3 class="rpt-card-title mb-3">Retail — Product Detail</h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead><tr style="color:#6b7280"><th class="rpt-th text-left">Product</th><th class="rpt-th text-right">Qty</th><th class="rpt-th text-right">Revenue</th></tr></thead>
+                <tbody>
+                  @for (r of sd.tables.top_retail; track $index) {
+                    <tr class="rpt-row">
+                      <td class="py-2.5 max-w-[150px] truncate" style="color:#d1d5db" [title]="r.name">{{ r.name }}</td>
+                      <td class="py-2.5 text-right font-mono" style="color:#9ca3af">{{ r.qty }}</td>
+                      <td class="py-2.5 text-right font-mono" style="color:#4ade80">GH₵{{ fmt(r.revenue) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="rpt-card">
+            <h3 class="rpt-card-title mb-3">Wholesale — Product Detail</h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead><tr style="color:#6b7280"><th class="rpt-th text-left">Product</th><th class="rpt-th text-right">Qty</th><th class="rpt-th text-right">Revenue</th></tr></thead>
+                <tbody>
+                  @for (r of sd.tables.top_wholesale; track $index) {
+                    <tr class="rpt-row">
+                      <td class="py-2.5 max-w-[150px] truncate" style="color:#d1d5db" [title]="r.name">{{ r.name }}</td>
+                      <td class="py-2.5 text-right font-mono" style="color:#9ca3af">{{ r.qty }}</td>
+                      <td class="py-2.5 text-right font-mono" style="color:#f59e0b">GH₵{{ fmt(r.revenue) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    } @else { <div class="rpt-empty">No sales insights available.</div> }
+  }
+
+  <!-- ══ EXPENSES TAB ══════════════════════════════════════════════════════ -->
+  @if (!loading() && activeTab() === 'expenses') {
+    @if (expenseData(); as ed) {
+      <div class="space-y-5">
+        <div class="rpt-kpi-grid">
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Total Expenses</p><div class="rpt-kpi-val rpt-orange">GH₵{{ fmt(ed.summary.total) }}</div><p class="rpt-kpi-sub">{{ ed.summary.count }} transactions</p></div>
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Categories</p><div class="rpt-kpi-val">{{ ed.summary.categories }}</div><p class="rpt-kpi-sub">Active types</p></div>
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Avg / Day</p><div class="rpt-kpi-val rpt-orange">GH₵{{ fmt(ed.summary.avg_per_day) }}</div><p class="rpt-kpi-sub">Daily burn rate</p></div>
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Top Category</p><div class="rpt-kpi-val" style="font-size:1rem;text-transform:capitalize">{{ ed.tables.by_category[0]?.category || 'N/A' }}</div><p class="rpt-kpi-sub">Highest spend</p></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <!-- Donut Chart (Chart.js) -->
+          <div class="rpt-card">
+            <h3 class="rpt-card-title mb-4">Spend by Category</h3>
+            <app-donut-chart
+              [labels]="ed.charts.by_category.labels"
+              [data]="ed.charts.by_category.data"
+              height="220px">
+            </app-donut-chart>
+          </div>
+
+          <!-- Trend Chart -->
+          <div class="rpt-card">
+            <h3 class="rpt-card-title mb-4">Expense Trend</h3>
+            @if (ed.charts.trend.labels.length > 1) {
+              <div class="overflow-x-auto">
+                <svg viewBox="0 0 600 140" class="w-full" style="min-width:280px">
+                  <line x1="0" y1="35" x2="600" y2="35" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                  <line x1="0" y1="70" x2="600" y2="70" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                  <line x1="0" y1="105" x2="600" y2="105" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                  <polyline [attr.points]="buildLinePoints(ed.charts.trend.data, 600, 140)" fill="none" stroke="#fb923c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="flex justify-between mt-1 text-xs" style="color:#6b7280">
+                <span>{{ ed.charts.trend.labels[0] }}</span>
+                <span>{{ ed.charts.trend.labels[ed.charts.trend.labels.length - 1] }}</span>
+              </div>
+            } @else { <div class="rpt-empty">Not enough data to show trend.</div> }
+          </div>
+        </div>
+
+        <!-- Category Table -->
+        <div class="rpt-card">
+          <h3 class="rpt-card-title mb-3">Category Breakdown</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead><tr style="color:#6b7280">
+                <th class="rpt-th text-left">Category</th>
+                <th class="rpt-th text-right">Total</th>
+                <th class="rpt-th text-right">Count</th>
+                <th class="rpt-th text-right">Share</th>
+              </tr></thead>
+              <tbody>
+                @for (r of ed.tables.by_category; track r.category) {
+                  <tr class="rpt-row">
+                    <td class="py-2.5 capitalize font-medium" style="color:#d1d5db">{{ r.category }}</td>
+                    <td class="py-2.5 text-right font-mono" style="color:#fb923c">GH₵{{ fmt(r.total) }}</td>
+                    <td class="py-2.5 text-right font-mono" style="color:#9ca3af">{{ r.count }}</td>
+                    <td class="py-2.5 text-right">
+                      <span class="text-xs px-2 py-0.5 rounded-full font-mono" style="background:rgba(251,146,60,0.1);color:#fb923c">{{ r.percent }}%</span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    } @else { <div class="rpt-empty">No expense data available.</div> }
+  }
+
+  <!-- ══ DEBT TAB ════════════════════════════════════════════════════════ -->
+  @if (!loading() && activeTab() === 'debt') {
+    @if (debtData(); as dd) {
+      <div class="space-y-5">
+        <div class="rpt-kpi-grid">
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Total Outstanding</p><div class="rpt-kpi-val rpt-amber">GH₵{{ fmt(dd.summary.total_debt) }}</div><p class="rpt-kpi-sub">Across all clients</p></div>
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Active Debtors</p><div class="rpt-kpi-val">{{ dd.summary.debtors_count }}</div><p class="rpt-kpi-sub">Clients with debt</p></div>
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Highest Debt</p><div class="rpt-kpi-val rpt-red">GH₵{{ fmt(dd.summary.highest_debt) }}</div><p class="rpt-kpi-sub">{{ dd.summary.top_debtor || 'N/A' }}</p></div>
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Top Debtor</p><div class="rpt-kpi-val" style="font-size:0.95rem">{{ dd.summary.top_debtor || 'None' }}</div><p class="rpt-kpi-sub">Largest balance</p></div>
+        </div>
+
+        <!-- Aging + Per-Client charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <!-- Aging Buckets -->
+          <div class="rpt-card">
+            <h3 class="rpt-card-title mb-4">Debt Aging Buckets</h3>
+            @if (dd.charts.aging.data.some(v => v > 0)) {
+              <div class="space-y-3">
+                @for (lbl of dd.charts.aging.labels; track $index) {
+                  <div class="flex items-center gap-3">
+                    <span class="text-xs w-24 shrink-0" style="color:#9ca3af">{{ lbl }}</span>
+                    <div class="flex-1 h-6 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.04)">
+                      <div class="h-full rounded-full transition-all duration-700"
+                           [style.background]="$index === 0 ? '#4ade80' : $index === 1 ? '#f59e0b' : $index === 2 ? '#fb923c' : '#f87171'"
+                           [style.width.%]="barPct(dd.charts.aging.data[$index], dd.charts.aging.data)"></div>
+                    </div>
+                    <span class="text-xs font-mono w-28 text-right shrink-0" style="color:#d1d5db">GH₵{{ fmt(dd.charts.aging.data[$index]) }}</span>
+                  </div>
+                }
+              </div>
+            } @else { <div class="rpt-empty">No aging data available.</div> }
+          </div>
+
+          <!-- Per Client -->
+          <div class="rpt-card">
+            <h3 class="rpt-card-title mb-4">Debt per Client (Top 8)</h3>
+            @if (dd.charts.per_client.labels.length) {
+              <div class="space-y-2.5">
+                @for (lbl of dd.charts.per_client.labels; track $index) {
+                  <div class="flex items-center gap-3">
+                    <span class="text-xs w-24 truncate shrink-0" style="color:#9ca3af" [title]="lbl">{{ fmtShort(lbl) }}</span>
+                    <div class="flex-1 h-5 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.04)">
+                      <div class="h-full rounded-full" style="background:linear-gradient(90deg,#92400e,#f59e0b);transition:width .6s" [style.width.%]="barPct(dd.charts.per_client.data[$index], dd.charts.per_client.data)"></div>
+                    </div>
+                    <span class="text-xs font-mono w-24 text-right shrink-0" style="color:#d1d5db">GH₵{{ fmt(dd.charts.per_client.data[$index]) }}</span>
+                  </div>
+                }
+              </div>
+            } @else { <div class="rpt-empty">No client debt data.</div> }
+          </div>
+        </div>
+
+        <!-- Client Table -->
+        <div class="rpt-card">
+          <h3 class="rpt-card-title mb-3">All Debtor Clients</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead><tr style="color:#6b7280">
+                <th class="rpt-th text-left">Client</th>
+                <th class="rpt-th text-left">Contact</th>
+                <th class="rpt-th text-left">Location</th>
+                <th class="rpt-th text-right">Outstanding</th>
+              </tr></thead>
+              <tbody>
+                @for (c of dd.tables.clients; track c.id) {
+                  <tr class="rpt-row">
+                    <td class="py-2.5 font-medium" style="color:#f0fdf4">{{ c.name }}</td>
+                    <td class="py-2.5" style="color:#9ca3af">{{ c.contact || '—' }}</td>
+                    <td class="py-2.5" style="color:#9ca3af">{{ c.location || '—' }}</td>
+                    <td class="py-2.5 text-right font-mono font-bold" style="color:#f59e0b">GH₵{{ fmt(c.debt) }}</td>
+                  </tr>
+                }
+                @if (!dd.tables.clients.length) {
+                  <tr><td colspan="4" class="py-8 text-center" style="color:#6b7280">No outstanding debts.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    } @else { <div class="rpt-empty">No debt data available.</div> }
+  }
+
+  <!-- ══ INVENTORY TAB ══════════════════════════════════════════════════════ -->
+  @if (!loading() && activeTab() === 'inventory') {
+    @if (inventoryData(); as inv) {
+      <div class="space-y-5">
+        <!-- Value KPIs -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Total Inv. Value</p><div class="rpt-kpi-val rpt-green">GH₵{{ fmt(inv.summary.total_inventory_value) }}</div><p class="rpt-kpi-sub">Cost-based</p></div>
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Retail Cost Value</p><div class="rpt-kpi-val">GH₵{{ fmt(inv.summary.retail_cost_value) }}</div><p class="rpt-kpi-sub">Sell: GH₵{{ fmt(inv.summary.retail_sell_value) }}</p></div>
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Wholesale Cost Value</p><div class="rpt-kpi-val">GH₵{{ fmt(inv.summary.wholesale_cost_value) }}</div><p class="rpt-kpi-sub">Sell: GH₵{{ fmt(inv.summary.wholesale_sell_value) }}</p></div>
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Alert Summary</p>
+            <div class="flex gap-2 mt-1">
+              <span class="text-xs px-2 py-1 rounded-lg font-bold" style="background:rgba(251,191,36,0.1);color:#fbbf24">{{ inv.summary.retail_low_stock + inv.summary.wholesale_low_stock }} Low</span>
+              <span class="text-xs px-2 py-1 rounded-lg font-bold" style="background:rgba(248,113,113,0.1);color:#f87171">{{ inv.summary.retail_out_of_stock + inv.summary.wholesale_out_of_stock }} Out</span>
+            </div>
+            <p class="rpt-kpi-sub mt-1">Stock alerts</p>
+          </div>
+        </div>
+
+        <!-- Alert Tables -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- Retail Low Stock -->
+          <div class="rpt-card">
+            <div class="flex items-center gap-2 mb-3">
+              <h3 class="rpt-card-title">Retail — Low Stock</h3>
+              <span class="rpt-badge-amber">{{ inv.tables.retail_low.length }}</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead><tr style="color:#6b7280"><th class="rpt-th text-left">Product</th><th class="rpt-th text-right">Qty</th><th class="rpt-th text-right">Limit</th></tr></thead>
+                <tbody>
+                  @for (p of inv.tables.retail_low; track p.id) {
+                    <tr class="rpt-row"><td class="py-2 max-w-[150px] truncate" style="color:#d1d5db" [title]="p.name">{{ p.name }}</td><td class="py-2 text-right font-mono font-bold" style="color:#fbbf24">{{ p.quantity }} {{ p.unit }}</td><td class="py-2 text-right font-mono" style="color:#6b7280">{{ p.alert }}</td></tr>
+                  }
+                  @if (!inv.tables.retail_low.length) { <tr><td colspan="3" class="py-6 text-center" style="color:#4ade80">✓ All retail stock healthy</td></tr> }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Wholesale Low Stock -->
+          <div class="rpt-card">
+            <div class="flex items-center gap-2 mb-3">
+              <h3 class="rpt-card-title">Wholesale — Low Stock</h3>
+              <span class="rpt-badge-amber">{{ inv.tables.wholesale_low.length }}</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead><tr style="color:#6b7280"><th class="rpt-th text-left">Product</th><th class="rpt-th text-right">Qty</th><th class="rpt-th text-right">Limit</th></tr></thead>
+                <tbody>
+                  @for (p of inv.tables.wholesale_low; track p.id) {
+                    <tr class="rpt-row"><td class="py-2 max-w-[150px] truncate" style="color:#d1d5db" [title]="p.name">{{ p.name }}</td><td class="py-2 text-right font-mono font-bold" style="color:#fbbf24">{{ p.quantity }} {{ p.unit }}</td><td class="py-2 text-right font-mono" style="color:#6b7280">{{ p.alert }}</td></tr>
+                  }
+                  @if (!inv.tables.wholesale_low.length) { <tr><td colspan="3" class="py-6 text-center" style="color:#4ade80">✓ All wholesale stock healthy</td></tr> }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Retail Out of Stock -->
+          <div class="rpt-card">
+            <div class="flex items-center gap-2 mb-3">
+              <h3 class="rpt-card-title">Retail — Out of Stock</h3>
+              <span class="rpt-badge-red">{{ inv.tables.retail_out.length }}</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead><tr style="color:#6b7280"><th class="rpt-th text-left">Product</th><th class="rpt-th text-left">Category</th><th class="rpt-th text-right">Cost Price</th></tr></thead>
+                <tbody>
+                  @for (p of inv.tables.retail_out; track p.id) {
+                    <tr class="rpt-row"><td class="py-2 max-w-[130px] truncate" style="color:#f87171" [title]="p.name">{{ p.name }}</td><td class="py-2 capitalize" style="color:#9ca3af">{{ p.category }}</td><td class="py-2 text-right font-mono" style="color:#6b7280">GH₵{{ fmt(p.cost) }}</td></tr>
+                  }
+                  @if (!inv.tables.retail_out.length) { <tr><td colspan="3" class="py-6 text-center" style="color:#4ade80">✓ No out-of-stock retail items</td></tr> }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Wholesale Out of Stock -->
+          <div class="rpt-card">
+            <div class="flex items-center gap-2 mb-3">
+              <h3 class="rpt-card-title">Wholesale — Out of Stock</h3>
+              <span class="rpt-badge-red">{{ inv.tables.wholesale_out.length }}</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead><tr style="color:#6b7280"><th class="rpt-th text-left">Product</th><th class="rpt-th text-left">Category</th><th class="rpt-th text-right">Cost Price</th></tr></thead>
+                <tbody>
+                  @for (p of inv.tables.wholesale_out; track p.id) {
+                    <tr class="rpt-row"><td class="py-2 max-w-[130px] truncate" style="color:#f87171" [title]="p.name">{{ p.name }}</td><td class="py-2 capitalize" style="color:#9ca3af">{{ p.category }}</td><td class="py-2 text-right font-mono" style="color:#6b7280">GH₵{{ fmt(p.cost) }}</td></tr>
+                  }
+                  @if (!inv.tables.wholesale_out.length) { <tr><td colspan="3" class="py-6 text-center" style="color:#4ade80">✓ No out-of-stock wholesale items</td></tr> }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    } @else { <div class="rpt-empty">No inventory data available.</div> }
+  }
+</div>

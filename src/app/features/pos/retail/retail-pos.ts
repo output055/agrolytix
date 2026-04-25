@@ -34,6 +34,11 @@ export class RetailPos implements OnInit {
   momoNumber = signal<string>('');
 
   isCheckingOut = signal<boolean>(false);
+  showMobileCart = signal<boolean>(false);
+
+  toggleMobileCart() { this.showMobileCart.update(v => !v); }
+  closeMobileCart()  { this.showMobileCart.set(false); }
+
 
   // Computed
   categories = computed(() => {
