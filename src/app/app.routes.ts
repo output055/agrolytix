@@ -1,17 +1,35 @@
 import { Routes } from '@angular/router';
 import { AppLayout } from './layout/app-layout/app-layout';
+import { SuperAdminLayout } from './layout/super-admin-layout/super-admin-layout';
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { superAdminGuard } from './core/guards/super-admin.guard';
+import { tenantGuard } from './core/guards/tenant.guard';
 
 export const routes: Routes = [
   {
     path: 'auth',
     loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES)
   },
+
+  // ─── Super Admin isolated shell ───────────────────────────────────────────
+  {
+    path: 'super-admin',
+    component: SuperAdminLayout,
+    canActivate: [authGuard, superAdminGuard],
+    children: [
+      {
+        path: '',
+        loadChildren: () => import('./features/super-admin/super-admin.routes').then(m => m.SUPER_ADMIN_ROUTES)
+      }
+    ]
+  },
+
+  // ─── Normal tenant shell ──────────────────────────────────────────────────
   {
     path: '',
     component: AppLayout,
-    canActivate: [authGuard],
+    canActivate: [authGuard, tenantGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       {

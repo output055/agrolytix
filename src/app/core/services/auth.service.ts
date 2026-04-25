@@ -19,7 +19,11 @@ export class AuthService {
             localStorage.setItem('auth_token', res.token);
             localStorage.setItem('auth_user', JSON.stringify(res.user));
             this.currentUser.set(res.user);
-            this.router.navigate(['/dashboard']);
+            if (res.user?.role === 'SuperAdmin') {
+              this.router.navigate(['/super-admin/dashboard']);
+            } else {
+              this.router.navigate(['/dashboard']);
+            }
         })
         );
     }
@@ -36,13 +40,23 @@ export class AuthService {
     }
 
   hasPermission(permission: string): boolean {
-    const user = this.currentUser();
+    const user = this.currentUser() as {
+      role?: string;
+      business_id?: number;
+      permissions?: string[];
+    };
     if (!user) return false;
+    if (user.role === 'SuperAdmin') return true;
     if (user.role === 'Admin') return true;
     if (user.permissions && Array.isArray(user.permissions)) {
       return user.permissions.includes(permission);
     }
     return false;
+  }
+
+  isSuperAdmin(): boolean {
+    const user = this.currentUser();
+    return user?.role === 'SuperAdmin';
   }
 
   logout() {

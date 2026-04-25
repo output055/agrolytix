@@ -16,6 +16,7 @@ export class Sidebar {
   user = computed(() => this.authService.currentUser());
   role = computed(() => this.user()?.role ?? 'Worker');
   isAdmin = computed(() => this.role() === 'Admin');
+  isSuperAdmin = computed(() => this.authService.isSuperAdmin());
 
   hasPermission(permission: string): boolean {
     return this.authService.hasPermission(permission);

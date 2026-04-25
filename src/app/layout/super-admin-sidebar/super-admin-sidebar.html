@@ -1,0 +1,78 @@
+<aside class="h-full w-full flex flex-col border-r transition-all duration-300"
+       style="background: rgba(7,10,30,0.98); backdrop-filter: blur(24px); border-color: rgba(99,102,241,0.2);">
+
+  <!-- Logo -->
+  <div class="h-20 flex items-center justify-center border-b px-6 shrink-0"
+       style="border-color: rgba(99,102,241,0.15); background: rgba(0,0,0,0.3);">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+           style="background: linear-gradient(135deg, #6366f1, #818cf8);">
+        <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="font-black text-sm tracking-wide" style="color: #e0e7ff;">Agrolytix</div>
+        <div class="text-[10px] tracking-widest uppercase font-bold" style="color: #6366f1;">System Admin</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-1">
+
+    <div class="px-4 py-2 text-[10px] font-bold uppercase tracking-widest" style="color: #4b5563;">Platform</div>
+
+    <a routerLink="/super-admin/dashboard" routerLinkActive="sa-nav-active" [routerLinkActiveOptions]="{exact:true}"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 sa-nav-link">
+      <svg class="h-5 w-5 sa-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+      </svg>
+      Overview
+    </a>
+
+    <a routerLink="/super-admin/businesses" routerLinkActive="sa-nav-active"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 sa-nav-link">
+      <svg class="h-5 w-5 sa-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+      </svg>
+      Businesses
+    </a>
+
+    <a routerLink="/super-admin/payments" routerLinkActive="sa-nav-active"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 sa-nav-link">
+      <svg class="h-5 w-5 sa-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+      </svg>
+      Payments
+    </a>
+
+  </nav>
+
+  <!-- User Info -->
+  <div class="p-4 shrink-0 border-t" style="border-color: rgba(99,102,241,0.15); background: rgba(0,0,0,0.2);">
+    <div class="px-3 py-2 rounded-xl flex items-center gap-3" style="background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2);">
+      <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0"
+           style="background: linear-gradient(135deg, #6366f1, #818cf8); color: white;">
+        {{ (user()?.name ?? 'S')[0] }}
+      </div>
+      <div class="min-w-0">
+        <div class="text-xs font-bold truncate" style="color: #e0e7ff;">{{ user()?.name ?? 'System Owner' }}</div>
+        <div class="text-[10px] uppercase font-semibold tracking-wider" style="color: #6366f1;">Super Admin</div>
+      </div>
+    </div>
+  </div>
+
+</aside>
+
+<style>
+  .sa-nav-link { color: #6b7280; }
+  .sa-nav-link:hover { background: rgba(99,102,241,0.08); color: #e0e7ff; }
+  .sa-nav-icon { color: #4b5563; }
+  .sa-nav-link:hover .sa-nav-icon { color: #818cf8; }
+  .sa-nav-active { background: rgba(99,102,241,0.12) !important; color: #fff !important; box-shadow: inset 4px 0 0 0 #6366f1; }
+</style>
