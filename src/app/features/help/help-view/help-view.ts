@@ -144,7 +144,7 @@ interface HelpSection {
                       <span class="text-green-500 font-bold mr-2">Step 2:</span> Use the <span class="text-white font-bold italic">Category Filter</span> or <span class="text-white font-bold italic">Search Bar</span> to locate items.
                     </div>
                     <div class="text-gray-300">
-                      <span class="text-green-500 font-bold mr-2">Step 3:</span> Click an item to add it to the <span class="text-white">Active Cart</span> on the right.
+                      <span class="text-green-500 font-bold mr-2">Step 3:</span> Click an item to add it to the <span class="text-white">Active Cart</span> on the right (on mobile screens, tap the floating cart button to open the order sheet).
                     </div>
                     <div class="text-gray-300">
                       <span class="text-green-500 font-bold mr-2">Step 4:</span> Adjust quantity using the +/- buttons or click the discount icon to lower the price for the specific customer.
@@ -174,7 +174,7 @@ interface HelpSection {
                       <span class="text-blue-500 font-bold mr-2">Step 1:</span> Open Wholesale POS and FIRST select a <span class="text-white font-bold">Client</span> from the dropdown. Wholesale sales cannot be processed without a linked client.
                     </div>
                     <div class="text-gray-300">
-                      <span class="text-blue-500 font-bold mr-2">Step 2:</span> Add wholesale inventory items to the cart.
+                      <span class="text-blue-500 font-bold mr-2">Step 2:</span> Add wholesale inventory items to the cart (on mobile screens, tap the floating cart button to open the order sheet).
                     </div>
                     <div class="text-gray-300">
                       <span class="text-blue-500 font-bold mr-2">Step 3:</span> During checkout, choose between <span class="text-white italic">Cash Payment</span> or <span class="text-white italic">Record as Debt</span>.
@@ -247,7 +247,7 @@ interface HelpSection {
                       <span class="text-emerald-500 font-bold mr-2">Step 1:</span> Choose a <span class="text-white">Date Preset</span> (Today, This Month, etc.) in the top right.
                     </div>
                     <div class="text-gray-300">
-                      <span class="text-emerald-500 font-bold mr-2">Step 2:</span> Review the <span class="text-white font-bold">Period Performance Summary</span>. This shows total income before costs.
+                      <span class="text-emerald-500 font-bold mr-2">Step 2:</span> Review the <span class="text-white font-bold">Period Performance Summary</span>. This shows total revenue, total cost, and profit broken down by Retail and Wholesale channels.
                     </div>
                     <div class="text-gray-300">
                       <span class="text-emerald-500 font-bold mr-2">Step 3:</span> Locate the <span class="text-white italic">Actual Net Profit</span> card. This is your final result after all expenses and reversals are subtracted.

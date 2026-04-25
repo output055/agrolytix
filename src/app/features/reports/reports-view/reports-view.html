@@ -54,22 +54,22 @@
         <div class="rpt-kpi-grid">
           <div class="rpt-kpi">
             <p class="rpt-kpi-label">Total Revenue</p>
-            <div class="rpt-kpi-val">GH₵{{ fmt(rv.summary.total_revenue) }}</div>
+            <div class="rpt-kpi-val !text-xl !md:text-2xl overflow-x-auto">GH₵{{ fmt(rv.summary.total_revenue) }}</div>
             <p class="rpt-kpi-sub">Retail + Wholesale</p>
           </div>
           <div class="rpt-kpi">
             <p class="rpt-kpi-label">Gross Profit</p>
-            <div class="rpt-kpi-val rpt-green">GH₵{{ fmt(rv.summary.total_profit) }}</div>
+            <div class="rpt-kpi-val rpt-green !text-xl !md:text-2xl overflow-x-auto">GH₵{{ fmt(rv.summary.total_profit) }}</div>
             <p class="rpt-kpi-sub">Before expenses</p>
           </div>
           <div class="rpt-kpi">
             <p class="rpt-kpi-label">Expenses</p>
-            <div class="rpt-kpi-val rpt-orange">GH₵{{ fmt(rv.summary.total_expenses) }}</div>
+            <div class="rpt-kpi-val rpt-orange !text-xl !md:text-2xl overflow-x-auto">GH₵{{ fmt(rv.summary.total_expenses) }}</div>
             <p class="rpt-kpi-sub">Operational costs</p>
           </div>
           <div class="rpt-kpi">
             <p class="rpt-kpi-label">Net Profit</p>
-            <div class="rpt-kpi-val" [class.rpt-green]="rv.summary.net_profit >= 0" [class.rpt-red]="rv.summary.net_profit < 0">GH₵{{ fmt(rv.summary.net_profit) }}</div>
+            <div class="rpt-kpi-val !text-xl !md:text-2xl overflow-x-auto" [class.rpt-green]="rv.summary.net_profit >= 0" [class.rpt-red]="rv.summary.net_profit < 0">GH₵{{ fmt(rv.summary.net_profit) }}</div>
             <p class="rpt-kpi-sub">{{ rv.summary.net_profit >= 0 ? 'Profitable period' : 'Loss period' }}</p>
           </div>
         </div>
@@ -92,7 +92,10 @@
               <span class="rpt-badge-green">{{ rv.summary.retail_count }} sales</span>
             </div>
             <div class="text-2xl font-black text-white mb-1">GH₵{{ fmt(rv.summary.retail_revenue) }}</div>
-            <div class="text-sm" style="color:#4ade80">Profit: GH₵{{ fmt(rv.summary.retail_profit) }}</div>
+            <div class="flex items-center justify-between mt-2">
+              <div class="text-sm" style="color:#9ca3af">Cost: GH₵{{ fmt(rv.summary.retail_revenue - rv.summary.retail_profit) }}</div>
+              <div class="text-sm" style="color:#4ade80">Profit: GH₵{{ fmt(rv.summary.retail_profit) }}</div>
+            </div>
           </div>
           <div class="rpt-card rpt-amber-border">
             <div class="flex items-center justify-between mb-3">
@@ -100,7 +103,10 @@
               <span class="rpt-badge-amber">{{ rv.summary.wholesale_count }} sales</span>
             </div>
             <div class="text-2xl font-black text-white mb-1">GH₵{{ fmt(rv.summary.wholesale_revenue) }}</div>
-            <div class="text-sm" style="color:#f59e0b">Profit: GH₵{{ fmt(rv.summary.wholesale_profit) }}</div>
+            <div class="flex items-center justify-between mt-2">
+              <div class="text-sm" style="color:#9ca3af">Cost: GH₵{{ fmt(rv.summary.wholesale_revenue - rv.summary.wholesale_profit) }}</div>
+              <div class="text-sm" style="color:#f59e0b">Profit: GH₵{{ fmt(rv.summary.wholesale_profit) }}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -140,7 +146,7 @@
             <div class="space-y-2.5">
               @for (lbl of sd.charts.top_retail.labels; track $index) {
                 <div class="flex items-center gap-3">
-                  <span class="text-xs w-28 truncate shrink-0" style="color:#9ca3af" [title]="lbl">{{ fmtShort(lbl) }}</span>
+                  <span class="text-xs w-28 overflow-x-auto shrink-0" style="color:#9ca3af" [title]="lbl">{{ fmtShort(lbl) }}</span>
                   <div class="flex-1 h-5 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.04)">
                     <div class="h-full rounded-full" style="background:linear-gradient(90deg,#16a34a,#4ade80);transition:width .6s ease" [style.width.%]="barPct(sd.charts.top_retail.data[$index], sd.charts.top_retail.data)"></div>
                   </div>
@@ -215,10 +221,10 @@
     @if (expenseData(); as ed) {
       <div class="space-y-5">
         <div class="rpt-kpi-grid">
-          <div class="rpt-kpi"><p class="rpt-kpi-label">Total Expenses</p><div class="rpt-kpi-val rpt-orange">GH₵{{ fmt(ed.summary.total) }}</div><p class="rpt-kpi-sub">{{ ed.summary.count }} transactions</p></div>
-          <div class="rpt-kpi"><p class="rpt-kpi-label">Categories</p><div class="rpt-kpi-val">{{ ed.summary.categories }}</div><p class="rpt-kpi-sub">Active types</p></div>
-          <div class="rpt-kpi"><p class="rpt-kpi-label">Avg / Day</p><div class="rpt-kpi-val rpt-orange">GH₵{{ fmt(ed.summary.avg_per_day) }}</div><p class="rpt-kpi-sub">Daily burn rate</p></div>
-          <div class="rpt-kpi"><p class="rpt-kpi-label">Top Category</p><div class="rpt-kpi-val" style="font-size:1rem;text-transform:capitalize">{{ ed.tables.by_category[0]?.category || 'N/A' }}</div><p class="rpt-kpi-sub">Highest spend</p></div>
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Total Expenses</p><div class="rpt-kpi-val rpt-orange !text-xl !md:text-2xl truncate">GH₵{{ fmt(ed.summary.total) }}</div><p class="rpt-kpi-sub">{{ ed.summary.count }} transactions</p></div>
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Categories</p><div class="rpt-kpi-val !text-xl !md:text-2xl truncate">{{ ed.summary.categories }}</div><p class="rpt-kpi-sub">Active types</p></div>
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Avg / Day</p><div class="rpt-kpi-val rpt-orange !text-xl !md:text-2xl truncate">GH₵{{ fmt(ed.summary.avg_per_day) }}</div><p class="rpt-kpi-sub">Daily burn rate</p></div>
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Top Category</p><div class="rpt-kpi-val !text-xl !md:text-2xl truncate" style="font-size:1rem;text-transform:capitalize">{{ ed.tables.by_category[0]?.category || 'N/A' }}</div><p class="rpt-kpi-sub">Highest spend</p></div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -287,10 +293,10 @@
     @if (debtData(); as dd) {
       <div class="space-y-5">
         <div class="rpt-kpi-grid">
-          <div class="rpt-kpi"><p class="rpt-kpi-label">Total Outstanding</p><div class="rpt-kpi-val rpt-amber">GH₵{{ fmt(dd.summary.total_debt) }}</div><p class="rpt-kpi-sub">Across all clients</p></div>
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Total Outstanding</p><div class="rpt-kpi-val rpt-amber !text-xl !md:text-2xl truncate">GH₵{{ fmt(dd.summary.total_debt) }}</div><p class="rpt-kpi-sub">Across all clients</p></div>
           <div class="rpt-kpi"><p class="rpt-kpi-label">Active Debtors</p><div class="rpt-kpi-val">{{ dd.summary.debtors_count }}</div><p class="rpt-kpi-sub">Clients with debt</p></div>
-          <div class="rpt-kpi"><p class="rpt-kpi-label">Highest Debt</p><div class="rpt-kpi-val rpt-red">GH₵{{ fmt(dd.summary.highest_debt) }}</div><p class="rpt-kpi-sub">{{ dd.summary.top_debtor || 'N/A' }}</p></div>
-          <div class="rpt-kpi"><p class="rpt-kpi-label">Top Debtor</p><div class="rpt-kpi-val" style="font-size:0.95rem">{{ dd.summary.top_debtor || 'None' }}</div><p class="rpt-kpi-sub">Largest balance</p></div>
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Highest Debt</p><div class="rpt-kpi-val rpt-red !text-xl !md:text-2xl truncate">GH₵{{ fmt(dd.summary.highest_debt) }}</div><p class="rpt-kpi-sub">{{ dd.summary.top_debtor || 'N/A' }}</p></div>
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Top Debtor</p><div class="rpt-kpi-val !text-xl !md:text-2xl truncate" style="font-size:0.95rem">{{ dd.summary.top_debtor || 'None' }}</div><p class="rpt-kpi-sub">Largest balance</p></div>
         </div>
 
         <!-- Aging + Per-Client charts -->
@@ -371,9 +377,9 @@
       <div class="space-y-5">
         <!-- Value KPIs -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="rpt-kpi"><p class="rpt-kpi-label">Total Inv. Value</p><div class="rpt-kpi-val rpt-green">GH₵{{ fmt(inv.summary.total_inventory_value) }}</div><p class="rpt-kpi-sub">Cost-based</p></div>
-          <div class="rpt-kpi"><p class="rpt-kpi-label">Retail Cost Value</p><div class="rpt-kpi-val">GH₵{{ fmt(inv.summary.retail_cost_value) }}</div><p class="rpt-kpi-sub">Sell: GH₵{{ fmt(inv.summary.retail_sell_value) }}</p></div>
-          <div class="rpt-kpi"><p class="rpt-kpi-label">Wholesale Cost Value</p><div class="rpt-kpi-val">GH₵{{ fmt(inv.summary.wholesale_cost_value) }}</div><p class="rpt-kpi-sub">Sell: GH₵{{ fmt(inv.summary.wholesale_sell_value) }}</p></div>
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Total Inv. Value</p><div class="rpt-kpi-val rpt-green !text-xl !md:text-2xl overflow-x-auto">GH₵{{ fmt(inv.summary.total_inventory_value) }}</div><p class="rpt-kpi-sub">Cost-based</p></div>
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Retail Cost Value</p><div class="rpt-kpi-val !text-xl !md:text-2xl overflow-x-auto">GH₵{{ fmt(inv.summary.retail_cost_value) }}</div><p class="rpt-kpi-sub">Sell: GH₵{{ fmt(inv.summary.retail_sell_value) }}</p></div>
+          <div class="rpt-kpi"><p class="rpt-kpi-label">Wholesale Cost Value</p><div class="rpt-kpi-val !text-xl !md:text-2xl overflow-x-auto">GH₵{{ fmt(inv.summary.wholesale_cost_value) }}</div><p class="rpt-kpi-sub">Sell: GH₵{{ fmt(inv.summary.wholesale_sell_value) }}</p></div>
           <div class="rpt-kpi"><p class="rpt-kpi-label">Alert Summary</p>
             <div class="flex gap-2 mt-1">
               <span class="text-xs px-2 py-1 rounded-lg font-bold" style="background:rgba(251,191,36,0.1);color:#fbbf24">{{ inv.summary.retail_low_stock + inv.summary.wholesale_low_stock }} Low</span>
@@ -396,7 +402,7 @@
                 <thead><tr style="color:#6b7280"><th class="rpt-th text-left">Product</th><th class="rpt-th text-right">Qty</th><th class="rpt-th text-right">Limit</th></tr></thead>
                 <tbody>
                   @for (p of inv.tables.retail_low; track p.id) {
-                    <tr class="rpt-row"><td class="py-2 max-w-[150px] truncate" style="color:#d1d5db" [title]="p.name">{{ p.name }}</td><td class="py-2 text-right font-mono font-bold" style="color:#fbbf24">{{ p.quantity }} {{ p.unit }}</td><td class="py-2 text-right font-mono" style="color:#6b7280">{{ p.alert }}</td></tr>
+                    <tr class="rpt-row"><td class="py-2 max-w-[150px] overflow-x-auto" style="color:#d1d5db" [title]="p.name">{{ p.name }}</td><td class="py-2 text-right font-mono font-bold" style="color:#fbbf24">{{ p.quantity }} {{ p.unit }}</td><td class="py-2 text-right font-mono" style="color:#6b7280">{{ p.alert }}</td></tr>
                   }
                   @if (!inv.tables.retail_low.length) { <tr><td colspan="3" class="py-6 text-center" style="color:#4ade80">✓ All retail stock healthy</td></tr> }
                 </tbody>
@@ -415,7 +421,7 @@
                 <thead><tr style="color:#6b7280"><th class="rpt-th text-left">Product</th><th class="rpt-th text-right">Qty</th><th class="rpt-th text-right">Limit</th></tr></thead>
                 <tbody>
                   @for (p of inv.tables.wholesale_low; track p.id) {
-                    <tr class="rpt-row"><td class="py-2 max-w-[150px] truncate" style="color:#d1d5db" [title]="p.name">{{ p.name }}</td><td class="py-2 text-right font-mono font-bold" style="color:#fbbf24">{{ p.quantity }} {{ p.unit }}</td><td class="py-2 text-right font-mono" style="color:#6b7280">{{ p.alert }}</td></tr>
+                    <tr class="rpt-row"><td class="py-2 max-w-[150px] overflow-x-auto" style="color:#d1d5db" [title]="p.name">{{ p.name }}</td><td class="py-2 text-right font-mono font-bold" style="color:#fbbf24">{{ p.quantity }} {{ p.unit }}</td><td class="py-2 text-right font-mono" style="color:#6b7280">{{ p.alert }}</td></tr>
                   }
                   @if (!inv.tables.wholesale_low.length) { <tr><td colspan="3" class="py-6 text-center" style="color:#4ade80">✓ All wholesale stock healthy</td></tr> }
                 </tbody>
@@ -434,7 +440,7 @@
                 <thead><tr style="color:#6b7280"><th class="rpt-th text-left">Product</th><th class="rpt-th text-left">Category</th><th class="rpt-th text-right">Cost Price</th></tr></thead>
                 <tbody>
                   @for (p of inv.tables.retail_out; track p.id) {
-                    <tr class="rpt-row"><td class="py-2 max-w-[130px] truncate" style="color:#f87171" [title]="p.name">{{ p.name }}</td><td class="py-2 capitalize" style="color:#9ca3af">{{ p.category }}</td><td class="py-2 text-right font-mono" style="color:#6b7280">GH₵{{ fmt(p.cost) }}</td></tr>
+                    <tr class="rpt-row"><td class="py-2 max-w-[130px] overflow-x-auto" style="color:#f87171" [title]="p.name">{{ p.name }}</td><td class="py-2 capitalize" style="color:#9ca3af">{{ p.category }}</td><td class="py-2 text-right font-mono" style="color:#6b7280">GH₵{{ fmt(p.cost) }}</td></tr>
                   }
                   @if (!inv.tables.retail_out.length) { <tr><td colspan="3" class="py-6 text-center" style="color:#4ade80">✓ No out-of-stock retail items</td></tr> }
                 </tbody>
@@ -453,7 +459,7 @@
                 <thead><tr style="color:#6b7280"><th class="rpt-th text-left">Product</th><th class="rpt-th text-left">Category</th><th class="rpt-th text-right">Cost Price</th></tr></thead>
                 <tbody>
                   @for (p of inv.tables.wholesale_out; track p.id) {
-                    <tr class="rpt-row"><td class="py-2 max-w-[130px] truncate" style="color:#f87171" [title]="p.name">{{ p.name }}</td><td class="py-2 capitalize" style="color:#9ca3af">{{ p.category }}</td><td class="py-2 text-right font-mono" style="color:#6b7280">GH₵{{ fmt(p.cost) }}</td></tr>
+                    <tr class="rpt-row"><td class="py-2 max-w-[130px] overflow-x-auto" style="color:#f87171" [title]="p.name">{{ p.name }}</td><td class="py-2 capitalize" style="color:#9ca3af">{{ p.category }}</td><td class="py-2 text-right font-mono" style="color:#6b7280">GH₵{{ fmt(p.cost) }}</td></tr>
                   }
                   @if (!inv.tables.wholesale_out.length) { <tr><td colspan="3" class="py-6 text-center" style="color:#4ade80">✓ No out-of-stock wholesale items</td></tr> }
                 </tbody>
