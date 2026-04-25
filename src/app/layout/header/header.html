@@ -11,7 +11,9 @@
       </svg>
     </button>
     <div class="hidden sm:flex items-center gap-3">
-      <div class="text-xs font-bold tracking-widest uppercase" style="color: #4ade80;">Agrolytix</div>
+      <div class="text-xs font-bold tracking-widest uppercase" style="color: #4ade80;">
+        {{ user()?.business?.name ?? 'Agrolytix' }}
+      </div>
       <div class="w-1 h-1 rounded-full bg-gray-600"></div>
       <div class="text-sm font-medium" style="color: #d1d5db;">{{ pageTitle() }}</div>
     </div>

@@ -6,7 +6,7 @@
       Good day, {{ user()?.name?.split(' ')[0] ?? 'there' }} 👋
     </h1>
     <p class="text-sm mt-1" style="color: #6b7280;">
-      Here's what's happening in your agribusiness today.
+      Here's what's happening in <span class="font-semibold" style="color: #4ade80;">{{ user()?.business?.name ?? 'your agribusiness' }}</span> today.
     </p>
   </div>
 

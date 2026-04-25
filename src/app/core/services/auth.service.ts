@@ -13,16 +13,27 @@ export class AuthService {
     this.restoreSession();
   }
 
-  login(credentials: { email: string; password: string }) {
-    return this.http.post<{ user: any; token: string }>(`${this.apiUrl}/login`, credentials).pipe(
-      tap(res => {
-        localStorage.setItem('auth_token', res.token);
-        localStorage.setItem('auth_user', JSON.stringify(res.user));
-        this.currentUser.set(res.user);
-        this.router.navigate(['/dashboard']);
-      })
-    );
-  }
+    login(credentials: { email: string; password: string }) {
+        return this.http.post<{ user: any; token: string }>(`${this.apiUrl}/login`, credentials).pipe(
+        tap(res => {
+            localStorage.setItem('auth_token', res.token);
+            localStorage.setItem('auth_user', JSON.stringify(res.user));
+            this.currentUser.set(res.user);
+            this.router.navigate(['/dashboard']);
+        })
+        );
+    }
+
+    register(data: any) {
+        return this.http.post<{ user: any; business: any; token: string }>(`${this.apiUrl}/register`, data).pipe(
+        tap(res => {
+            localStorage.setItem('auth_token', res.token);
+            localStorage.setItem('auth_user', JSON.stringify(res.user));
+            this.currentUser.set(res.user);
+            this.router.navigate(['/dashboard']);
+        })
+        );
+    }
 
   hasPermission(permission: string): boolean {
     const user = this.currentUser();

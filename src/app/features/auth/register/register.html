@@ -16,13 +16,13 @@
              style="background: linear-gradient(135deg, #16a34a, #4ade80); color: #0a150a;">AG</div>
         <div class="text-left">
           <div class="text-2xl font-black tracking-tight" style="color: #f0fdf4;">Agrolytix</div>
-          <div class="text-xs tracking-widest uppercase" style="color: #4ade80;">Agribusiness Inventory</div>
+          <div class="text-xs tracking-widest uppercase" style="color: #4ade80;">Business Onboarding</div>
         </div>
       </div>
-      <p class="text-sm" style="color: #6b7280;">Sign in to manage your inventory</p>
+      <p class="text-sm" style="color: #6b7280;">Create your workspace and start managing inventory</p>
     </div>
 
-    <!-- Login Form -->
+    <!-- Register Form -->
     <div class="rounded-2xl p-8 border shadow-2xl"
          style="background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); backdrop-filter: blur(16px);">
 
@@ -34,26 +34,52 @@
       }
 
       <form (ngSubmit)="submit()" #f="ngForm">
+        <!-- Business Name -->
+        <div class="mb-4">
+          <label class="block text-xs font-semibold mb-1 uppercase tracking-wider" style="color: #9ca3af;"
+                 for="business_name">Business Name</label>
+          <input id="business_name" type="text" name="business_name" required
+                 [(ngModel)]="business_name"
+                 class="w-full px-4 py-2.5 rounded-xl border outline-none transition-all duration-200 text-sm"
+                 style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); color: #f0fdf4;"
+                 placeholder="Acme Agribusiness"
+                 onfocus="this.style.borderColor='#4ade80'"
+                 onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+        </div>
+
+        <!-- Admin Name -->
+        <div class="mb-4">
+          <label class="block text-xs font-semibold mb-1 uppercase tracking-wider" style="color: #9ca3af;"
+                 for="admin_name">Your Name</label>
+          <input id="admin_name" type="text" name="admin_name" required
+                 [(ngModel)]="admin_name"
+                 class="w-full px-4 py-2.5 rounded-xl border outline-none transition-all duration-200 text-sm"
+                 style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); color: #f0fdf4;"
+                 placeholder="John Doe"
+                 onfocus="this.style.borderColor='#4ade80'"
+                 onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+        </div>
+
         <!-- Email -->
-        <div class="mb-5">
-          <label class="block text-xs font-semibold mb-2 uppercase tracking-wider" style="color: #9ca3af;"
-                 for="email">Email Address</label>
+        <div class="mb-4">
+          <label class="block text-xs font-semibold mb-1 uppercase tracking-wider" style="color: #9ca3af;"
+                 for="email">Admin Email</label>
           <input id="email" type="email" name="email" required
                  [(ngModel)]="email"
-                 class="w-full px-4 py-3 rounded-xl border outline-none transition-all duration-200 text-sm"
+                 class="w-full px-4 py-2.5 rounded-xl border outline-none transition-all duration-200 text-sm"
                  style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); color: #f0fdf4;"
-                 placeholder="admin@agrolytix.local"
+                 placeholder="admin@example.com"
                  onfocus="this.style.borderColor='#4ade80'"
                  onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
         </div>
 
         <!-- Password -->
         <div class="mb-6">
-          <label class="block text-xs font-semibold mb-2 uppercase tracking-wider" style="color: #9ca3af;"
+          <label class="block text-xs font-semibold mb-1 uppercase tracking-wider" style="color: #9ca3af;"
                  for="password">Password</label>
           <input id="password" type="password" name="password" required
                  [(ngModel)]="password"
-                 class="w-full px-4 py-3 rounded-xl border outline-none transition-all duration-200 text-sm"
+                 class="w-full px-4 py-2.5 rounded-xl border outline-none transition-all duration-200 text-sm"
                  style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); color: #f0fdf4;"
                  placeholder="••••••••"
                  onfocus="this.style.borderColor='#4ade80'"
@@ -61,32 +87,27 @@
         </div>
 
         <!-- Submit -->
-        <button type="submit" [disabled]="loading()"
+        <button type="submit" [disabled]="loading() || f.invalid"
                 class="w-full py-3 rounded-xl font-bold text-sm tracking-wide transition-all duration-200 flex items-center justify-center gap-2"
                 style="background: linear-gradient(135deg, #16a34a, #4ade80); color: #0a150a;"
-                [style.opacity]="loading() ? '0.7' : '1'">
+                [style.opacity]="loading() || f.invalid ? '0.7' : '1'">
           @if (loading()) {
             <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="31.4" stroke-dashoffset="10"/>
             </svg>
-            Signing in…
+            Creating Account…
           } @else {
-            Sign In
+            Register Business
           }
         </button>
       </form>
 
     </div>
 
-    <!-- Default credentials hint -->
-    <p class="text-center text-xs mt-4" style="color: #374151;">
-      Default: admin&#64;agrolytix.local / admin1234
-    </p>
-
-    <!-- Register hint -->
+    <!-- Login hint -->
     <p class="text-center text-sm mt-6" style="color: #9ca3af;">
-      New business? 
-      <a routerLink="/auth/register" class="font-bold hover:underline" style="color: #4ade80;">Create an account</a>
+      Already have an account? 
+      <a routerLink="/auth" class="font-bold hover:underline" style="color: #4ade80;">Sign in</a>
     </p>
 
   </div>

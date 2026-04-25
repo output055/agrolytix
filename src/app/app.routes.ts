@@ -61,6 +61,11 @@ export const routes: Routes = [
         loadChildren: () => import('./features/expenses/expenses.routes').then(m => m.EXPENSES_ROUTES)
       },
       {
+        path: 'billing',
+        canActivate: [adminGuard],
+        loadChildren: () => import('./features/billing/billing.routes').then(m => m.BILLING_ROUTES)
+      },
+      {
         path: 'help',
         loadComponent: () => import('./features/help/help-view/help-view').then(m => m.HelpView)
       },
