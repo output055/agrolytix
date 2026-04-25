@@ -7,6 +7,13 @@ import { superAdminGuard } from './core/guards/super-admin.guard';
 import { tenantGuard } from './core/guards/tenant.guard';
 
 export const routes: Routes = [
+  // ─── Public Landing Page ───────────────────────────────────────────────
+  {
+    path: '',
+    loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent),
+    pathMatch: 'full'
+  },
+
   {
     path: 'auth',
     loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES)

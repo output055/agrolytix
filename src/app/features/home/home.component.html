@@ -1,0 +1,223 @@
+<div class="min-h-screen bg-[#0a150a] text-white font-sans selection:bg-green-500/30 selection:text-green-200">
+  
+  <!-- 1. NAVBAR -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-[#0a150a]/80 backdrop-blur-md border-b border-green-500/10 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <div class="flex items-center gap-2 cursor-pointer" (click)="scrollTo('hero')">
+        <div class="w-8 h-8 rounded-lg bg-green-400 flex items-center justify-center text-[#0a150a] font-black text-xl">A</div>
+        <span class="text-xl font-bold tracking-tight">Agrolytix</span>
+      </div>
+      
+      <div class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
+        <button (click)="scrollTo('features')" class="hover:text-green-400 transition-colors">Features</button>
+        <button (click)="scrollTo('how-it-works')" class="hover:text-green-400 transition-colors">How it works</button>
+        <button (click)="scrollTo('pricing')" class="hover:text-green-400 transition-colors">Pricing</button>
+      </div>
+      
+      <div class="flex items-center gap-4">
+        <a routerLink="/auth" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Login</a>
+        <a routerLink="/auth/register" class="bg-green-400 hover:bg-green-300 text-[#0a150a] px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 hover:shadow-[0_0_20px_rgba(74,222,128,0.3)] hover:-translate-y-0.5">Get Started</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 2. HERO SECTION -->
+  <section id="hero" class="relative pt-40 pb-20 overflow-hidden">
+    <!-- Background Glow -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-green-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+    
+    <div class="max-w-7xl mx-auto px-6 relative z-10 text-center">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-bold tracking-wider uppercase mb-8">
+        <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+        The #1 Agribusiness OS
+      </div>
+      
+      <h1 class="text-5xl md:text-7xl font-black tracking-tight leading-[1.1] mb-6">
+        Run Your Agro Business <br/>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">Smarter.</span>
+      </h1>
+      
+      <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+        Track inventory, manage multi-channel POS, control expenses, and get real-time financial insights. Everything you need to scale your agribusiness in one place.
+      </p>
+      
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a routerLink="/auth/register" class="w-full sm:w-auto bg-green-400 hover:bg-green-300 text-[#0a150a] px-8 py-4 rounded-full text-lg font-bold transition-all duration-300 hover:shadow-[0_0_30px_rgba(74,222,128,0.4)] hover:-translate-y-1 flex items-center justify-center gap-2">
+          Start Free Trial
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+        </a>
+        <a routerLink="/auth" class="w-full sm:w-auto bg-white/5 hover:bg-white/10 text-white border border-white/10 px-8 py-4 rounded-full text-lg font-bold transition-all duration-300">
+          Login to Dashboard
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. FEATURES SECTION -->
+  <section id="features" class="py-24 bg-[#0d1a0d]">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-5xl font-black mb-4">Everything you need to grow</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto">Powerful tools designed specifically for agro shops and commodity traders.</p>
+      </div>
+      
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Feature 1 -->
+        <div class="bg-white/5 border border-white/5 p-8 rounded-3xl hover:bg-white/10 hover:border-green-500/30 transition-all duration-300 group">
+          <div class="w-12 h-12 bg-green-500/20 text-green-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          </div>
+          <h3 class="text-xl font-bold mb-3">Omnichannel POS</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Dedicated interfaces for retail walk-ins and bulk wholesale orders. Fast, reliable, and easy to use.</p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="bg-white/5 border border-white/5 p-8 rounded-3xl hover:bg-white/10 hover:border-green-500/30 transition-all duration-300 group">
+          <div class="w-12 h-12 bg-green-500/20 text-green-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          </div>
+          <h3 class="text-xl font-bold mb-3">Inventory Sync</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Real-time stock tracking across all your branches. Get low stock alerts before you run out.</p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="bg-white/5 border border-white/5 p-8 rounded-3xl hover:bg-white/10 hover:border-green-500/30 transition-all duration-300 group">
+          <div class="w-12 h-12 bg-green-500/20 text-green-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <h3 class="text-xl font-bold mb-3">Debt Tracking</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Never lose money to forgotten debts. Track who owes you, how much, and send payment reminders.</p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="bg-white/5 border border-white/5 p-8 rounded-3xl hover:bg-white/10 hover:border-green-500/30 transition-all duration-300 group">
+          <div class="w-12 h-12 bg-green-500/20 text-green-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+          </div>
+          <h3 class="text-xl font-bold mb-3">Expense Control</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Log daily operational expenses. Categorize spending to see exactly where your money is going.</p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="bg-white/5 border border-white/5 p-8 rounded-3xl hover:bg-white/10 hover:border-green-500/30 transition-all duration-300 group lg:col-span-2">
+          <div class="w-12 h-12 bg-green-500/20 text-green-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          </div>
+          <h3 class="text-xl font-bold mb-3">Advanced Analytics</h3>
+          <p class="text-gray-400 text-sm leading-relaxed max-w-lg">Instantly generate profit & loss statements, revenue reports, and sales insights. Make data-driven decisions that push your business forward.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. HOW IT WORKS -->
+  <section id="how-it-works" class="py-24 relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-6 relative z-10">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-5xl font-black mb-4">From zero to operational in minutes</h2>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8 relative">
+        <!-- Connecting Line -->
+        <div class="hidden md:block absolute top-12 left-1/6 right-1/6 h-0.5 bg-green-500/20"></div>
+
+        <div class="relative text-center">
+          <div class="w-24 h-24 mx-auto bg-[#0a150a] border-2 border-green-400 rounded-full flex items-center justify-center text-3xl font-black text-green-400 mb-6 relative z-10">1</div>
+          <h3 class="text-xl font-bold mb-2">Create Account</h3>
+          <p class="text-gray-400 text-sm">Sign up and configure your shop details in seconds.</p>
+        </div>
+
+        <div class="relative text-center">
+          <div class="w-24 h-24 mx-auto bg-[#0a150a] border-2 border-green-400 rounded-full flex items-center justify-center text-3xl font-black text-green-400 mb-6 relative z-10">2</div>
+          <h3 class="text-xl font-bold mb-2">Add Inventory</h3>
+          <p class="text-gray-400 text-sm">Input your products, prices, and current stock levels.</p>
+        </div>
+
+        <div class="relative text-center">
+          <div class="w-24 h-24 mx-auto bg-[#0a150a] border-2 border-green-400 rounded-full flex items-center justify-center text-3xl font-black text-green-400 mb-6 relative z-10">3</div>
+          <h3 class="text-xl font-bold mb-2">Start Selling</h3>
+          <p class="text-gray-400 text-sm">Use the POS to serve customers and watch your data flow.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. PRICING -->
+  <section id="pricing" class="py-24 bg-[#0d1a0d]">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-5xl font-black mb-4">Simple, transparent pricing</h2>
+        <p class="text-gray-400">Start for free. Upgrade when you're ready to scale.</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 max-w-4xl mx-auto gap-8">
+        
+        <!-- Monthly -->
+        <div class="bg-white/5 border border-white/10 rounded-3xl p-8 flex flex-col">
+          <h3 class="text-xl font-bold text-gray-300 mb-2">Monthly Plan</h3>
+          <div class="flex items-baseline gap-2 mb-6">
+            <span class="text-5xl font-black">₵200</span>
+            <span class="text-gray-500">/mo</span>
+          </div>
+          <ul class="space-y-4 mb-8 flex-1">
+            <li class="flex items-center gap-3 text-sm text-gray-300"><svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Unlimited Products</li>
+            <li class="flex items-center gap-3 text-sm text-gray-300"><svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Retail & Wholesale POS</li>
+            <li class="flex items-center gap-3 text-sm text-gray-300"><svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Staff Management</li>
+            <li class="flex items-center gap-3 text-sm text-gray-300"><svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Basic Analytics</li>
+          </ul>
+          <a routerLink="/auth/register" class="block w-full text-center bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl font-bold transition-colors">Start 14-Day Free Trial</a>
+        </div>
+
+        <!-- Annual -->
+        <div class="bg-gradient-to-b from-green-500/20 to-transparent border border-green-500/30 rounded-3xl p-8 flex flex-col relative">
+          <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-green-400 text-[#0a150a] px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Best Value</div>
+          <h3 class="text-xl font-bold text-white mb-2">Annual Plan</h3>
+          <div class="flex items-baseline gap-2 mb-6">
+            <span class="text-5xl font-black">₵2,500</span>
+            <span class="text-gray-500">/yr</span>
+          </div>
+          <ul class="space-y-4 mb-8 flex-1">
+            <li class="flex items-center gap-3 text-sm text-white"><svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> All Monthly Features</li>
+            <li class="flex items-center gap-3 text-sm text-white"><svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Priority Support</li>
+            <li class="flex items-center gap-3 text-sm text-white"><svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Advanced Financial Reports</li>
+            <li class="flex items-center gap-3 text-sm text-green-300 font-medium"><svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Save ₵100 instantly</li>
+          </ul>
+          <a routerLink="/auth/register" class="block w-full text-center bg-green-400 hover:bg-green-300 text-[#0a150a] py-3 rounded-xl font-bold transition-all hover:shadow-[0_0_20px_rgba(74,222,128,0.3)]">Start 14-Day Free Trial</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. CTA -->
+  <section class="py-24 relative overflow-hidden">
+    <div class="absolute inset-0 bg-green-500/5"></div>
+    <div class="max-w-4xl mx-auto px-6 relative z-10 text-center">
+      <h2 class="text-4xl md:text-6xl font-black mb-8 leading-tight">Ready to manage your business the smart way?</h2>
+      <a routerLink="/auth/register" class="inline-flex items-center gap-2 bg-green-400 hover:bg-green-300 text-[#0a150a] px-10 py-5 rounded-full text-xl font-black transition-all duration-300 hover:shadow-[0_0_40px_rgba(74,222,128,0.5)] hover:-translate-y-1">
+        Create Your Account
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <!-- 7. FOOTER -->
+  <footer class="border-t border-white/10 bg-[#060c06] py-12">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2">
+        <div class="w-6 h-6 rounded bg-green-400 flex items-center justify-center text-[#0a150a] font-black text-sm">A</div>
+        <span class="font-bold tracking-tight">Agrolytix</span>
+      </div>
+      
+      <div class="flex gap-6 text-sm text-gray-500">
+        <a routerLink="/auth" class="hover:text-white transition-colors">Login</a>
+        <a routerLink="/auth/register" class="hover:text-white transition-colors">Register</a>
+      </div>
+      
+      <div class="text-sm text-gray-600">
+        &copy; 2026 Agrolytix. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+</div>
