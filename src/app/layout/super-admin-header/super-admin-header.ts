@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, Output, EventEmitter } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -12,6 +12,8 @@ export class SuperAdminHeader {
   auth   = inject(AuthService);
   router = inject(Router);
   user   = this.auth.currentUser;
+
+  @Output() toggleMenu = new EventEmitter<void>();
 
   logout() {
     this.auth.logout().subscribe(() => this.router.navigate(['/auth']));

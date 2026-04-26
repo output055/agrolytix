@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SuperAdminSidebar } from '../super-admin-sidebar/super-admin-sidebar';
 import { SuperAdminHeader } from '../super-admin-header/super-admin-header';
@@ -9,4 +9,14 @@ import { SuperAdminHeader } from '../super-admin-header/super-admin-header';
   imports: [RouterOutlet, SuperAdminSidebar, SuperAdminHeader],
   templateUrl: './super-admin-layout.html',
 })
-export class SuperAdminLayout {}
+export class SuperAdminLayout {
+  sidebarOpen = signal(false);
+
+  toggleSidebar() {
+    this.sidebarOpen.update(v => !v);
+  }
+
+  closeSidebar() {
+    this.sidebarOpen.set(false);
+  }
+}
