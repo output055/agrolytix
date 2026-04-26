@@ -12,6 +12,7 @@
         <button (click)="scrollTo('features')" class="hover:text-green-400 transition-colors">Features</button>
         <button (click)="scrollTo('how-it-works')" class="hover:text-green-400 transition-colors">How it works</button>
         <button (click)="scrollTo('pricing')" class="hover:text-green-400 transition-colors">Pricing</button>
+        <button (click)="scrollTo('contact')" class="hover:text-green-400 transition-colors">Contact Us</button>
       </div>
       
       <div class="flex items-center gap-4">
@@ -189,7 +190,52 @@
     </div>
   </section>
 
-  <!-- 6. CTA -->
+  <!-- 6. CONTACT US -->
+  <section id="contact" class="py-24 relative overflow-hidden bg-[#0a150a]">
+    <div class="max-w-3xl mx-auto px-6 relative z-10">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-5xl font-black mb-4">Get in touch</h2>
+        <p class="text-gray-400">Have questions? We'd love to hear from you.</p>
+      </div>
+      
+      @if (contactSuccess) {
+        <div class="bg-white/5 border border-green-500/30 p-12 rounded-3xl flex flex-col items-center justify-center text-center gap-4 transition-all duration-500">
+          <div class="w-16 h-16 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center mb-2">
+            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h3 class="text-2xl font-bold text-white">Message Sent Successfully!</h3>
+          <p class="text-gray-400 max-w-md">Thank you for reaching out. We have received your message and our team will get back to you shortly.</p>
+          <button (click)="contactSuccess = false" class="mt-4 text-green-400 hover:text-green-300 font-bold transition-colors">
+            Send another message
+          </button>
+        </div>
+      } @else {
+        <form (ngSubmit)="submitContact()" class="bg-white/5 border border-white/10 p-8 rounded-3xl flex flex-col gap-6">
+          <div class="grid md:grid-cols-2 gap-6">
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-bold text-gray-300">Name</label>
+              <input type="text" [(ngModel)]="contactForm.name" name="name" required class="bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-400 transition-colors" placeholder="Your name">
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-bold text-gray-300">Email</label>
+              <input type="email" [(ngModel)]="contactForm.email" name="email" required class="bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-400 transition-colors" placeholder="your@email.com">
+            </div>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-bold text-gray-300">Message</label>
+            <textarea [(ngModel)]="contactForm.message" name="message" required rows="4" class="bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-400 transition-colors resize-none" placeholder="How can we help you?"></textarea>
+          </div>
+          <button type="submit" [disabled]="contactLoading" class="bg-green-400 hover:bg-green-300 text-[#0a150a] py-4 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+            {{ contactLoading ? 'Sending...' : 'Send Message' }}
+          </button>
+        </form>
+      }
+    </div>
+  </section>
+
+  <!-- 7. CTA -->
   <section class="py-24 relative overflow-hidden">
     <div class="absolute inset-0 bg-green-500/5"></div>
     <div class="max-w-4xl mx-auto px-6 relative z-10 text-center">

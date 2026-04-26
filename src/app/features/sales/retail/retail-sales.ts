@@ -282,8 +282,8 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
             }
           </div>
 
-          <!-- Reverse Sale (Admin only, non-reversed sales) -->
-          @if (isAdmin && selectedSale.status !== 'reversed') {
+          <!-- Reverse Sale -->
+          @if (selectedSale.status !== 'reversed') {
             <div class="reverse-section">
               @if (canReverse(selectedSale)) {
                 @if (!showReverseForm) {
