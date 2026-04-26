@@ -1,0 +1,29 @@
+<header class="h-16 flex items-center justify-between px-6 shrink-0 border-b"
+        style="background: rgba(7,10,30,0.95); backdrop-filter: blur(16px); border-color: rgba(99,102,241,0.15);">
+
+  <!-- Left: Title & Mobile Toggle -->
+  <div class="flex items-center gap-3">
+    <!-- Hamburger for Mobile -->
+    <button (click)="toggleMenu.emit()" class="md:hidden p-2 -ml-2 text-indigo-400 hover:text-indigo-300 transition-colors">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+
+    <div class="hidden sm:block w-2 h-2 rounded-full animate-pulse" style="background: #6366f1;"></div>
+    <span class="font-bold text-sm tracking-wide hidden sm:block" style="color: #c7d2fe;">System Administration Panel</span>
+    <span class="font-bold text-sm tracking-wide sm:hidden" style="color: #c7d2fe;">System Admin</span>
+  </div>
+
+  <!-- Right: Logout -->
+  <button (click)="logout()"
+          class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200"
+          style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #f87171;">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+    </svg>
+    Sign Out
+  </button>
+
+</header>

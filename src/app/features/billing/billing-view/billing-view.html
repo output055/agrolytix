@@ -1,0 +1,190 @@
+<div class="space-y-6 max-w-3xl mx-auto">
+
+  <!-- Page Header -->
+  <div>
+    <h1 class="text-2xl font-bold" style="color: #f0fdf4;">Billing & Subscription</h1>
+    <p class="text-sm mt-1" style="color: #6b7280;">Manage your Agrolytix subscription and billing details.</p>
+  </div>
+
+  <!-- Notification Banner -->
+  @if (notification()) {
+    <div class="px-5 py-4 rounded-xl border text-sm font-medium flex items-center gap-3"
+         [style.background]="notification()!.type === 'success' ? 'rgba(74,222,128,0.08)' : 'rgba(248,113,113,0.08)'"
+         [style.borderColor]="notification()!.type === 'success' ? 'rgba(74,222,128,0.25)' : 'rgba(248,113,113,0.25)'"
+         [style.color]="notification()!.type === 'success' ? '#4ade80' : '#f87171'">
+      @if (notification()!.type === 'success') {
+        <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      } @else {
+        <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      }
+      {{ notification()!.message }}
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="agro-card p-8 text-center">
+      <div class="inline-flex w-8 h-8 border-2 border-green-400/30 border-t-green-400 rounded-full animate-spin"></div>
+      <p class="text-sm mt-3" style="color: #6b7280;">Loading subscription details…</p>
+    </div>
+  } @else if (status()) {
+
+    <!-- Current Status Card -->
+    <div class="rounded-2xl p-6 border"
+         style="background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.07); backdrop-filter: blur(12px);">
+      <div class="flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest mb-1" style="color: #6b7280;">Current Status</p>
+          <div class="flex items-center gap-3">
+            <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide"
+                  [style.color]="statusBadge.color"
+                  [style.background]="statusBadge.color + '18'"
+                  [style.border]="'1px solid ' + statusBadge.color + '40'">
+              {{ statusBadge.label }}
+            </span>
+            @if (status().subscription_plan) {
+              <span class="text-sm font-medium" style="color: #d1d5db;">
+                {{ status().subscription_plan === 'annual' ? 'Annual Plan' : 'Monthly Plan' }}
+              </span>
+            }
+          </div>
+
+          @if (status().subscription_status === 'trialing') {
+            <p class="text-sm mt-3" style="color: #9ca3af;">
+              Your free trial ends in
+              <span class="font-bold" style="color: #f59e0b;">
+                {{ status().trial_days_remaining }} day{{ status().trial_days_remaining !== 1 ? 's' : '' }}
+              </span>
+              ({{ status().trial_ends_at | date:'mediumDate' }}).
+            </p>
+          }
+
+          @if (status().subscription_status === 'active' && status().subscription_ends_at) {
+            <p class="text-sm mt-3" style="color: #9ca3af;">
+              Your subscription renews on
+              <span class="font-bold" style="color: #4ade80;">{{ status().subscription_ends_at | date:'mediumDate' }}</span>.
+            </p>
+          }
+
+          @if (status().subscription_status === 'past_due' || status().subscription_status === 'cancelled') {
+            <p class="text-sm mt-3 font-medium" style="color: #f87171;">
+              Your access has been suspended. Please subscribe to continue using Agrolytix.
+            </p>
+          }
+        </div>
+
+        <div class="text-right shrink-0">
+          @if (status().subscription_status === 'active') {
+            <p class="text-xs" style="color: #6b7280;">Next billing</p>
+            <p class="text-lg font-bold mt-0.5" style="color: #f0fdf4;">
+              {{ status().subscription_plan === 'annual' ? 'GH₵2,500' : 'GH₵200' }}
+            </p>
+            <p class="text-xs" style="color: #6b7280;">
+              per {{ status().subscription_plan === 'annual' ? 'year' : 'month' }}
+            </p>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Plan Card -->
+    <div class="rounded-2xl border overflow-hidden"
+         style="background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.07);">
+
+      <!-- Plan header -->
+      <div class="px-6 pt-6 pb-4 border-b" style="border-color: rgba(255,255,255,0.06);">
+        <div class="flex items-center justify-between mb-4">
+          <p class="text-xs font-bold uppercase tracking-widest" style="color: #6b7280;">Agrolytix Subscription</p>
+          
+          <!-- Billing Cycle Toggle -->
+          <div class="flex items-center bg-black/40 p-1 rounded-lg border border-white/5">
+            <button (click)="selectedPlan.set('monthly')"
+                    class="px-3 py-1.5 text-xs font-bold rounded-md transition-all duration-200"
+                    [class.bg-white]="selectedPlan() === 'monthly'"
+                    [class.text-black]="selectedPlan() === 'monthly'"
+                    [class.text-gray-400]="selectedPlan() !== 'monthly'">
+              Monthly
+            </button>
+            <button (click)="selectedPlan.set('annual')"
+                    class="px-3 py-1.5 text-xs font-bold rounded-md transition-all duration-200 flex items-center gap-1.5"
+                    [class.bg-white]="selectedPlan() === 'annual'"
+                    [class.text-black]="selectedPlan() === 'annual'"
+                    [class.text-gray-400]="selectedPlan() !== 'annual'">
+              Annually <span class="text-[10px] px-1.5 py-0.5 rounded bg-green-500/20 text-green-500 font-bold hidden sm:inline-block">Save 16%</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-end gap-3 flex-wrap">
+          <div>
+            @if (selectedPlan() === 'annual') {
+              <p class="text-4xl font-black" style="color: #f0fdf4;">GH₵2,500</p>
+              <p class="text-sm" style="color: #6b7280;">first year &nbsp;·&nbsp; then <span style="color: #d1d5db; font-weight: 600;">GH₵200/month</span></p>
+            } @else {
+              <p class="text-4xl font-black" style="color: #f0fdf4;">GH₵200</p>
+              <p class="text-sm" style="color: #6b7280;">per month</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Features -->
+      <div class="px-6 py-5 grid sm:grid-cols-2 gap-3">
+        @for (feature of [
+          'Unlimited Retail & Wholesale POS',
+          'Full Inventory Management',
+          'Sales & Expense Tracking',
+          'Client & Debt Management',
+          'Financial Reports & Analytics',
+          'Multi-User Access with Roles',
+          'Audit Logs & Activity History',
+          'Tenant-Isolated Data Security'
+        ]; track feature) {
+          <div class="flex items-center gap-2.5 text-sm" style="color: #d1d5db;">
+            <svg class="w-4 h-4 shrink-0" style="color: #4ade80;" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            {{ feature }}
+          </div>
+        }
+      </div>
+
+      <!-- Subscribe CTA -->
+      <div class="px-6 pb-6">
+        @if (canSubscribe) {
+          <button (click)="subscribe()" [disabled]="subscribing()"
+                  class="w-full py-3.5 rounded-xl font-bold text-sm tracking-wide transition-all duration-200 flex items-center justify-center gap-2"
+                  style="background: linear-gradient(135deg, #16a34a, #4ade80); color: #0a150a;"
+                  [style.opacity]="subscribing() ? '0.7' : '1'">
+            @if (subscribing()) {
+              <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="31.4" stroke-dashoffset="10"/>
+              </svg>
+              Redirecting to Paystack…
+            } @else {
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              {{ status().subscription_status === 'trialing' ? 'Subscribe Now' : 'Reactivate Subscription' }}
+            }
+          </button>
+          <p class="text-center text-xs mt-3" style="color: #6b7280;">
+            Secured by Paystack &nbsp;·&nbsp; MTN MoMo, AirtelTigo, Visa & Mastercard accepted
+          </p>
+        } @else {
+          <div class="flex items-center justify-center gap-2 py-3 rounded-xl"
+               style="background: rgba(74,222,128,0.06); border: 1px solid rgba(74,222,128,0.15);">
+            <svg class="w-4 h-4" style="color: #4ade80;" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-sm font-semibold" style="color: #4ade80;">Subscription Active</span>
+          </div>
+        }
+      </div>
+    </div>
+
+  }
+</div>

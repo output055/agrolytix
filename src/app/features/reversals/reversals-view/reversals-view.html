@@ -1,0 +1,178 @@
+<div class="page-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Reversals Log</h1>
+      <p class="page-subtitle">History of reversed retail sales with stock restoration details</p>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card">
+    @if (loading) {
+      <div class="empty-state">
+        <div class="spinner"></div>
+        <p>Loading reversals...</p>
+      </div>
+    } @else if (reversals.length === 0) {
+      <div class="empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" class="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+        </svg>
+        <p class="text-lg">No reversals recorded yet</p>
+        <p class="text-sm text-gray-500 mt-1">Reversed sales will appear here</p>
+      </div>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Receipt #</th>
+              <th>Sale Date</th>
+              <th>Type</th>
+              <th>Amount Reversed (GH₵)</th>
+              <th>Items</th>
+              <th>Reason</th>
+              <th>Reversed By</th>
+              <th>Reversed On</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (rev of reversals; track rev.id) {
+              <tr class="table-row" (click)="openDetail(rev)">
+                <td>
+                  <span class="receipt-badge">{{ rev.sale?.receipt_number ?? '—' }}</span>
+                </td>
+                <td class="text-muted">{{ rev.sale?.created_at | date:'d MMM y, h:mm a' }}</td>
+                <td>
+                  <span class="pill" [class.pill-red]="!rev.is_partial" [class.pill-orange]="rev.is_partial">
+                    {{ rev.is_partial ? 'Partial' : 'Full' }}
+                  </span>
+                </td>
+                <td class="text-red font-bold">{{ rev.amount_reversed | number:'1.2-2' }}</td>
+                <td class="text-muted">{{ rev.reversed_items?.length ?? '—' }} item(s)</td>
+                <td class="text-muted reason-cell">{{ rev.reason || '—' }}</td>
+                <td class="text-muted">{{ rev.reversed_by?.name ?? '—' }}</td>
+                <td class="text-muted">{{ rev.created_at | date:'d MMM y, h:mm a' }}</td>
+                <td class="text-right">
+                  <button class="action-btn" (click)="openDetail(rev); $event.stopPropagation()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    Details
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Detail Modal -->
+@if (selectedReversal) {
+  <div class="modal-backdrop" (click)="closeDetail()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title">Reversal Details</h2>
+          <p class="modal-sub">{{ selectedReversal.sale?.receipt_number ?? '' }}</p>
+        </div>
+        <button class="close-btn" (click)="closeDetail()">✕</button>
+      </div>
+
+      <!-- Meta -->
+      <div class="meta-grid">
+        <div>
+          <div class="meta-label">Original Sale Date</div>
+          <div class="meta-value">{{ selectedReversal.sale?.created_at | date:'d MMM yyyy, h:mm a' }}</div>
+        </div>
+        <div>
+          <div class="meta-label">Reversed On</div>
+          <div class="meta-value">{{ selectedReversal.created_at | date:'d MMM yyyy, h:mm a' }}</div>
+        </div>
+        <div>
+          <div class="meta-label">Reversed By</div>
+          <div class="meta-value">{{ selectedReversal.reversed_by?.name ?? 'N/A' }}</div>
+        </div>
+        <div>
+          <div class="meta-label">Reversal Type</div>
+          <div class="meta-value">
+            <span class="pill" [class.pill-red]="!selectedReversal.is_partial" [class.pill-orange]="selectedReversal.is_partial">
+              {{ selectedReversal.is_partial ? 'Partial Reversal' : 'Full Reversal' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reason -->
+      @if (selectedReversal.reason) {
+        <div class="reason-banner">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+          </svg>
+          <div>
+            <div class="reason-title">Reason</div>
+            <div class="reason-text">{{ selectedReversal.reason }}</div>
+          </div>
+        </div>
+      }
+
+      <!-- Reversed Items from snapshot -->
+      @if (selectedReversal.reversed_items && selectedReversal.reversed_items.length > 0) {
+        <div class="items-section">
+          <h4 class="section-title">Items Reversed &amp; Restored to Stock</h4>
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Unit</th>
+                <th class="text-right">Qty Restored</th>
+                <th class="text-right">Unit Price</th>
+                @if (isAdmin) { <th class="text-right">Cost</th> }
+                <th class="text-right">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of selectedReversal.reversed_items; track item.item_id) {
+                <tr>
+                  <td>{{ item.product_name }}</td>
+                  <td class="text-muted">{{ item.unit_name }}</td>
+                  <td class="text-right text-green font-bold">+{{ item.quantity }}</td>
+                  <td class="text-right">GH₵{{ item.unit_price | number:'1.2-2' }}</td>
+                  @if (isAdmin) { <td class="text-right text-blue">GH₵{{ item.cost_price | number:'1.2-2' }}</td> }
+                  <td class="text-right font-bold">GH₵{{ item.subtotal | number:'1.2-2' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <!-- Totals -->
+      <div class="totals-section">
+        <div class="total-row">
+          <span class="total-label">Revenue Reversed</span>
+          <span class="total-value text-red font-bold">-GH₵{{ selectedReversal.amount_reversed | number:'1.2-2' }}</span>
+        </div>
+        @if (isAdmin) {
+          <div class="total-row">
+            <span class="total-label">Cost Reversed</span>
+            <span class="total-value text-blue">-GH₵{{ selectedReversal.cost_reversed | number:'1.2-2' }}</span>
+          </div>
+          <div class="total-row profit-row">
+            <span class="total-label font-bold">Profit Impact</span>
+            <span class="total-value text-red font-bold">
+              -GH₵{{ (selectedReversal.amount_reversed - selectedReversal.cost_reversed) | number:'1.2-2' }}
+            </span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

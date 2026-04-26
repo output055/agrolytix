@@ -1,0 +1,188 @@
+<div class="space-y-6">
+
+  <!-- Page Header -->
+  <div>
+    <h1 class="text-2xl font-bold" style="color: #f0fdf4;">
+      Good day, {{ user()?.name?.split(' ')[0] ?? 'there' }} 👋
+    </h1>
+    <p class="text-sm mt-1" style="color: #6b7280;">
+      Here's what's happening in <span class="font-semibold" style="color: #4ade80;">{{ user()?.business?.name ?? 'your agribusiness' }}</span> today.
+    </p>
+  </div>
+
+  @if (loading()) {
+    <!-- Skeleton -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+      @for (_ of [1,2,3,4,5,6]; track $index) {
+        <div class="agro-card p-5 h-28 flex flex-col justify-between">
+          <div class="flex justify-between">
+            <app-skeleton width="30%" height="0.75rem"></app-skeleton>
+            <app-skeleton width="2rem" height="2rem"></app-skeleton>
+          </div>
+          <app-skeleton width="60%" height="1.75rem"></app-skeleton>
+        </div>
+      }
+    </div>
+  } @else if (stats()) {
+    <!-- KPI Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+      <app-kpi-card
+        label="Retail Revenue (Today)"
+        [value]="formatCurrency(stats().retail_revenue)"
+        colorRgb="74,222,128"
+        subtitle="Completed retail sales today">
+        <svg kpi-icon class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.3 2.3c-.6.6-.2 1.7.7 1.7H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+      </app-kpi-card>
+
+      @if (isAdmin) {
+        <app-kpi-card
+          label="Retail Profit (Today)"
+          [value]="formatCurrency(stats().retail_profit)"
+          colorRgb="74,222,128"
+          subtitle="Revenue minus cost">
+          <svg kpi-icon class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+        </app-kpi-card>
+      }
+
+      <app-kpi-card
+        label="Wholesale Revenue (Today)"
+        [value]="formatCurrency(stats().wholesale_revenue)"
+        colorRgb="245,158,11"
+        subtitle="Wholesale sales today">
+        <svg kpi-icon class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
+      </app-kpi-card>
+
+      @if (isAdmin) {
+        <app-kpi-card
+          label="Wholesale Profit (Today)"
+          [value]="formatCurrency(stats().wholesale_profit)"
+          colorRgb="245,158,11"
+          subtitle="Revenue minus cost">
+          <svg kpi-icon class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+        </app-kpi-card>
+      }
+
+      @if (isAdmin) {
+        <app-kpi-card
+          label="Outstanding Debt"
+          [value]="formatCurrency(stats().total_debt)"
+          colorRgb="248,113,113"
+          subtitle="Total unpaid wholesale balance">
+          <svg kpi-icon class="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </app-kpi-card>
+      }
+
+      @if (isAdmin) {
+        <app-kpi-card
+          label="Expenses (Today)"
+          [value]="formatCurrency(stats().today_expenses)"
+          colorRgb="251,146,60"
+          subtitle="Total recorded expenses today">
+          <svg kpi-icon class="w-5 h-5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        </app-kpi-card>
+      }
+
+      <app-kpi-card
+        [label]="'Low Stock Products'"
+        [value]="stats().low_stock_count.toString()"
+        colorRgb="251,191,36"
+        subtitle="Items at or below alert threshold">
+        <svg kpi-icon class="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+        </svg>
+      </app-kpi-card>
+    </div>
+
+    <!-- Date indicator -->
+    <p class="text-xs" style="color: #6b7280; opacity: 0.8;">
+      Statistics for {{ stats().date }}
+    </p>
+
+    <!-- Products Needing Attention Section -->
+    <div class="mt-8">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold" style="color: #f0fdf4;">Products Needing Attention</h2>
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20">
+          {{ stats().needs_attention?.length ?? 0 }} Alerts
+        </span>
+      </div>
+
+      <div class="rounded-2xl border overflow-hidden" 
+           style="background: rgba(255, 255, 255, 0.02); border-color: rgba(255, 255, 255, 0.06); backdrop-filter: blur(10px);">
+        
+        @if (stats().needs_attention && stats().needs_attention.length > 0) {
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr style="background: rgba(255, 255, 255, 0.03);">
+                  <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-400">Product Name</th>
+                  <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-400">Type</th>
+                  <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-400 text-right">Current Qty</th>
+                  <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-400 text-right">Limit</th>
+                  <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-400 text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/5">
+                @for (item of stats().needs_attention; track item.id + item.type) {
+                  <tr class="hover:bg-white/[0.02] transition-colors group">
+                    <td class="px-6 py-4">
+                      <div class="font-medium text-gray-200 group-hover:text-white transition-colors">{{ item.name }}</div>
+                      <div class="text-xs text-gray-500 mt-0.5">{{ item.base_unit }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight"
+                            [style.color]="item.type === 'Retail' ? '#4ade80' : '#f59e0b'"
+                            style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                        {{ item.type }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 text-right font-mono text-sm" 
+                        [class.text-red-400]="item.quantity === 0"
+                        [class.text-amber-400]="item.quantity > 0">
+                      {{ item.quantity }}
+                    </td>
+                    <td class="px-6 py-4 text-right font-mono text-sm text-gray-500">
+                      {{ item.low_stock_alert }}
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                      @if (item.quantity === 0) {
+                        <span class="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full border border-red-500/30">Out of Stock</span>
+                      } @else {
+                        <span class="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30">Low Stock</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <div class="p-12 text-center">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 bg-green-500/10 text-green-400 border border-green-500/20">
+              <span class="text-xl">✅</span>
+            </div>
+            <h3 class="text-gray-200 font-medium">All systems go!</h3>
+            <p class="text-sm text-gray-500 mt-1">No products currently need attention.</p>
+          </div>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="rounded-2xl p-8 border text-center" style="background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.06);">
+      <p style="color: #6b7280;">Could not load stats. Make sure the API server is running on port 8001.</p>
+    </div>
+  }
+
+</div>

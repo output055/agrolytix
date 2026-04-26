@@ -1,0 +1,71 @@
+<div class="max-w-7xl mx-auto space-y-6">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-black text-white tracking-tight">Payments</h1>
+      <p class="text-gray-400 text-sm mt-1">Live transaction history from Paystack.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="text-gray-500 text-sm">Loading transactions...</div>
+  } @else if (error()) {
+    <div class="text-red-400 text-sm">Could not fetch transactions from Paystack. Please check your API keys.</div>
+  } @else if (data()) {
+    
+    <!-- Top Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+      <div class="rounded-2xl p-5 border flex flex-col gap-2"
+           style="background: rgba(99,102,241,0.06); border-color: rgba(99,102,241,0.2);">
+        <span class="text-[11px] font-bold uppercase tracking-wider" style="color: #818cf8;">Total Revenue</span>
+        <span class="text-3xl font-black text-white">GH₵{{ data()!.total_revenue | number:'1.0-2' }}</span>
+      </div>
+      <div class="rounded-2xl p-5 border flex flex-col gap-2"
+           style="background: rgba(99,102,241,0.06); border-color: rgba(99,102,241,0.2);">
+        <span class="text-[11px] font-bold uppercase tracking-wider" style="color: #818cf8;">Total Transactions</span>
+        <span class="text-3xl font-black text-white">{{ data()!.total_count }}</span>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="rounded-2xl border overflow-hidden shadow-2xl"
+         style="background: rgba(7,10,30,0.9); border-color: rgba(99,102,241,0.15);">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[800px]">
+          <thead>
+            <tr style="background: rgba(0,0,0,0.4);">
+              <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-gray-400 border-b" style="border-color:rgba(99,102,241,0.1);">Customer</th>
+              <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-gray-400 border-b" style="border-color:rgba(99,102,241,0.1);">Plan</th>
+              <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-gray-400 border-b" style="border-color:rgba(99,102,241,0.1);">Amount</th>
+              <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-gray-400 border-b" style="border-color:rgba(99,102,241,0.1);">Status</th>
+              <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-gray-400 border-b" style="border-color:rgba(99,102,241,0.1);">Date</th>
+              <th class="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-gray-400 border-b text-right" style="border-color:rgba(99,102,241,0.1);">Reference</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y" style="divide-color: rgba(99,102,241,0.07);">
+            @if (data()!.transactions.length === 0) {
+              <tr><td colspan="6" class="px-6 py-12 text-center text-gray-500 text-sm">No successful transactions found.</td></tr>
+            } @else {
+              @for (t of data()!.transactions; track t.reference) {
+                <tr class="hover:bg-white/[0.02] transition-colors">
+                  <td class="px-6 py-4 text-sm text-gray-200">{{ t.email || 'Unknown' }}</td>
+                  <td class="px-6 py-4 text-sm text-gray-300 capitalize">{{ t.plan_type || 'N/A' }}</td>
+                  <td class="px-6 py-4 text-sm font-bold text-white">{{ t.currency }} {{ t.amount | number:'1.2-2' }}</td>
+                  <td class="px-6 py-4">
+                    <span class="px-2 py-1 text-[10px] font-bold uppercase rounded-md tracking-wider border text-green-400 border-green-500/30 bg-green-500/10">
+                      {{ t.status }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-sm text-gray-400">{{ t.paid_at | date:'MMM d, yyyy h:mm a' }}</td>
+                  <td class="px-6 py-4 text-[11px] text-gray-500 font-mono text-right">{{ t.reference }}</td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+</div>

@@ -1,0 +1,310 @@
+<div class="max-w-7xl mx-auto space-y-6 pb-20 relative">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-black text-white tracking-tight">Businesses</h1>
+      <p class="text-gray-400 text-sm mt-1">Platform tenants and subscriptions.</p>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="rounded-2xl p-5 border flex flex-col gap-2" style="background: rgba(99,102,241,0.06); border-color: rgba(99,102,241,0.2);">
+      <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-400">Total Businesses</span>
+      <span class="text-3xl font-black text-white">{{ totalBusinesses() }}</span>
+    </div>
+    <div class="rounded-2xl p-5 border flex flex-col gap-2" style="background: rgba(74,222,128,0.06); border-color: rgba(74,222,128,0.2);">
+      <span class="text-[11px] font-bold uppercase tracking-wider text-green-400">Active Subscriptions</span>
+      <span class="text-3xl font-black text-white">{{ activeSubscriptions() }}</span>
+    </div>
+    <div class="rounded-2xl p-5 border flex flex-col gap-2" style="background: rgba(245,158,11,0.06); border-color: rgba(245,158,11,0.2);">
+      <span class="text-[11px] font-bold uppercase tracking-wider text-amber-400">Trial Users</span>
+      <span class="text-3xl font-black text-white">{{ trialUsers() }}</span>
+    </div>
+    <div class="rounded-2xl p-5 border flex flex-col gap-2" style="background: rgba(16,185,129,0.06); border-color: rgba(16,185,129,0.2);">
+      <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Total Revenue (₵)</span>
+      <span class="text-3xl font-black text-white">{{ totalPlatformRevenue() | number:'1.0-0' }}</span>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="flex flex-wrap items-center gap-3">
+    <input [(ngModel)]="searchQuery" [ngModelOptions]="{standalone:true}"
+           type="text" placeholder="Search by name or email..."
+           class="px-4 py-2 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none"
+           style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); width: 260px;">
+    
+    <select [(ngModel)]="filterStatus" class="px-4 py-2 rounded-xl text-sm text-gray-300 focus:outline-none" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+      <option value="">All Statuses</option>
+      <option value="active">Active</option>
+      <option value="trialing">Trialing</option>
+      <option value="past_due">Past Due</option>
+      <option value="cancelled">Cancelled</option>
+    </select>
+
+    <select [(ngModel)]="filterPlan" class="px-4 py-2 rounded-xl text-sm text-gray-300 focus:outline-none" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+      <option value="">All Plans</option>
+      <option value="monthly">Monthly</option>
+      <option value="annual">Annual</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="rounded-2xl border overflow-hidden shadow-2xl"
+       style="background: rgba(7,10,30,0.9); border-color: rgba(99,102,241,0.15);">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse min-w-[1200px]">
+        <thead>
+          <tr style="background: rgba(0,0,0,0.4);">
+            <th class="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-indigo-500/10 w-64">Business & Owner</th>
+            <th class="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-indigo-500/10">Plan / Status</th>
+            <th class="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-indigo-500/10">Expiry</th>
+            <th class="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-indigo-500/10 text-right">Revenue (₵)</th>
+            <th class="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-indigo-500/10">Last Payment</th>
+            <th class="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-indigo-500/10 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-indigo-500/10">
+          @if (loading()) {
+            <tr><td colspan="6" class="px-6 py-12 text-center text-gray-500 text-sm">Loading businesses...</td></tr>
+          } @else if (filtered.length === 0) {
+            <tr><td colspan="6" class="px-6 py-12 text-center text-gray-500 text-sm">No businesses found.</td></tr>
+          } @else {
+            @for (biz of filtered; track biz.id) {
+              <!-- Row Highlight Logic -->
+              <tr class="transition-colors group hover:bg-white/[0.03]"
+                  [class.bg-red-500]="biz.subscription_status === 'past_due' || biz.subscription_status === 'cancelled'"
+                  [class.bg-opacity-5]="biz.subscription_status === 'past_due' || biz.subscription_status === 'cancelled'"
+                  [class.bg-amber-500]="biz.subscription_status === 'trialing' && isExpiringSoon(biz.trial_ends_at)"
+                  [class.bg-opacity-10]="biz.subscription_status === 'trialing' && isExpiringSoon(biz.trial_ends_at)">
+                
+                <td class="px-5 py-4 relative cursor-pointer" (click)="openDrawer(biz)">
+                  <!-- Left Edge Highlight -->
+                  @if (biz.subscription_status === 'past_due' || biz.subscription_status === 'cancelled') {
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-red-500"></div>
+                  } @else if (biz.subscription_status === 'active') {
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-green-500"></div>
+                  } @else if (biz.subscription_status === 'trialing') {
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-amber-500"></div>
+                  }
+
+                  <div class="text-sm font-bold text-white flex items-center gap-2">
+                    {{ biz.name }}
+                    @if (isExpiringSoon(biz.subscription_ends_at) || isExpiringSoon(biz.trial_ends_at)) {
+                      <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-400 uppercase tracking-widest border border-amber-500/30">Expiring Soon</span>
+                    }
+                  </div>
+                  <div class="text-[11px] text-gray-400 mt-0.5">{{ biz.owner_name || 'Owner' }} &bull; {{ biz.owner_email || 'No email' }}</div>
+                </td>
+                
+                <td class="px-5 py-4 cursor-pointer" (click)="openDrawer(biz)">
+                  <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded-md tracking-wider border"
+                      [style.background]="biz.subscription_status==='active' ? 'rgba(74,222,128,0.1)' : biz.subscription_status==='trialing' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)'"
+                      [style.color]="biz.subscription_status==='active' ? '#4ade80' : biz.subscription_status==='trialing' ? '#f59e0b' : '#f87171'"
+                      [style.border-color]="biz.subscription_status==='active' ? 'rgba(74,222,128,0.3)' : biz.subscription_status==='trialing' ? 'rgba(245,158,11,0.3)' : 'rgba(239,68,68,0.3)'">
+                      {{ biz.subscription_status }}
+                    </span>
+                    <span class="text-xs text-gray-400 capitalize">{{ biz.subscription_plan || 'None' }}</span>
+                  </div>
+                </td>
+
+                <td class="px-5 py-4 cursor-pointer" (click)="openDrawer(biz)">
+                  <div class="text-sm" [class.text-red-400]="biz.subscription_status === 'past_due'" [class.text-gray-300]="biz.subscription_status !== 'past_due'">
+                    @if (biz.subscription_status === 'trialing') {
+                      {{ biz.trial_ends_at ? (biz.trial_ends_at | date:'MMM d, yyyy') : '—' }} (Trial)
+                    } @else {
+                      {{ biz.subscription_ends_at ? (biz.subscription_ends_at | date:'MMM d, yyyy') : '—' }}
+                    }
+                  </div>
+                </td>
+
+                <td class="px-5 py-4 text-right cursor-pointer" (click)="openDrawer(biz)">
+                  <span class="text-sm font-bold text-white">{{ (biz.total_revenue || 0) | number:'1.2-2' }}</span>
+                </td>
+
+                <td class="px-5 py-4 cursor-pointer" (click)="openDrawer(biz)">
+                  @if (biz.last_payment_date) {
+                    <div class="text-sm text-gray-200">{{ biz.last_payment_date | date:'MMM d, yyyy' }}</div>
+                    <div class="text-[10px] uppercase font-semibold mt-0.5" [class.text-green-400]="biz.last_payment_status === 'success'" [class.text-red-400]="biz.last_payment_status !== 'success'">
+                      {{ biz.last_payment_status }}
+                    </div>
+                  } @else {
+                    <span class="text-xs text-gray-500">Never</span>
+                  }
+                </td>
+
+                <td class="px-5 py-4 text-right relative">
+                  <!-- Actions Dropdown Trigger -->
+                  <button (click)="toggleDropdown(biz.id); $event.stopPropagation();"
+                    class="p-2 rounded-lg hover:bg-white/10 text-gray-400 transition-colors">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                    </svg>
+                  </button>
+
+                  <!-- Dropdown Menu -->
+                  @if (activeDropdown() === biz.id) {
+                    <div class="absolute right-8 top-10 w-48 rounded-xl border shadow-2xl z-50 overflow-hidden"
+                         style="background: #111827; border-color: rgba(99,102,241,0.2);">
+                      <div class="py-1">
+                        <button (click)="openDrawer(biz)" class="w-full text-left px-4 py-2 text-sm text-white hover:bg-indigo-500/20">View details</button>
+                        @if (biz.subscription_status === 'active' || biz.subscription_status === 'trialing') {
+                          <button (click)="suspend(biz.id)" class="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/20">Suspend business</button>
+                        } @else {
+                          <button (click)="activate(biz.id)" class="w-full text-left px-4 py-2 text-sm text-green-400 hover:bg-green-500/20">Activate (1 Month)</button>
+                        }
+                        <button (click)="extendTrial(biz.id)" class="w-full text-left px-4 py-2 text-sm text-amber-400 hover:bg-amber-500/20">Extend Trial (14 Days)</button>
+                        <button (click)="changePlan(biz.id, biz.subscription_plan)" class="w-full text-left px-4 py-2 text-sm text-white hover:bg-indigo-500/20">Change plan to {{ biz.subscription_plan === 'annual' ? 'Monthly' : 'Annual' }}</button>
+                      </div>
+                    </div>
+                  }
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Backdrop -->
+@if (drawerBusiness() || drawerLoading()) {
+  <div class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity" (click)="closeDrawer()"></div>
+}
+
+<!-- Slide-out Drawer -->
+<div class="fixed top-0 right-0 h-full w-full max-w-md bg-[#0b0f24] shadow-2xl z-50 transform transition-transform duration-300 ease-in-out border-l border-indigo-500/20 overflow-y-auto"
+     [class.translate-x-0]="drawerBusiness() || drawerLoading()"
+     [class.translate-x-full]="!drawerBusiness() && !drawerLoading()">
+  
+  @if (drawerLoading()) {
+    <div class="flex items-center justify-center h-full">
+      <div class="text-gray-400 text-sm font-semibold animate-pulse">Loading details...</div>
+    </div>
+  } @else if (drawerBusiness()) {
+    <div class="p-6">
+      
+      <!-- Drawer Header -->
+      <div class="flex items-start justify-between mb-8">
+        <div>
+          <h2 class="text-2xl font-black text-white">{{ drawerBusiness().business.name }}</h2>
+          <div class="flex items-center gap-2 mt-2">
+            <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded-md tracking-wider border"
+              [style.background]="drawerBusiness().business.subscription_status==='active' ? 'rgba(74,222,128,0.1)' : drawerBusiness().business.subscription_status==='trialing' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)'"
+              [style.color]="drawerBusiness().business.subscription_status==='active' ? '#4ade80' : drawerBusiness().business.subscription_status==='trialing' ? '#f59e0b' : '#f87171'"
+              [style.border-color]="drawerBusiness().business.subscription_status==='active' ? 'rgba(74,222,128,0.3)' : drawerBusiness().business.subscription_status==='trialing' ? 'rgba(245,158,11,0.3)' : 'rgba(239,68,68,0.3)'">
+              {{ drawerBusiness().business.subscription_status }}
+            </span>
+            <span class="text-xs text-gray-400 font-semibold capitalize">{{ drawerBusiness().business.subscription_plan || 'No Plan' }}</span>
+          </div>
+        </div>
+        <button (click)="closeDrawer()" class="p-2 rounded-full hover:bg-white/10 text-gray-400">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="space-y-8">
+        
+        <!-- Owner Info -->
+        <div>
+          <h3 class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-3">Owner Information</h3>
+          <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <div class="text-[10px] text-gray-500 uppercase font-semibold">Name</div>
+                <div class="text-sm text-white font-medium mt-0.5">{{ drawerBusiness().business.owner_name || 'N/A' }}</div>
+              </div>
+              <div>
+                <div class="text-[10px] text-gray-500 uppercase font-semibold">Email</div>
+                <div class="text-sm text-white font-medium mt-0.5 truncate">{{ drawerBusiness().business.owner_email || 'N/A' }}</div>
+              </div>
+              <div>
+                <div class="text-[10px] text-gray-500 uppercase font-semibold">Joined Date</div>
+                <div class="text-sm text-white font-medium mt-0.5">{{ drawerBusiness().business.created_at | date:'MMM d, yyyy' }}</div>
+              </div>
+              <div>
+                <div class="text-[10px] text-gray-500 uppercase font-semibold">Total Users</div>
+                <div class="text-sm text-white font-medium mt-0.5">{{ drawerBusiness().business.users_count }} users</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subscription Details -->
+        <div>
+          <h3 class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-3">Subscription Details</h3>
+          <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <div class="text-[10px] text-gray-500 uppercase font-semibold">Total Revenue</div>
+                <div class="text-lg text-emerald-400 font-bold mt-0.5">₵{{ drawerBusiness().business.total_revenue | number:'1.2-2' }}</div>
+              </div>
+              <div>
+                <div class="text-[10px] text-gray-500 uppercase font-semibold">Current Expiry</div>
+                <div class="text-sm text-white font-medium mt-0.5">
+                  @if (drawerBusiness().business.subscription_status === 'trialing') {
+                    {{ drawerBusiness().business.trial_ends_at ? (drawerBusiness().business.trial_ends_at | date:'MMM d, yyyy') : '—' }} (Trial)
+                  } @else {
+                    {{ drawerBusiness().business.subscription_ends_at ? (drawerBusiness().business.subscription_ends_at | date:'MMM d, yyyy') : '—' }}
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment History -->
+        <div>
+          <h3 class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-3">Recent Payments</h3>
+          <div class="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
+            @if (drawerBusiness().recent_payments.length === 0) {
+              <div class="p-4 text-xs text-gray-500 text-center">No successful payments found via Paystack.</div>
+            } @else {
+              <div class="divide-y divide-white/10">
+                @for (tx of drawerBusiness().recent_payments; track tx.reference) {
+                  <div class="p-3 flex items-center justify-between">
+                    <div>
+                      <div class="text-sm font-bold text-white">₵{{ tx.amount | number:'1.2-2' }}</div>
+                      <div class="text-[10px] text-gray-400">{{ tx.paid_at | date:'MMM d, yyyy h:mm a' }}</div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-[10px] font-mono text-gray-500">{{ tx.reference }}</div>
+                      <div class="text-[9px] uppercase font-bold text-green-400 mt-1">{{ tx.status }}</div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Last Activity -->
+        <div>
+          <h3 class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-3">Recent Activity</h3>
+          <div class="bg-white/5 rounded-xl border border-white/10 overflow-hidden p-2">
+            @if (drawerBusiness().recent_activity.length === 0) {
+              <div class="p-4 text-xs text-gray-500 text-center">No recent activity logged.</div>
+            } @else {
+              <ul class="space-y-3 p-2">
+                @for (log of drawerBusiness().recent_activity; track $index) {
+                  <li class="relative pl-4">
+                    <span class="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                    <div class="text-xs text-gray-300 font-medium">{{ log.action }} <span class="text-gray-500">on {{ log.model }}</span></div>
+                    <div class="text-[9px] text-gray-500">{{ log.created_at | date:'MMM d, h:mm a' }}</div>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  }
+</div>

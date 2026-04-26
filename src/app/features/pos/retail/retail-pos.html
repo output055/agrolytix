@@ -1,0 +1,307 @@
+<div class="h-[calc(100vh-4rem)] flex flex-col lg:flex-row gap-4 p-3 md:p-5 overflow-hidden relative">
+
+  <!-- ══ LEFT: Product Grid ══════════════════════════════════════════════ -->
+  <div class="flex-1 flex flex-col overflow-hidden rounded-2xl border agro-glass" style="border-color:rgba(74,222,128,0.1)">
+
+    <!-- Header & Search -->
+    <div class="p-4 md:p-5 border-b shrink-0" style="border-color:rgba(255,255,255,0.06);background:rgba(0,0,0,0.2)">
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <div>
+          <h2 class="text-xl md:text-2xl font-black" style="color:#f0fdf4">Retail POS</h2>
+          <p class="text-xs mt-0.5" style="color:#6b7280">{{ filteredProducts().length }} products available</p>
+        </div>
+        <span class="agro-badge agro-badge-green text-xs">{{ filteredProducts().length }} items</span>
+      </div>
+
+      <!-- Search input -->
+      <div class="relative mb-3">
+        <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style="color:#6b7280" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+               placeholder="Search products..." class="agro-input pl-9 text-sm"/>
+      </div>
+
+      <!-- Category chips -->
+      <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
+        <button *ngFor="let cat of categories()" (click)="selectedCategory.set(cat)"
+                class="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide transition-all duration-150 border whitespace-nowrap"
+                [style.background]="selectedCategory() === cat ? '#4ade80' : 'transparent'"
+                [style.color]="selectedCategory() === cat ? '#0a150a' : '#9ca3af'"
+                [style.border-color]="selectedCategory() === cat ? '#4ade80' : 'rgba(255,255,255,0.08)'">
+          {{ cat }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Product Grid -->
+    <div class="flex-1 overflow-y-auto custom-scrollbar p-3 md:p-4 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 content-start">
+      <div *ngFor="let product of filteredProducts()"
+           (click)="openProductSelection(product)"
+           class="pos-product-card  agro-fade-in group"
+           [class.out-of-stock]="product.quantity <= 0" title="{{product.name}}">
+
+        <!-- Badges -->
+        <div class="absolute top-2 right-2 flex flex-col items-end gap-1 z-10">
+          <span *ngIf="getSalesCount(product) > 0"
+                class="text-[9px] font-black px-1.5 py-0.5 rounded-full border"
+                style="background:rgba(251,146,60,0.1);color:#fb923c;border-color:rgba(251,146,60,0.2)">
+            🔥 {{ getSalesCount(product) }}
+          </span>
+          <span class="text-[9px] uppercase font-black px-2 py-0.5 rounded-full"
+                [style.background]="product.quantity > product.low_stock_alert ? 'rgba(74,222,128,0.1)' : product.quantity > 0 ? 'rgba(245,158,11,0.1)' : 'rgba(248,113,113,0.1)'"
+                [style.color]="product.quantity > product.low_stock_alert ? '#4ade80' : product.quantity > 0 ? '#f59e0b' : '#f87171'">
+            {{ product.quantity > 0 ? product.quantity + ' ' + product.base_unit : 'Out' }}
+          </span>
+        </div>
+
+        <!-- Icon -->
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-2 transition-colors duration-150"
+             style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.1)">
+          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+          </svg>
+        </div>
+
+        <!-- Name + Category -->
+        <div class="flex-1">
+          <h3 class="font-bold text-sm leading-tight line-clamp-2 mb-0.5 transition-colors truncate"
+              [style.color]="product.quantity > 0 ? '#f0fdf4' : '#6b7280'">{{ product.name }}</h3>
+          <p class="text-[10px] uppercase tracking-wide " style="color:#4b5563 " >{{ product.category }}</p>
+        </div>
+
+        <!-- Price -->
+        <div class="text-base font-black mt-2" style="color:#f59e0b">GH₵{{ product.sell_price | number:'1.2-2' }}</div>
+      </div>
+
+      <!-- Empty state -->
+      <div *ngIf="filteredProducts().length === 0" class="col-span-full py-16 flex flex-col items-center justify-center">
+        <svg class="w-14 h-14 mb-4" style="color:#374151" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <p class="font-medium" style="color:#6b7280">No products found</p>
+        <p class="text-sm mt-1" style="color:#4b5563">Try a different search or category</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RIGHT: Cart (Desktop) ════════════════════════════════════════════ -->
+  <div class="hidden lg:flex w-96 flex-col rounded-2xl border agro-glass shrink-0 overflow-hidden" style="border-color:rgba(245,158,11,0.12)">
+    <ng-container *ngTemplateOutlet="cartPanel"></ng-container>
+  </div>
+
+  <!-- ══ FAB — Mobile Cart Toggle ════════════════════════════════════════ -->
+  <button class="lg:hidden flex items-center justify-center pos-fab" (click)="toggleMobileCart()" aria-label="Open cart">
+    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+    </svg>
+    <span *ngIf="cart().length > 0" class="pos-fab-badge">{{ cart().length }}</span>
+  </button>
+
+  <!-- ══ Mobile Cart Sheet ════════════════════════════════════════════════ -->
+  @if (showMobileCart()) {
+    <div class="lg:hidden pos-sheet-overlay" (click)="closeMobileCart()"></div>
+    <div class="lg:hidden pos-sheet">
+      <div class="pos-sheet-handle"></div>
+      <div class="flex items-center justify-between px-5 py-3 shrink-0">
+        <h3 class="text-lg font-black" style="color:#f0fdf4">Current Sale</h3>
+        <button (click)="closeMobileCart()" class="w-8 h-8 flex items-center justify-center rounded-full transition-colors" style="color:#6b7280;background:rgba(255,255,255,0.05)">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <ng-container *ngTemplateOutlet="cartPanel"></ng-container>
+    </div>
+  }
+</div>
+
+<!-- ══ CART PANEL TEMPLATE ═════════════════════════════════════════════════ -->
+<ng-template #cartPanel>
+  <!-- Header -->
+  <div class="p-4 md:p-5 border-b shrink-0 hidden lg:flex items-center justify-between" style="border-color:rgba(255,255,255,0.06);background:rgba(0,0,0,0.15)">
+    <div>
+      <h3 class="text-lg font-black" style="color:#f0fdf4">Current Sale</h3>
+      <p class="text-xs mt-0.5" style="color:#6b7280">{{ cart().length }} item{{ cart().length !== 1 ? 's' : '' }}</p>
+    </div>
+    <button *ngIf="cart().length > 0" (click)="clearCart()"
+            class="text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg transition-all"
+            style="color:#f87171;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.15)">
+      Clear
+    </button>
+  </div>
+
+  <!-- Cart Items -->
+  <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
+    <!-- Empty cart -->
+    <div *ngIf="cart().length === 0" class="h-40 flex flex-col items-center justify-center text-center p-4">
+      <svg class="w-12 h-12 mb-3" style="color:#374151" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+      </svg>
+      <p class="font-medium text-sm" style="color:#6b7280">Cart is empty</p>
+      <p class="text-xs mt-1" style="color:#4b5563">Tap a product to add it</p>
+    </div>
+
+    <!-- Cart items -->
+    <div *ngFor="let item of cart()" class="p-3 rounded-xl border agro-fade-in" style="background:rgba(0,0,0,0.2);border-color:rgba(255,255,255,0.06)">
+      <div class="flex justify-between items-start mb-2.5">
+        <div class="flex-1 min-w-0 mr-2">
+          <div class="text-sm font-semibold leading-tight truncate" style="color:#f0fdf4">{{ item.name }}</div>
+          <div class="text-[10px] uppercase tracking-wide mt-0.5" style="color:#6b7280">{{ item.unit_name }}</div>
+        </div>
+        <button (click)="removeFromCart(item.cart_id)"
+                class="w-7 h-7 flex items-center justify-center rounded-lg transition-all shrink-0"
+                style="color:#6b7280;background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.1)">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="flex items-center justify-between">
+        <!-- Qty controls -->
+        <div class="flex items-center gap-1.5">
+          <button (click)="decreaseCartItemQty(item.cart_id)" class="qty-btn">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
+          </button>
+          <span class="w-8 text-center font-black text-sm" style="color:#f0fdf4">{{ item.quantity }}</span>
+          <button (click)="increaseCartItemQty(item.cart_id)" class="qty-btn">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          </button>
+        </div>
+        <!-- Subtotal -->
+        <div class="text-right">
+          <div class="font-black text-sm" style="color:#f0fdf4">GH₵{{ (item.unit_price * item.quantity) | number:'1.2-2' }}</div>
+          <div class="text-[10px]" style="color:#6b7280">@ GH₵{{ item.unit_price | number:'1.2-2' }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkout Footer -->
+  <div class="p-4 md:p-5 border-t shrink-0" style="border-color:rgba(255,255,255,0.06);background:rgba(0,0,0,0.15)">
+    <!-- Payment method -->
+    <div class="mb-4">
+      <label class="text-[10px] font-bold uppercase tracking-widest mb-2 block" style="color:#9ca3af">Payment Method</label>
+      <div class="flex gap-2 p-1 rounded-xl border" style="background:rgba(0,0,0,0.2);border-color:rgba(255,255,255,0.06)">
+        <button *ngFor="let method of paymentMethods" (click)="paymentMethod.set(method)"
+                class="flex-1 py-2.5 text-sm font-bold rounded-lg transition-all"
+                [style.background]="paymentMethod() === method ? 'rgba(245,158,11,0.15)' : 'transparent'"
+                [style.color]="paymentMethod() === method ? '#f59e0b' : '#6b7280'"
+                [style.border]="paymentMethod() === method ? '1px solid rgba(245,158,11,0.25)' : '1px solid transparent'">
+          {{ method }}
+        </button>
+      </div>
+    </div>
+
+    <!-- MoMo input -->
+    <div *ngIf="paymentMethod() === 'MoMo'" class="mb-4">
+      <label class="text-[10px] font-bold uppercase tracking-widest mb-2 block" style="color:#9ca3af">MoMo Number</label>
+      <input type="text" [ngModel]="momoNumber()" (ngModelChange)="momoNumber.set($event)"
+             placeholder="e.g. 024XXXXXXX" class="agro-input text-sm"/>
+    </div>
+
+    <!-- Total -->
+    <div class="flex items-center justify-between mb-4 py-3 px-4 rounded-xl" style="background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.1)">
+      <span class="text-sm font-semibold" style="color:#9ca3af">Total</span>
+      <span class="text-2xl font-black" style="color:#f59e0b">GH₵{{ cartTotal() | number:'1.2-2' }}</span>
+    </div>
+
+    <!-- Checkout button -->
+    <button [disabled]="cart().length === 0 || isCheckingOut()"
+            (click)="checkout()"
+            class="agro-btn agro-btn-amber agro-btn-lg w-full justify-center"
+            [style.opacity]="cart().length === 0 ? '0.4' : '1'"
+            [style.cursor]="cart().length === 0 ? 'not-allowed' : 'pointer'">
+      <svg *ngIf="isCheckingOut()" class="w-5 h-5 shrink-0" style="animation:spin 0.8s linear infinite" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="60" stroke-dashoffset="15" opacity="0.3"/>
+        <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+      <svg *ngIf="!isCheckingOut()" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      {{ isCheckingOut() ? 'Processing...' : 'Complete Checkout' }}
+    </button>
+  </div>
+</ng-template>
+
+<!-- ══ UNIT SELECTION MODAL ════════════════════════════════════════════════ -->
+<div *ngIf="selectedProduct()" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.7);backdrop-filter:blur(8px)">
+  <div class="w-full max-w-sm rounded-2xl border overflow-hidden agro-scale-in" style="background:#0d1a0d;border-color:rgba(74,222,128,0.15)" (click)="$event.stopPropagation()">
+
+    <!-- Modal header -->
+    <div class="px-5 py-4 border-b flex items-center justify-between" style="border-color:rgba(255,255,255,0.06);background:rgba(0,0,0,0.2)">
+      <div>
+        <h3 class="font-black text-base" style="color:#f0fdf4">{{ selectedProduct()?.name }}</h3>
+        <p class="text-xs mt-0.5" style="color:#6b7280">Select unit & quantity</p>
+      </div>
+      <button (click)="closeProductSelection()" class="w-8 h-8 flex items-center justify-center rounded-full transition-colors" style="color:#6b7280;background:rgba(255,255,255,0.05)">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="p-5 space-y-5">
+      <!-- Unit Selector -->
+      <div>
+        <label class="text-[10px] font-bold uppercase tracking-widest mb-2 block" style="color:#9ca3af">Select Unit</label>
+        <div class="space-y-2 max-h-[35vh] overflow-y-auto custom-scrollbar pr-1">
+          <!-- Base unit -->
+          <label class="flex items-center justify-between p-3.5 border rounded-xl cursor-pointer transition-all"
+                 [style.background]="selectedUnit() === 'base' ? 'rgba(74,222,128,0.08)' : 'rgba(0,0,0,0.2)'"
+                 [style.border-color]="selectedUnit() === 'base' ? 'rgba(74,222,128,0.4)' : 'rgba(255,255,255,0.06)'">
+            <div class="flex items-center gap-3">
+              <input type="radio" name="unitSel" value="base" [ngModel]="selectedUnit()" (ngModelChange)="selectedUnit.set($event); itemQuantity.set(1)" class="accent-green-400">
+              <div>
+                <div class="font-semibold text-sm" style="color:#f0fdf4">{{ selectedProduct()?.base_unit }} <span class="text-xs font-normal" style="color:#6b7280">(Base)</span></div>
+                <div class="text-xs" style="color:#6b7280">Stock: {{ selectedProduct()?.quantity }}</div>
+              </div>
+            </div>
+            <div class="font-black text-sm" style="color:#f59e0b">GH₵{{ selectedProduct()?.sell_price | number:'1.2-2' }}</div>
+          </label>
+
+          <!-- Other units -->
+          <ng-container *ngIf="selectedProduct()?.units">
+            <label *ngFor="let unit of selectedProduct()?.units"
+                   class="flex items-center justify-between p-3.5 border rounded-xl cursor-pointer transition-all"
+                   [style.background]="selectedUnit() === unit ? 'rgba(74,222,128,0.08)' : 'rgba(0,0,0,0.2)'"
+                   [style.border-color]="selectedUnit() === unit ? 'rgba(74,222,128,0.4)' : 'rgba(255,255,255,0.06)'">
+              <div class="flex items-center gap-3">
+                <input type="radio" name="unitSel" [value]="unit" [ngModel]="selectedUnit()" (ngModelChange)="selectedUnit.set($event); itemQuantity.set(1)" class="accent-green-400">
+                <div>
+                  <div class="font-semibold text-sm" style="color:#f0fdf4">{{ unit.unit_name }}</div>
+                  <div class="text-xs" style="color:#6b7280">{{ unit.quantity_in_base }} {{ selectedProduct()?.base_unit }}s each</div>
+                </div>
+              </div>
+              <div class="font-black text-sm" style="color:#f59e0b">GH₵{{ unit.price | number:'1.2-2' }}</div>
+            </label>
+          </ng-container>
+        </div>
+      </div>
+
+      <!-- Quantity Selector -->
+      <div>
+        <label class="text-[10px] font-bold uppercase tracking-widest mb-2 block" style="color:#9ca3af">Quantity</label>
+        <div class="flex items-center gap-4">
+          <button (click)="decreaseQuantity()" class="qty-btn-lg">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
+          </button>
+          <div class="flex-1 text-center text-3xl font-black" style="color:#f0fdf4">{{ itemQuantity() }}</div>
+          <button (click)="increaseQuantity()" class="qty-btn-lg" [style.opacity]="itemQuantity() >= getMaxQuantityForSelection() ? '0.3' : '1'">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          </button>
+        </div>
+        <p class="text-center text-xs mt-2" style="color:#6b7280">Max available: {{ getMaxQuantityForSelection() }}</p>
+      </div>
+
+      <!-- Add to cart -->
+      <button (click)="addToCart()" [disabled]="getMaxQuantityForSelection() <= 0"
+              class="agro-btn agro-btn-primary agro-btn-lg w-full justify-between">
+        <span class="flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.3 2.3c-.6.6-.2 1.7.7 1.7H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          Add to Cart
+        </span>
+        <span class="font-black">GH₵{{ (itemQuantity() * getPriceForSelection()) | number:'1.2-2' }}</span>
+      </button>
+    </div>
+  </div>
+</div>

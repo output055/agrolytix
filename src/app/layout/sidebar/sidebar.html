@@ -1,0 +1,252 @@
+<aside class="h-full w-full flex flex-col border-r transition-all duration-300"
+       style="background: rgba(10,21,10,0.97); backdrop-filter: blur(24px); border-color: rgba(255,255,255,0.08);">
+
+  <!-- Logo + Mobile Close -->
+  <div class="h-16 sm:h-20 flex items-center justify-between lg:justify-center border-b px-6 shrink-0"
+       style="border-color: rgba(255,255,255,0.08); background: rgba(0,0,0,0.2);">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm"
+           style="background: linear-gradient(135deg, #16a34a, #4ade80); color: #0a150a;">
+        {{ (user()?.business?.name ?? 'AG')[0] | uppercase }}
+      </div>
+      <div>
+        <div class="font-bold text-sm tracking-wide" style="color: #f0fdf4;">{{ user()?.business?.name ?? 'Agrolytix' }}</div>
+        <div class="text-[10px] tracking-widest uppercase" style="color: #4ade80;">Agro Inventory</div>
+      </div>
+    </div>
+    <button (click)="layoutService.closeSidebar()"
+            class="lg:hidden p-2 rounded-xl transition-colors"
+            style="color: #6b7280;">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-1 scrollbar-hide">
+
+    <!-- Main Menu -->
+    <div class="px-4 py-2 text-[10px] font-bold uppercase tracking-widest" style="color: #4b5563;">Main</div>
+
+    <a routerLink="/dashboard" (click)="layoutService.closeSidebar()"
+       routerLinkActive="nav-active-green"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+      <svg class="h-5 w-5 nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+      </svg>
+      Dashboard
+    </a>
+
+    <!-- POS Section -->
+    @if (isAdmin() || hasPermission('pos.retail') || hasPermission('pos.wholesale')) {
+      <div class="px-4 py-2 mt-4 text-[10px] font-bold uppercase tracking-widest" style="color: #4b5563;">Point of Sale</div>
+
+      @if (isAdmin() || hasPermission('pos.retail')) {
+      <a routerLink="/pos/retail" (click)="layoutService.closeSidebar()"
+         routerLinkActive="nav-active-green"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+        <svg class="h-5 w-5 nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+        Retail POS
+      </a>
+      }
+
+      @if (isAdmin() || hasPermission('pos.wholesale')) {
+      <a routerLink="/pos/wholesale" (click)="layoutService.closeSidebar()"
+         routerLinkActive="nav-active-amber"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+        <svg class="h-5 w-5 nav-icon-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+        </svg>
+        Wholesale POS
+      </a>
+      }
+    }
+
+    <!-- Sales Section -->
+    @if (isAdmin() || hasPermission('sales.retail') || hasPermission('sales.wholesale')) {
+      <div class="px-4 py-2 mt-4 text-[10px] font-bold uppercase tracking-widest" style="color: #4b5563;">Sales</div>
+
+      @if (isAdmin() || hasPermission('sales.retail')) {
+      <a routerLink="/sales/retail" (click)="layoutService.closeSidebar()"
+         routerLinkActive="nav-active-green"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+        <svg class="h-5 w-5 nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        Retail Sales
+      </a>
+      }
+
+      @if (isAdmin() || hasPermission('sales.wholesale')) {
+      <a routerLink="/sales/wholesale" (click)="layoutService.closeSidebar()"
+         routerLinkActive="nav-active-amber"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+        <svg class="h-5 w-5 nav-icon-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        Wholesale Sales
+      </a>
+      }
+    }
+
+    <!-- Management Section -->
+    @if (isAdmin() || hasPermission('inventory.retail') || hasPermission('inventory.wholesale') || hasPermission('clients') || hasPermission('reversals')) {
+      <div class="px-4 py-2 mt-4 text-[10px] font-bold uppercase tracking-widest" style="color: #4b5563;">Management</div>
+
+      @if (isAdmin() || hasPermission('inventory.retail')) {
+      <a routerLink="/inventory/retail" (click)="layoutService.closeSidebar()"
+         routerLinkActive="nav-active-green"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+        <svg class="h-5 w-5 nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+        </svg>
+        Retail Inventory
+      </a>
+      }
+
+      @if (isAdmin() || hasPermission('inventory.wholesale')) {
+      <a routerLink="/inventory/wholesale" (click)="layoutService.closeSidebar()"
+         routerLinkActive="nav-active-amber"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+        <svg class="h-5 w-5 nav-icon-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+        </svg>
+        Wholesale Inventory
+      </a>
+      }
+
+      @if (isAdmin() || hasPermission('clients')) {
+      <a routerLink="/clients" (click)="layoutService.closeSidebar()"
+         routerLinkActive="nav-active-green"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+        <svg class="h-5 w-5 nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        Clients
+      </a>
+      }
+
+      @if (isAdmin() || hasPermission('reversals')) {
+      <a routerLink="/reversals" (click)="layoutService.closeSidebar()"
+         routerLinkActive="nav-active-red"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+        <svg class="h-5 w-5 nav-icon-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+        </svg>
+        Reversals
+      </a>
+      }
+
+      <!-- Expenses: visible to all authenticated users -->
+      <a routerLink="/expenses" (click)="layoutService.closeSidebar()"
+         routerLinkActive="nav-active-amber"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+        <svg class="h-5 w-5 nav-icon-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+        Expenses
+      </a>
+    }
+
+    <!-- Admin Only Section -->
+    @if (isAdmin()) {
+      <div class="px-4 py-2 mt-4 text-[10px] font-bold uppercase tracking-widest" style="color: #4b5563;">Admin</div>
+
+      <a routerLink="/admin/workers" (click)="layoutService.closeSidebar()"
+         routerLinkActive="nav-active-green"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+        <svg class="h-5 w-5 nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+        </svg>
+        Workers
+      </a>
+
+      <a routerLink="/admin/audit-logs" (click)="layoutService.closeSidebar()"
+         routerLinkActive="nav-active-green"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+        <svg class="h-5 w-5 nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        User Logs
+      </a>
+
+      <a routerLink="/reports" (click)="layoutService.closeSidebar()"
+         routerLinkActive="nav-active-amber"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+        <svg class="h-5 w-5 nav-icon-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        Reports
+      </a>
+
+      <a routerLink="/billing" (click)="layoutService.closeSidebar()"
+         routerLinkActive="nav-active-green"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+        <svg class="h-5 w-5 nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+        </svg>
+        Billing
+      </a>
+    }
+
+    <!-- Help Section -->
+    <div class="px-4 py-2 mt-4 text-[10px] font-bold uppercase tracking-widest" style="color: #4b5563;">Support</div>
+    
+    <a routerLink="/help" (click)="layoutService.closeSidebar()"
+       routerLinkActive="nav-active-green"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+      <svg class="h-5 w-5 nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      User Guide
+    </a>
+
+  </nav>
+
+  <!-- Bottom: Online indicator -->
+  <div class="p-4 shrink-0 border-t" style="border-color: rgba(255,255,255,0.08); background: rgba(255,255,255,0.02);">
+    <div class="px-3 py-2 rounded-xl flex items-center justify-center gap-2" style="background: rgba(0,0,0,0.3);">
+      <span class="text-[10px] font-semibold tracking-wider uppercase" style="color: #4b5563;">Agrolytix</span>
+      <span class="flex items-center gap-1">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style="background: #4ade80;"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2" style="background: #4ade80;"></span>
+        </span>
+        <span class="text-[10px] font-semibold tracking-wider uppercase" style="color: #4ade80;">Online</span>
+      </span>
+    </div>
+  </div>
+
+</aside>
+
+<style>
+  .nav-link { color: #9ca3af; }
+  .nav-link:hover { background: rgba(255,255,255,0.05); color: #e5e7eb; }
+  .nav-icon { color: #6b7280; }
+  .nav-icon-amber { color: #6b7280; }
+  .nav-icon-red { color: #6b7280; }
+  .nav-link:hover .nav-icon { color: #4ade80; }
+  .nav-link:hover .nav-icon-amber { color: #f59e0b; }
+  .nav-link:hover .nav-icon-red { color: #f87171; }
+  .nav-active-green { background: rgba(74,222,128,0.1) !important; color: #fff !important; box-shadow: inset 4px 0 0 0 #4ade80; }
+  .nav-active-amber { background: rgba(245,158,11,0.1) !important; color: #fff !important; box-shadow: inset 4px 0 0 0 #f59e0b; }
+  .nav-active-red { background: rgba(248,113,113,0.1) !important; color: #fff !important; box-shadow: inset 4px 0 0 0 #f87171; }
+</style>
