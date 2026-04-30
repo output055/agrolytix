@@ -4,15 +4,8 @@
   <!-- Logo + Mobile Close -->
   <div class="h-16 sm:h-20 flex items-center justify-between lg:justify-center border-b px-6 shrink-0"
        style="border-color: rgba(255,255,255,0.08); background: rgba(0,0,0,0.2);">
-    <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm"
-           style="background: linear-gradient(135deg, #16a34a, #4ade80); color: #0a150a;">
-        {{ (user()?.business?.name ?? 'AG')[0] | uppercase }}
-      </div>
-      <div>
-        <div class="font-bold text-sm tracking-wide" style="color: #f0fdf4;">{{ user()?.business?.name ?? 'Agrolytix' }}</div>
-        <div class="text-[10px] tracking-widest uppercase" style="color: #4ade80;">Agro Inventory</div>
-      </div>
+    <div class="flex items-center justify-center w-full">
+      <img src="/images/agrolytix.png" alt="Logo" class="md:w-50 w-40 h-12 object-contain">
     </div>
     <button (click)="layoutService.closeSidebar()"
             class="lg:hidden p-2 rounded-xl transition-colors"
