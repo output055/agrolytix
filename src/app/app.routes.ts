@@ -13,7 +13,22 @@ export const routes: Routes = [
     loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent),
     pathMatch: 'full'
   },
-
+  {
+    path: 'about',
+    loadComponent: () => import('./features/public/about/about.component').then(m => m.AboutComponent)
+  },
+  {
+    path: 'careers',
+    loadComponent: () => import('./features/public/careers/careers.component').then(m => m.CareersComponent)
+  },
+  {
+    path: 'privacy',
+    loadComponent: () => import('./features/public/privacy/privacy.component').then(m => m.PrivacyComponent)
+  },
+  {
+    path: 'terms',
+    loadComponent: () => import('./features/public/terms/terms.component').then(m => m.TermsComponent)
+  },
   {
     path: 'auth',
     loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES)

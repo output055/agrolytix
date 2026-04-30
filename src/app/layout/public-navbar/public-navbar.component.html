@@ -1,0 +1,28 @@
+  <nav class="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
+       [class.agro-glass]="scrolled" [class.py-4]="!scrolled" [class.py-3]="scrolled">
+    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between">
+      <!-- Logo -->
+      <div class="flex items-center gap-2 cursor-pointer group" routerLink="/">
+        <img src="/images/agrolytix.png" alt="Agrolytix Logo" 
+             class="h-10 w-auto transition-transform duration-500 group-hover:scale-110">
+      </div>
+      
+      <!-- Nav Links -->
+      <div class="hidden md:flex items-center gap-10 text-[14px] font-bold capitalize tracking-wide text-gray-400">
+        <button (click)="handleScroll('features')" class="hover:text-green-400 transition-colors">Solutions</button>
+        <button (click)="handleScroll('use-cases')" class="hover:text-green-400 transition-colors">Industries</button>
+        <button (click)="handleScroll('pricing')" class="hover:text-green-400 transition-colors">Pricing</button>
+        <a routerLink="/about" class="hover:text-green-400 transition-colors">About Us</a>
+        <a routerLink="/careers" class="hover:text-green-400 transition-colors">Careers</a>
+      </div>
+
+      <!-- Auth Buttons -->
+      <div class="flex items-center gap-6">
+        <a routerLink="/auth" class="text-sm font-bold text-gray-400 hover:text-white transition-colors capitalize">Login</a>
+        <a routerLink="/auth/register" 
+           class="bg-green-400 hover:bg-green-300 text-[#0a150a] px-6 py-2.5 rounded-full text-sm font-black transition-all duration-300 hover:shadow-[0_0_20px_rgba(74,222,128,0.4)] capitalize">
+          Get Started
+        </a>
+      </div>
+    </div>
+  </nav>

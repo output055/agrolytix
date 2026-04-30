@@ -1,17 +1,19 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ContactService } from '../../core/services/contact.service';
 import { ToastService } from '../../core/services/toast.service';
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { PublicNavbarComponent } from '../../layout/public-navbar/public-navbar.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, CommonModule, PublicNavbarComponent],
   templateUrl: './home.component.html',
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   private auth = inject(AuthService);
   private router = inject(Router);
   private contactService = inject(ContactService);
@@ -21,8 +23,10 @@ export class HomeComponent implements OnInit {
   contactForm = { name: '', email: '', message: '' };
   contactLoading = false;
   contactSuccess = false;
+  scrolled = false;
 
   ngOnInit() {
+    window.addEventListener('scroll', this.onScroll);
     if (this.auth.currentUser()) {
       if (this.auth.isSuperAdmin()) {
         this.router.navigate(['/super-admin/dashboard']);
@@ -30,6 +34,15 @@ export class HomeComponent implements OnInit {
         this.router.navigate(['/dashboard']);
       }
     }
+  }
+
+  ngOnDestroy() {
+    window.removeEventListener('scroll', this.onScroll);
+  }
+
+  onScroll = () => {
+    this.scrolled = window.scrollY > 50;
+    this.cdr.detectChanges();
   }
 
   scrollTo(id: string) {

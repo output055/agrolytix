@@ -1,265 +1,434 @@
-<div class="min-h-screen bg-[#0a150a] text-white font-sans selection:bg-green-500/30 selection:text-green-200">
-  
-  <!-- 1. NAVBAR -->
-  <nav class="fixed top-0 left-0 right-0 z-50 bg-[#0a150a]/80 backdrop-blur-md border-b border-green-500/10 transition-all duration-300">
-    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-      <div class="flex items-center gap-2 cursor-pointer" (click)="scrollTo('hero')">
-        <img src="/images/agrolytix.png" alt="Agrolytix Logo" class="h-10 w-auto">
-      </div>
-      
-      <div class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
-        <button (click)="scrollTo('features')" class="hover:text-green-400 transition-colors">Features</button>
-        <button (click)="scrollTo('how-it-works')" class="hover:text-green-400 transition-colors">How it works</button>
-        <button (click)="scrollTo('pricing')" class="hover:text-green-400 transition-colors">Pricing</button>
-        <button (click)="scrollTo('contact')" class="hover:text-green-400 transition-colors">Contact Us</button>
-      </div>
-      
-      <div class="flex items-center gap-4">
-        <a routerLink="/auth" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Login</a>
-        <a routerLink="/auth/register" class="bg-green-400 hover:bg-green-300 text-[#0a150a] px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 hover:shadow-[0_0_20px_rgba(74,222,128,0.3)] hover:-translate-y-0.5">Get Started</a>
-      </div>
-    </div>
-  </nav>
+<div class="min-h-screen selection:bg-green-500/30 selection:text-white" style="background: #0a150a; color: #f0fdf4;">
+
+  <!-- 1. NAVIGATION -->
+  <app-public-navbar></app-public-navbar>
 
   <!-- 2. HERO SECTION -->
-  <section id="hero" class="relative pt-40 pb-20 overflow-hidden">
-    <!-- Background Glow -->
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-green-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+  <section id="hero" class="relative pt-32 pb-20 lg:pt-0 lg:min-h-screen flex items-center overflow-hidden">
+    <!-- Background Decor -->
+    <div class="absolute top-0 right-0 w-full lg:w-[60%] h-full bg-gradient-to-bl from-green-900/20 via-[#0a150a] to-transparent pointer-events-none z-0"></div>
+    <div class="absolute -top-40 -right-40 w-[800px] h-[800px] bg-green-500/10 rounded-full blur-[150px] pointer-events-none z-0"></div>
+    <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none z-0"></div>
     
-    <div class="max-w-7xl mx-auto px-6 relative z-10 text-center">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-bold tracking-wider uppercase mb-8">
-        <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-        The #1 Agribusiness OS
+    <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-12 gap-16 items-center relative z-10 w-full">
+      <!-- Content (Left: 6 cols) -->
+      <div class="lg:col-span-6 agro-slide-up mt-10 lg:mt-0">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 mb-8 backdrop-blur-md">
+          <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+          <span class="text-xs font-black uppercase tracking-[0.2em] text-green-400">Agrolytix OS 2.0 Is Here</span>
+        </div>
+        
+        <h1 class="text-5xl md:text-7xl lg:text-[5rem] font-black mb-8 leading-[1.05] tracking-tight">
+          Precision <span class="bg-gradient-to-r from-green-400 via-emerald-300 to-teal-400 text-transparent bg-clip-text">Inventory</span> <br> for Modern Growers.
+        </h1>
+        
+        <p class="text-xl text-gray-400 mb-12 max-w-lg leading-relaxed font-light">
+          Scale your agribusiness with real-time tracking, wholesale management, and financial analytics. Built specifically for the agricultural enterprise.
+        </p>
+        
+        <div class="flex flex-col sm:flex-row items-center gap-5 mb-10">
+          <a routerLink="/auth/register" class="w-full sm:w-auto bg-green-400 hover:bg-green-300 text-[#0a150a] px-8 py-4 rounded-full text-lg font-black transition-all duration-300 hover:shadow-[0_0_40px_rgba(74,222,128,0.4)] hover:-translate-y-1 text-center flex items-center justify-center gap-2">
+            Start Free Trial
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </a>
+          <button (click)="scrollTo('features')" class="w-full sm:w-auto bg-white/5 border border-white/10 hover:bg-white/10 px-8 py-4 rounded-full text-lg font-bold transition-all duration-300 text-center flex items-center justify-center gap-2 backdrop-blur-md">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            See How It Works
+          </button>
+        </div>
+
+        <div class="flex items-center gap-4 border-t border-white/10 pt-8">
+          <div class="flex -space-x-3">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=64&h=64" alt="User" class="w-10 h-10 rounded-full border-2 border-[#0a150a] object-cover">
+            <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=64&h=64" alt="User" class="w-10 h-10 rounded-full border-2 border-[#0a150a] object-cover">
+            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=64&h=64" alt="User" class="w-10 h-10 rounded-full border-2 border-[#0a150a] object-cover">
+            <div class="w-10 h-10 rounded-full border-2 border-[#0a150a] bg-green-500/20 flex items-center justify-center text-xs font-bold text-green-400 backdrop-blur-md">10k+</div>
+          </div>
+          <div class="text-sm text-gray-400 leading-tight">
+            Trusted by <span class="text-white font-bold">10,000+</span><br>agribusinesses worldwide.
+          </div>
+        </div>
       </div>
-      
-      <h1 class="text-5xl md:text-7xl font-black tracking-tight leading-[1.1] mb-6">
-        Run Your Agro Business <br/>
-        <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">Smarter.</span>
-      </h1>
-      
-      <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-        Track inventory, manage multi-channel POS, control expenses, and get real-time financial insights. Everything you need to scale your agribusiness in one place.
-      </p>
-      
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-        <a routerLink="/auth/register" class="w-full sm:w-auto bg-green-400 hover:bg-green-300 text-[#0a150a] px-8 py-4 rounded-full text-lg font-bold transition-all duration-300 hover:shadow-[0_0_30px_rgba(74,222,128,0.4)] hover:-translate-y-1 flex items-center justify-center gap-2">
-          Start Free Trial
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-        </a>
-        <a routerLink="/auth" class="w-full sm:w-auto bg-white/5 hover:bg-white/10 text-white border border-white/10 px-8 py-4 rounded-full text-lg font-bold transition-all duration-300">
-          Login to Dashboard
-        </a>
+
+      <!-- Hero Image / Visuals (Right: 6 cols) -->
+      <div class="lg:col-span-6 relative agro-fade-in-2 hidden lg:block h-full min-h-[600px] flex items-center justify-center">
+        <!-- Main Image Container -->
+        <div class="relative w-full max-w-lg mx-auto z-10 mt-20">
+          <div class="absolute inset-0 bg-gradient-to-tr from-green-500 to-teal-400 rounded-[2.5rem] transform translate-x-4 translate-y-4 opacity-20 blur-xl"></div>
+          
+          <div class="relative rounded-[2.5rem] overflow-hidden border border-white/20 bg-[#0a150a] shadow-[0_20px_50px_rgba(0,0,0,0.5)] aspect-[4/5] p-2 backdrop-blur-sm">
+            <div class="w-full h-full rounded-[2rem] overflow-hidden relative">
+              <img src="https://images.unsplash.com/photo-1589923188900-85dae523342b?q=80&w=1470&auto=format&fit=crop" 
+                   alt="Agribusiness Professional" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-1000">
+              <div class="absolute inset-0 bg-gradient-to-t from-[#0a150a] via-transparent to-transparent opacity-80"></div>
+            </div>
+          </div>
+
+          <!-- Floating Element 1 (Top Right) -->
+          <div class="absolute -top-6 -right-12 agro-glass p-4 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-xl animate-[bounce_5s_infinite] z-20 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+              <svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <div>
+              <div class="text-xs text-gray-400 font-bold uppercase tracking-wider">Sync Status</div>
+              <div class="text-sm font-black text-white">Real-time Active</div>
+            </div>
+          </div>
+
+          <!-- Floating Element 2 (Bottom Left) -->
+          <div class="absolute -bottom-10 -left-12 agro-glass p-5 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-xl animate-[bounce_6s_infinite_reverse] z-20 w-64">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Revenue</span>
+              <span class="text-xs text-green-400 font-black">+24.5%</span>
+            </div>
+            <div class="text-2xl font-black text-white mb-3">GH₵ 124,500</div>
+            <div class="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+              <div class="bg-gradient-to-r from-green-400 to-teal-400 w-[75%] h-full rounded-full relative">
+                <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Floating Element 3 (Center Left) -->
+          <div class="absolute top-1/2 -left-8 transform -translate-y-1/2 agro-glass p-3 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-xl z-20">
+             <div class="flex items-center gap-3">
+               <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-400">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+               </div>
+               <div class="pr-2">
+                 <div class="text-xs text-gray-400 font-bold">Low Stock Alert</div>
+                 <div class="text-sm font-black text-white">NPK Fertilizer</div>
+               </div>
+             </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- 3. FEATURES SECTION -->
-  <section id="features" class="py-24 bg-[#0d1a0d]">
+  <!-- 3. TRUST BAR -->
+  <section class="py-12 border-y border-white/5 bg-white/[0.01]">
     <div class="max-w-7xl mx-auto px-6">
-      <div class="text-center mb-16">
-        <h2 class="text-3xl md:text-5xl font-black mb-4">Everything you need to grow</h2>
-        <p class="text-gray-400 max-w-2xl mx-auto">Powerful tools designed specifically for agro shops and commodity traders.</p>
-      </div>
-      
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Feature 1 -->
-        <div class="bg-white/5 border border-white/5 p-8 rounded-3xl hover:bg-white/10 hover:border-green-500/30 transition-all duration-300 group">
-          <div class="w-12 h-12 bg-green-500/20 text-green-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-          </div>
-          <h3 class="text-xl font-bold mb-3">Omnichannel POS</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">Dedicated interfaces for retail walk-ins and bulk wholesale orders. Fast, reliable, and easy to use.</p>
+      <div class="flex flex-col md:flex-row items-center justify-between gap-8 opacity-50">
+        <span class="text-xs font-black uppercase tracking-[0.3em] text-gray-500">Trusted by Industry Leaders</span>
+        <div class="flex flex-wrap justify-center items-center gap-12 grayscale">
+          <span class="text-2xl font-black italic">AGRI-CORP</span>
+          <span class="text-2xl font-black italic">TERRA-PLUS</span>
+          <span class="text-2xl font-black italic">NATURE-LOGIC</span>
+          <span class="text-2xl font-black italic">GREEN-PATH</span>
         </div>
+      </div>
+    </div>
+  </section>
 
-        <!-- Feature 2 -->
-        <div class="bg-white/5 border border-white/5 p-8 rounded-3xl hover:bg-white/10 hover:border-green-500/30 transition-all duration-300 group">
-          <div class="w-12 h-12 bg-green-500/20 text-green-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+  <!-- 4. CORE SOLUTIONS -->
+  <section id="features" class="py-32 relative">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-20 max-w-3xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black mb-6">Master Your Inventory Flow</h2>
+        <p class="text-gray-400 text-lg">Every seed, every bag, every sale — perfectly tracked and analyzed for maximum profit.</p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8">
+        <!-- Feature 1 -->
+        <div class="agro-card p-10 hover:border-green-500/40 group">
+          <div class="w-14 h-14 rounded-2xl bg-green-400/10 flex items-center justify-center text-green-400 mb-8 group-hover:scale-110 transition-transform">
+            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
           </div>
-          <h3 class="text-xl font-bold mb-3">Inventory Sync</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">Real-time stock tracking across all your branches. Get low stock alerts before you run out.</p>
+          <h3 class="text-2xl font-black mb-4">Retail POS</h3>
+          <p class="text-gray-400 leading-relaxed">Swift checkout experience for small-scale buyers. Handle stock levels automatically with every sale.</p>
+        </div>
+        
+        <!-- Feature 2 -->
+        <div class="agro-card p-10 hover:border-green-500/40 group">
+          <div class="w-14 h-14 rounded-2xl bg-green-400/10 flex items-center justify-center text-green-400 mb-8 group-hover:scale-110 transition-transform">
+            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+          </div>
+          <h3 class="text-2xl font-black mb-4">Wholesale CRM</h3>
+          <p class="text-gray-400 leading-relaxed">Manage bulk orders, track client debts, and maintain long-term relationships with your major distributors.</p>
         </div>
 
         <!-- Feature 3 -->
-        <div class="bg-white/5 border border-white/5 p-8 rounded-3xl hover:bg-white/10 hover:border-green-500/30 transition-all duration-300 group">
-          <div class="w-12 h-12 bg-green-500/20 text-green-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div class="agro-card p-10 hover:border-green-500/40 group">
+          <div class="w-14 h-14 rounded-2xl bg-green-400/10 flex items-center justify-center text-green-400 mb-8 group-hover:scale-110 transition-transform">
+            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
           </div>
-          <h3 class="text-xl font-bold mb-3">Debt Tracking</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">Never lose money to forgotten debts. Track who owes you, how much, and send payment reminders.</p>
-        </div>
-
-        <!-- Feature 4 -->
-        <div class="bg-white/5 border border-white/5 p-8 rounded-3xl hover:bg-white/10 hover:border-green-500/30 transition-all duration-300 group">
-          <div class="w-12 h-12 bg-green-500/20 text-green-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-          </div>
-          <h3 class="text-xl font-bold mb-3">Expense Control</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">Log daily operational expenses. Categorize spending to see exactly where your money is going.</p>
-        </div>
-
-        <!-- Feature 5 -->
-        <div class="bg-white/5 border border-white/5 p-8 rounded-3xl hover:bg-white/10 hover:border-green-500/30 transition-all duration-300 group lg:col-span-2">
-          <div class="w-12 h-12 bg-green-500/20 text-green-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-          </div>
-          <h3 class="text-xl font-bold mb-3">Advanced Analytics</h3>
-          <p class="text-gray-400 text-sm leading-relaxed max-w-lg">Instantly generate profit & loss statements, revenue reports, and sales insights. Make data-driven decisions that push your business forward.</p>
+          <h3 class="text-2xl font-black mb-4">Profit Analytics</h3>
+          <p class="text-gray-400 leading-relaxed">Deep-dive reports into margins, expenses, and growth patterns across all business channels.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- 4. HOW IT WORKS -->
-  <section id="how-it-works" class="py-24 relative overflow-hidden">
-    <div class="max-w-7xl mx-auto px-6 relative z-10">
-      <div class="text-center mb-16">
-        <h2 class="text-3xl md:text-5xl font-black mb-4">From zero to operational in minutes</h2>
-      </div>
-
-      <div class="grid md:grid-cols-3 gap-8 relative">
-        <!-- Connecting Line -->
-        <div class="hidden md:block absolute top-12 left-1/6 right-1/6 h-0.5 bg-green-500/20"></div>
-
-        <div class="relative text-center">
-          <div class="w-24 h-24 mx-auto bg-[#0a150a] border-2 border-green-400 rounded-full flex items-center justify-center text-3xl font-black text-green-400 mb-6 relative z-10">1</div>
-          <h3 class="text-xl font-bold mb-2">Create Account</h3>
-          <p class="text-gray-400 text-sm">Sign up and configure your shop details in seconds.</p>
-        </div>
-
-        <div class="relative text-center">
-          <div class="w-24 h-24 mx-auto bg-[#0a150a] border-2 border-green-400 rounded-full flex items-center justify-center text-3xl font-black text-green-400 mb-6 relative z-10">2</div>
-          <h3 class="text-xl font-bold mb-2">Add Inventory</h3>
-          <p class="text-gray-400 text-sm">Input your products, prices, and current stock levels.</p>
-        </div>
-
-        <div class="relative text-center">
-          <div class="w-24 h-24 mx-auto bg-[#0a150a] border-2 border-green-400 rounded-full flex items-center justify-center text-3xl font-black text-green-400 mb-6 relative z-10">3</div>
-          <h3 class="text-xl font-bold mb-2">Start Selling</h3>
-          <p class="text-gray-400 text-sm">Use the POS to serve customers and watch your data flow.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 5. PRICING -->
-  <section id="pricing" class="py-24 bg-[#0d1a0d]">
+  <!-- 5. WHO IT'S FOR (The Human Side) -->
+  <section id="use-cases" class="py-32 bg-white/[0.02]">
     <div class="max-w-7xl mx-auto px-6">
-      <div class="text-center mb-16">
-        <h2 class="text-3xl md:text-5xl font-black mb-4">Simple, transparent pricing</h2>
-        <p class="text-gray-400">Start for free. Upgrade when you're ready to scale.</p>
+      <div class="grid lg:grid-cols-2 gap-24 items-center">
+        <!-- Image Side -->
+        <div class="relative">
+          <div class="grid grid-cols-2 gap-6">
+            <div class="space-y-6 pt-12">
+              <div class="rounded-3xl overflow-hidden shadow-2xl">
+                <img src="https://images.unsplash.com/photo-1556742111-a301076d9d18?q=80&w=1470&auto=format&fit=crop" alt="Retail Shop Owner" class="w-full h-full object-cover">
+              </div>
+              <div class="bg-green-400 p-8 rounded-3xl text-[#0a150a]">
+                <div class="text-4xl font-black mb-2">99%</div>
+                <div class="text-sm font-bold uppercase tracking-wider opacity-70">Uptime Reliability</div>
+              </div>
+            </div>
+            <div class="space-y-6">
+              <div class="bg-white/5 p-8 rounded-3xl border border-white/10">
+                <div class="text-4xl font-black mb-2 text-green-400">1.2M</div>
+                <div class="text-sm font-bold uppercase tracking-wider text-gray-400">Transactions Handled</div>
+              </div>
+              <div class="rounded-3xl overflow-hidden shadow-2xl aspect-[4/5]">
+                <img src="https://images.unsplash.com/photo-1560493676-04071c5f467b?q=80&w=1374&auto=format&fit=crop" alt="Farm Manager" class="w-full h-full object-cover">
+              </div>
+            </div>
+          </div>
+          <div class="absolute -bottom-10 -right-10 w-48 h-48 bg-green-500/20 rounded-full blur-[80px] pointer-events-none"></div>
+        </div>
+
+        <!-- Content Side -->
+        <div>
+          <h2 class="text-4xl md:text-5xl font-black mb-8 leading-tight">Empowering Every Professional in the <span class="text-green-400">Agro-Chain</span>.</h2>
+          
+          <div class="space-y-10">
+            <div class="flex gap-6">
+              <div class="shrink-0 w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-green-400 font-black">01</div>
+              <div>
+                <h4 class="text-xl font-bold mb-2">Agro-Shop Owners</h4>
+                <p class="text-gray-400">Never miss a sale because of "out of stock" errors. Our POS keeps your local shop running efficiently.</p>
+              </div>
+            </div>
+            <div class="flex gap-6">
+              <div class="shrink-0 w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-green-400 font-black">02</div>
+              <div>
+                <h4 class="text-xl font-bold mb-2">Wholesale Distributors</h4>
+                <p class="text-gray-400">Track large volume shipments and complex payment terms with ease across multiple locations.</p>
+              </div>
+            </div>
+            <div class="flex gap-6">
+              <div class="shrink-0 w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-green-400 font-black">03</div>
+              <div>
+                <h4 class="text-xl font-bold mb-2">Co-operative Managers</h4>
+                <p class="text-gray-400">Consolidate metrics from dozens of farmers and distributors into a single, real-time dashboard.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. PRICING -->
+  <section id="pricing" class="py-32">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-20">
+        <h2 class="text-4xl md:text-5xl font-black mb-6">Simple, Scalable Pricing</h2>
+        <p class="text-gray-400 text-lg">Choose the plan that matches your business scale.</p>
       </div>
 
-      <div class="grid md:grid-cols-2 max-w-4xl mx-auto gap-8">
-        
+      <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
         <!-- Monthly -->
-        <div class="bg-white/5 border border-white/10 rounded-3xl p-8 flex flex-col">
-          <h3 class="text-xl font-bold text-gray-300 mb-2">Monthly Plan</h3>
-          <div class="flex items-baseline gap-2 mb-6">
-            <span class="text-5xl font-black">₵200</span>
-            <span class="text-gray-500">/mo</span>
-          </div>
-          <ul class="space-y-4 mb-8 flex-1">
-            <li class="flex items-center gap-3 text-sm text-gray-300"><svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Unlimited Products</li>
-            <li class="flex items-center gap-3 text-sm text-gray-300"><svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Retail & Wholesale POS</li>
-            <li class="flex items-center gap-3 text-sm text-gray-300"><svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Staff Management</li>
-            <li class="flex items-center gap-3 text-sm text-gray-300"><svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Basic Analytics</li>
-          </ul>
-          <a routerLink="/auth/register" class="block w-full text-center bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl font-bold transition-colors">Start 14-Day Free Trial</a>
-        </div>
-
-        <!-- Annual -->
-        <div class="bg-gradient-to-b from-green-500/20 to-transparent border border-green-500/30 rounded-3xl p-8 flex flex-col relative">
-          <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-green-400 text-[#0a150a] px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Best Value</div>
-          <h3 class="text-xl font-bold text-white mb-2">Annual Plan</h3>
-          <div class="flex items-baseline gap-2 mb-6">
-            <span class="text-5xl font-black">₵2,500</span>
-            <span class="text-gray-500">/yr</span>
-          </div>
-          <ul class="space-y-4 mb-8 flex-1">
-            <li class="flex items-center gap-3 text-sm text-white"><svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> All Monthly Features</li>
-            <li class="flex items-center gap-3 text-sm text-white"><svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Priority Support</li>
-            <li class="flex items-center gap-3 text-sm text-white"><svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Advanced Financial Reports</li>
-            <li class="flex items-center gap-3 text-sm text-green-300 font-medium"><svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Save ₵100 instantly</li>
-          </ul>
-          <a routerLink="/auth/register" class="block w-full text-center bg-green-400 hover:bg-green-300 text-[#0a150a] py-3 rounded-xl font-bold transition-all hover:shadow-[0_0_20px_rgba(74,222,128,0.3)]">Start 14-Day Free Trial</a>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- 6. CONTACT US -->
-  <section id="contact" class="py-24 relative overflow-hidden bg-[#0a150a]">
-    <div class="max-w-3xl mx-auto px-6 relative z-10">
-      <div class="text-center mb-12">
-        <h2 class="text-3xl md:text-5xl font-black mb-4">Get in touch</h2>
-        <p class="text-gray-400">Have questions? We'd love to hear from you.</p>
-      </div>
-      
-      @if (contactSuccess) {
-        <div class="bg-white/5 border border-green-500/30 p-12 rounded-3xl flex flex-col items-center justify-center text-center gap-4 transition-all duration-500">
-          <div class="w-16 h-16 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center mb-2">
-            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h3 class="text-2xl font-bold text-white">Message Sent Successfully!</h3>
-          <p class="text-gray-400 max-w-md">Thank you for reaching out. We have received your message and our team will get back to you shortly.</p>
-          <button (click)="contactSuccess = false" class="mt-4 text-green-400 hover:text-green-300 font-bold transition-colors">
-            Send another message
-          </button>
-        </div>
-      } @else {
-        <form (ngSubmit)="submitContact()" class="bg-white/5 border border-white/10 p-8 rounded-3xl flex flex-col gap-6">
-          <div class="grid md:grid-cols-2 gap-6">
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-bold text-gray-300">Name</label>
-              <input type="text" [(ngModel)]="contactForm.name" name="name" required class="bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-400 transition-colors" placeholder="Your name">
-            </div>
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-bold text-gray-300">Email</label>
-              <input type="email" [(ngModel)]="contactForm.email" name="email" required class="bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-400 transition-colors" placeholder="your@email.com">
+        <div class="agro-card p-10 relative overflow-hidden flex flex-col">
+          <div class="mb-8">
+            <div class="text-sm font-black uppercase tracking-widest text-gray-500 mb-2">Monthly</div>
+            <div class="flex items-baseline gap-1">
+              <span class="text-4xl font-black text-white">GH₵200</span>
+              <span class="text-gray-500 font-bold">.00/mo</span>
             </div>
           </div>
-          <div class="flex flex-col gap-2">
-            <label class="text-sm font-bold text-gray-300">Message</label>
-            <textarea [(ngModel)]="contactForm.message" name="message" required rows="4" class="bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-400 transition-colors resize-none" placeholder="How can we help you?"></textarea>
+          <ul class="space-y-4 mb-10 text-gray-300 flex-1">
+            <li class="flex items-center gap-3"><svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Full Inventory Access</li>
+            <li class="flex items-center gap-3"><svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Unlimited Workers</li>
+            <li class="flex items-center gap-3"><svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Basic Analytics</li>
+          </ul>
+          <a routerLink="/auth/register" class="agro-btn-secondary w-full py-4 rounded-2xl font-black">Choose Monthly</a>
+        </div>
+
+        <!-- Yearly -->
+        <div class="agro-card p-10 relative border-green-500/40 bg-green-500/5 flex flex-col scale-105 z-10">
+          <div class="absolute top-4 right-4 bg-green-400 text-[#0a150a] text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">Best Value</div>
+          <div class="mb-8">
+            <div class="text-sm font-black uppercase tracking-widest text-green-400 mb-2">Yearly</div>
+            <div class="flex items-baseline gap-1">
+              <span class="text-4xl font-black text-white">GH₵2,500</span>
+              <span class="text-gray-500 font-bold">.00/yr</span>
+            </div>
           </div>
-          <button type="submit" [disabled]="contactLoading" class="bg-green-400 hover:bg-green-300 text-[#0a150a] py-4 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-            {{ contactLoading ? 'Sending...' : 'Send Message' }}
-          </button>
-        </form>
-      }
+          <ul class="space-y-4 mb-10 text-gray-300 flex-1">
+            <li class="flex items-center gap-3"><svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Everything in Monthly</li>
+            <li class="flex items-center gap-3"><svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Priority Support</li>
+            <li class="flex items-center gap-3"><svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Wholesale CRM Features</li>
+            <li class="flex items-center gap-3"><svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Advanced Financial Reports</li>
+          </ul>
+          <a routerLink="/auth/register" class="bg-green-400 hover:bg-green-300 text-[#0a150a] w-full py-4 rounded-2xl font-black text-center transition-all">Choose Yearly</a>
+        </div>
+
+        <!-- Enterprise -->
+        <div class="agro-card p-10 flex flex-col">
+          <div class="mb-8">
+            <div class="text-sm font-black uppercase tracking-widest text-gray-500 mb-2">Enterprise</div>
+            <div class="text-4xl font-black text-white">Custom</div>
+          </div>
+          <p class="text-gray-400 mb-10 flex-1 leading-relaxed">For large co-operatives and multi-national agro enterprises needing custom integrations and dedicated support.</p>
+          <button (click)="scrollTo('contact')" class="agro-btn-secondary w-full py-4 rounded-2xl font-black">Contact Sales</button>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- 7. CTA -->
-  <section class="py-24 relative overflow-hidden">
-    <div class="absolute inset-0 bg-green-500/5"></div>
-    <div class="max-w-4xl mx-auto px-6 relative z-10 text-center">
-      <h2 class="text-4xl md:text-6xl font-black mb-8 leading-tight">Ready to manage your business the smart way?</h2>
-      <a routerLink="/auth/register" class="inline-flex items-center gap-2 bg-green-400 hover:bg-green-300 text-[#0a150a] px-10 py-5 rounded-full text-xl font-black transition-all duration-300 hover:shadow-[0_0_40px_rgba(74,222,128,0.5)] hover:-translate-y-1">
-        Create Your Account
-        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-      </a>
+  <!-- 7. CONTACT -->
+  <section id="contact" class="py-32 relative">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="agro-glass p-8 md:p-16 rounded-[2.5rem] border border-white/10 overflow-hidden relative">
+        <div class="absolute top-0 right-0 w-1/3 h-full bg-green-500/5 blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
+        
+        <div class="grid lg:grid-cols-2 gap-16 items-center relative z-10">
+          <div>
+            <h2 class="text-4xl md:text-5xl font-black mb-6">Let's grow your business <span class="text-green-400">together</span>.</h2>
+            <p class="text-gray-400 text-lg mb-10">Our team is ready to help you optimize your inventory flow. Send us a message and we'll get back to you within 24 hours.</p>
+            
+            <div class="space-y-6">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-green-400">
+                  <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                </div>
+                <div>
+                  <div class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Email Us</div>
+                  <div class="font-bold">hello@agrolytix.com</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-green-400">
+                  <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
+                <div>
+                  <div class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Our HQ</div>
+                  <div class="font-bold">Accra, Ghana</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form -->
+          <div class="bg-white/[0.03] p-8 md:p-10 rounded-3xl border border-white/10">
+            @if (contactSuccess) {
+              <div class="text-center py-10">
+                <div class="w-20 h-20 bg-green-400/20 rounded-full flex items-center justify-center text-green-400 mx-auto mb-6">
+                  <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <h3 class="text-2xl font-black mb-2">Message Sent!</h3>
+                <p class="text-gray-400">We'll be in touch very soon.</p>
+                <button (click)="contactSuccess = false" class="mt-8 text-green-400 font-bold hover:underline">Send another message</button>
+              </div>
+            } @else {
+              <form (ngSubmit)="submitContact()" class="space-y-6">
+                <div class="grid md:grid-cols-2 gap-6">
+                  <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-widest text-gray-500">Full Name</label>
+                    <input [(ngModel)]="contactForm.name" name="name" type="text" placeholder="John Doe" 
+                           class="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3 outline-none focus:border-green-400 transition-colors">
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-widest text-gray-500">Email Address</label>
+                    <input [(ngModel)]="contactForm.email" name="email" type="email" placeholder="john@example.com"
+                           class="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3 outline-none focus:border-green-400 transition-colors">
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-xs font-bold uppercase tracking-widest text-gray-500">Your Message</label>
+                  <textarea [(ngModel)]="contactForm.message" name="message" rows="4" placeholder="How can we help?"
+                            class="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3 outline-none focus:border-green-400 transition-colors resize-none"></textarea>
+                </div>
+                <button type="submit" [disabled]="contactLoading"
+                        class="w-full bg-green-400 hover:bg-green-300 disabled:opacity-50 text-[#0a150a] py-4 rounded-xl font-black transition-all flex items-center justify-center gap-2">
+                  @if (contactLoading) {
+                    <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Sending...
+                  } @else {
+                    Send Message
+                  }
+                </button>
+              </form>
+            }
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- 7. FOOTER -->
-  <footer class="border-t border-white/10 bg-[#060c06] py-12">
-    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-      <div class="flex items-center gap-2">
-        <img src="/images/agrolytix.png" alt="Agrolytix Logo" class="h-8 w-auto">
+  <!-- 8. CTA (Final) -->
+  <section class="py-32 relative overflow-hidden text-center">
+    <div class="absolute inset-0 bg-green-500/10 blur-[120px] rounded-full scale-50"></div>
+    <div class="max-w-4xl mx-auto px-6 relative z-10">
+      <h2 class="text-5xl md:text-7xl font-black mb-10 leading-tight">Ready to harvest better <span class="text-green-400">results</span>?</h2>
+      <div class="flex flex-col sm:flex-row justify-center items-center gap-6">
+        <a routerLink="/auth/register" class="w-full sm:w-auto bg-green-400 hover:bg-green-300 text-[#0a150a] px-12 py-6 rounded-full text-xl font-black transition-all duration-300 hover:shadow-[0_0_40px_rgba(74,222,128,0.5)] hover:-translate-y-1">
+          Create Free Account
+        </a>
+        <button (click)="scrollTo('contact')" class="w-full sm:w-auto px-12 py-6 rounded-full text-xl font-bold border border-white/10 hover:bg-white/5 transition-all">
+          Request Demo
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. FOOTER -->
+  <footer class="border-t border-white/5 bg-[#060c06] pt-24 pb-12">
+    <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12 mb-20">
+      <div class="col-span-1 md:col-span-1">
+        <img src="/images/agrolytix.png" alt="Agrolytix" class="h-10 w-auto mb-6">
+        <p class="text-gray-500 text-sm leading-relaxed">The modern operating system for the agribusiness enterprise. Track, manage, and scale.</p>
       </div>
       
-      <div class="flex gap-6 text-sm text-gray-500">
-        <a routerLink="/auth" class="hover:text-white transition-colors">Login</a>
-        <a routerLink="/auth/register" class="hover:text-white transition-colors">Register</a>
+      <div>
+        <h4 class="text-white font-black uppercase tracking-widest text-[11px] mb-8">Solutions</h4>
+        <ul class="space-y-4 text-sm text-gray-500">
+          <li><button (click)="scrollTo('features')" class="hover:text-green-400 transition-colors">Inventory Control</button></li>
+          <li><button (click)="scrollTo('features')" class="hover:text-green-400 transition-colors">Wholesale POS</button></li>
+          <li><button (click)="scrollTo('features')" class="hover:text-green-400 transition-colors">Financial Reports</button></li>
+          <li><button (click)="scrollTo('features')" class="hover:text-green-400 transition-colors">Client CRM</button></li>
+        </ul>
       </div>
-      
-      <div class="text-sm text-gray-600">
-        &copy; 2026 Agrolytix. All rights reserved.
+
+      <div>
+        <h4 class="text-white font-black uppercase tracking-widest text-[11px] mb-8">Company</h4>
+        <ul class="space-y-4 text-sm text-gray-500">
+          <li><a routerLink="/about" class="hover:text-green-400 transition-colors">About Us</a></li>
+          <li><a routerLink="/careers" class="hover:text-green-400 transition-colors">Careers</a></li>
+          <li><a routerLink="/privacy" class="hover:text-green-400 transition-colors">Privacy Policy</a></li>
+          <li><a routerLink="/terms" class="hover:text-green-400 transition-colors">Terms of Service</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-white font-black uppercase tracking-widest text-[11px] mb-8">Newsletter</h4>
+        <p class="text-gray-500 text-sm mb-6">Get agribusiness tips and product updates.</p>
+        <div class="flex gap-2">
+          <input type="email" placeholder="Email" class="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm w-full outline-none focus:border-green-400">
+          <button class="bg-green-400 text-[#0a150a] px-4 py-2 rounded-xl text-sm font-black">Go</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="max-w-7xl mx-auto px-6 pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-gray-600">
+      <div class="flex items-center gap-6">
+        <span>&copy; 2026 Agrolytix. All rights reserved.</span>
+        <a routerLink="/terms" class="hover:text-white">Terms</a>
+        <a routerLink="/privacy" class="hover:text-white">Privacy</a>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors cursor-pointer text-gray-400 hover:text-white">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
+        </div>
+        <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors cursor-pointer text-gray-400 hover:text-white">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+        </div>
       </div>
     </div>
   </footer>

@@ -1,0 +1,75 @@
+<div class="min-h-screen bg-[#0a150a] text-white selection:bg-green-500/30 font-sans overflow-x-hidden relative">
+  <!-- Dynamic Navbar -->
+  <app-public-navbar></app-public-navbar>
+
+  <!-- Header -->
+  <header class="pt-40 pb-20 relative">
+    <div class="absolute inset-0 bg-green-500/10 blur-[120px] rounded-full scale-50 -translate-y-1/2"></div>
+    <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-black tracking-widest uppercase mb-8">
+        Join the Team
+      </div>
+      <h1 class="text-5xl md:text-7xl font-black mb-8 leading-tight">Grow your <span class="text-green-400">career</span> with us.</h1>
+      <p class="text-xl text-gray-400 leading-relaxed max-w-2xl mx-auto">Help us build the most powerful operating system for agribusinesses.</p>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <section class="py-20 relative">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <div class="bg-white/5 p-16 rounded-[2.5rem] border border-white/10">
+        <h3 class="text-3xl font-black mb-6">No open positions right now.</h3>
+        <p class="text-gray-400 mb-8 max-w-xl mx-auto">We're always looking for talented individuals who are passionate about agriculture and technology. Send us your resume, and we'll keep you in mind for future roles.</p>
+        <a href="mailto:careers@agrolytix.com" class="inline-block bg-green-400 hover:bg-green-300 text-[#0a150a] px-10 py-5 rounded-full text-lg font-black transition-all duration-300">
+          Email your Resume
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-white/5 bg-[#060c06] pt-24 pb-12 mt-20">
+    <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12 mb-20">
+      <div class="col-span-1 md:col-span-1">
+        <img src="/images/agrolytix.png" alt="Agrolytix" class="h-10 w-auto mb-6">
+        <p class="text-gray-500 text-sm leading-relaxed">The modern operating system for the agribusiness enterprise. Track, manage, and scale.</p>
+      </div>
+      
+      <div>
+        <h4 class="text-white font-black uppercase tracking-widest text-[11px] mb-8">Solutions</h4>
+        <ul class="space-y-4 text-sm text-gray-500">
+          <li><a routerLink="/#features" class="hover:text-green-400 transition-colors">Inventory Control</a></li>
+          <li><a routerLink="/#features" class="hover:text-green-400 transition-colors">Wholesale POS</a></li>
+          <li><a routerLink="/#features" class="hover:text-green-400 transition-colors">Financial Reports</a></li>
+          <li><a routerLink="/#features" class="hover:text-green-400 transition-colors">Client CRM</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-white font-black uppercase tracking-widest text-[11px] mb-8">Company</h4>
+        <ul class="space-y-4 text-sm text-gray-500">
+          <li><a routerLink="/about" class="hover:text-green-400 transition-colors">About Us</a></li>
+          <li><a routerLink="/careers" class="hover:text-green-400 transition-colors">Careers</a></li>
+          <li><a routerLink="/privacy" class="hover:text-green-400 transition-colors">Privacy Policy</a></li>
+          <li><a routerLink="/terms" class="hover:text-green-400 transition-colors">Terms of Service</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-white font-black uppercase tracking-widest text-[11px] mb-8">Newsletter</h4>
+        <p class="text-gray-500 text-sm mb-6">Get agribusiness tips and product updates.</p>
+        <div class="flex gap-2">
+          <input type="email" placeholder="Email" class="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm w-full outline-none focus:border-green-400">
+          <button class="bg-green-400 text-[#0a150a] px-4 py-2 rounded-xl text-sm font-black">Go</button>
+        </div>
+      </div>
+    </div>
+    <div class="max-w-7xl mx-auto px-6 pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-gray-600">
+      <div class="flex items-center gap-6">
+        <span>&copy; 2026 Agrolytix. All rights reserved.</span>
+        <a routerLink="/terms" class="hover:text-white">Terms</a>
+        <a routerLink="/privacy" class="hover:text-white">Privacy</a>
+      </div>
+    </div>
+  </footer>
+</div>
