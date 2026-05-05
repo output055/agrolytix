@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://agrolytixapi.asatek.online/api',
+  apiUrl: 'https://server1.asatek.online/api',
 };
