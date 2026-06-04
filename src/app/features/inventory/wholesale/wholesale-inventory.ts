@@ -5,7 +5,7 @@ import { InventoryService } from '../../../core/services/inventory.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { AuthService } from '../../../core/services/auth.service';
 
-import { WholesaleProduct, Product, PaginatedResponse, EligibleBusiness } from '../../../core/models/inventory.model';
+import { WholesaleProduct, Product, ProductUnit, PaginatedResponse, EligibleBusiness } from '../../../core/models/inventory.model';
 import { ConfirmModal } from '../../../shared/confirm-modal/confirm-modal';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
@@ -429,6 +429,23 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
             <div class="text-xs mt-1" style="color: #9ca3af;">Available stock: <span class="font-bold" style="color: #fbbf24;">{{ selectedProduct.quantity }} {{ selectedProduct.base_unit }}(s)</span></div>
           </div>
 
+          <!-- Transfer unit -->
+          <div class="mb-4">
+            <label class="block text-xs font-medium mb-1 text-gray-400">Transfer Unit</label>
+            <select [(ngModel)]="transferUnitId"
+                    class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-purple-400">
+              <option [ngValue]="null" style="background:#111;">{{ selectedProduct.base_unit }} (base unit)</option>
+              @for (unit of selectedProduct.units || []; track unit.id) {
+                <option [ngValue]="unit.id" style="background:#111;">
+                  {{ unit.unit_name }} = {{ unit.quantity_in_base }} {{ selectedProduct.base_unit }}(s)
+                </option>
+              }
+            </select>
+            <p class="text-xs mt-1" style="color: #a78bfa;">
+              {{ transferQty || 0 }} {{ transferUnitName }} = {{ transferBaseQuantity }} {{ selectedProduct.base_unit }}(s)
+            </p>
+          </div>
+
           <!-- Destination product dropdown -->
           <div class="mb-4">
             <label class="block text-xs font-medium mb-1 text-gray-400">
@@ -449,10 +466,10 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
           <!-- Quantity -->
           <div class="mb-4">
-            <label class="block text-xs font-medium mb-1 text-gray-400">Quantity to Transfer ({{ selectedProduct.base_unit }}s) *</label>
-            <input type="number" [(ngModel)]="transferQty" [max]="selectedProduct.quantity" min="1"
+            <label class="block text-xs font-medium mb-1 text-gray-400">Quantity to Transfer ({{ transferUnitName }}) *</label>
+            <input type="number" [(ngModel)]="transferQty" min="1"
                    class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-purple-400">
-            @if (transferQty > selectedProduct.quantity) {
+            @if (transferBaseQuantity > selectedProduct.quantity) {
               <p class="text-xs mt-1 text-red-400">⚠️ Cannot exceed available stock ({{ selectedProduct.quantity }} {{ selectedProduct.base_unit }}s).</p>
             }
           </div>
@@ -467,7 +484,7 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
           <div class="flex justify-end gap-3">
             <button (click)="closeTransfer()" class="px-4 py-2 text-sm text-gray-400 hover:text-white">Cancel</button>
             <button (click)="submitTransfer()"
-                    [disabled]="transferQty < 1 || transferQty > selectedProduct.quantity || isSubmitting || (transferMode === 'branch' && !transferBusinessId)"
+                    [disabled]="transferQty < 1 || transferBaseQuantity > selectedProduct.quantity || isSubmitting || (transferMode === 'branch' && !transferBusinessId)"
                     class="px-5 py-2 rounded-xl text-sm font-bold disabled:opacity-50 transition-colors"
                     style="background: #c084fc; color: #1a0533;">
               {{ isSubmitting ? 'Transferring...' : 'Transfer Stock' }}
@@ -512,6 +529,7 @@ export class WholesaleInventory implements OnInit, OnDestroy {
   // Transfer state
   retailProducts: Product[] = [];
   transferDestId: number | null = null;
+  transferUnitId: number | null = null;
   transferQty = 1;
   transferNote = '';
   // Branch transfer state
@@ -534,6 +552,22 @@ export class WholesaleInventory implements OnInit, OnDestroy {
 
   get isAdmin(): boolean {
     return this.authService.currentUser()?.role === 'Admin';
+  }
+
+  get selectedTransferUnit(): ProductUnit | undefined {
+    return this.selectedProduct?.units?.find(unit => unit.id === this.transferUnitId);
+  }
+
+  get transferUnitName(): string {
+    return this.selectedTransferUnit?.unit_name || this.selectedProduct?.base_unit || 'unit';
+  }
+
+  get transferUnitQuantityInBase(): number {
+    return this.selectedTransferUnit?.quantity_in_base || 1;
+  }
+
+  get transferBaseQuantity(): number {
+    return (this.transferQty || 0) * this.transferUnitQuantityInBase;
   }
 
   constructor() {
@@ -742,6 +776,7 @@ export class WholesaleInventory implements OnInit, OnDestroy {
   openTransfer(product: WholesaleProduct) {
     this.selectedProduct = product;
     this.transferDestId = null;
+    this.transferUnitId = null;
     this.transferQty = 1;
     this.transferNote = '';
     this.transferMode = 'internal';
@@ -804,7 +839,7 @@ export class WholesaleInventory implements OnInit, OnDestroy {
   }
 
   submitTransfer() {
-    if (!this.selectedProduct || this.transferQty < 1 || this.transferQty > this.selectedProduct.quantity) return;
+    if (!this.selectedProduct || this.transferQty < 1 || this.transferBaseQuantity > this.selectedProduct.quantity) return;
     if (this.transferMode === 'branch' && !this.transferBusinessId) return;
     this.isSubmitting = true;
 
@@ -814,6 +849,9 @@ export class WholesaleInventory implements OnInit, OnDestroy {
     this.inventoryService.transferStock({
       from_type: 'wholesale',
       from_product_id: this.selectedProduct.id,
+      source_unit_id: this.transferUnitId,
+      source_unit_name: this.transferUnitName,
+      source_unit_quantity_in_base: this.transferUnitQuantityInBase,
       to_type: toType,
       to_product_id: this.transferDestId,
       to_business_id: toBusinessId,
@@ -826,7 +864,7 @@ export class WholesaleInventory implements OnInit, OnDestroy {
           : toType;
         const msg = res.auto_created
           ? `Transferred & auto-created "${res.destination.name}" in ${dest}.`
-          : `Transferred ${this.transferQty} ${this.selectedProduct!.base_unit}(s) to ${dest} successfully.`;
+          : `Transferred ${this.transferQty} ${this.transferUnitName} (${this.transferBaseQuantity} ${this.selectedProduct!.base_unit}s) to ${dest} successfully.`;
         this.toastService.success(msg);
         this.loadProducts();
         this.closeTransfer();

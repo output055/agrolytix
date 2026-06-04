@@ -1,0 +1,326 @@
+<div class="page-container">
+
+  <!-- Header with Back Button -->
+  <div class="page-header">
+    <div class="flex items-center gap-4">
+      <button class="back-btn" (click)="goBack()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+        </svg>
+      </button>
+      <div>
+        <h1 class="page-title">Client Details</h1>
+        <p class="page-subtitle" *ngIf="client">{{ client.name }} - Manage payments and track debt</p>
+      </div>
+    </div>
+  </div>
+
+  @if (loading) {
+    <div class="empty-state">
+      <div class="spinner"></div>
+      <p>Loading client details...</p>
+    </div>
+  } @else if (!client) {
+    <div class="empty-state">
+      <p class="text-lg font-medium text-gray-400">Client not found</p>
+    </div>
+  } @else {
+    <!-- Client Info Card -->
+    <div class="info-card">
+      <div class="info-grid">
+        <div class="info-item">
+          <label class="info-label">Name</label>
+          <p class="info-value">{{ client.name }}</p>
+        </div>
+        <div class="info-item">
+          <label class="info-label">Contact</label>
+          <p class="info-value">{{ client.contact || '—' }}</p>
+        </div>
+        <div class="info-item">
+          <label class="info-label">Location</label>
+          <p class="info-value">{{ client.location || '—' }}</p>
+        </div>
+        <div class="info-item">
+          <label class="info-label">Email</label>
+          <p class="info-value">{{ client.email || '—' }}</p>
+        </div>
+      </div>
+
+      <!-- Total Debt Summary -->
+      <div class="debt-summary">
+        <div class="debt-item">
+          <span class="debt-label">Total Outstanding Debt</span>
+          <span class="debt-amount" [class.text-red]="client.total_debt > 0" [class.text-green]="client.total_debt <= 0">
+            GH₵{{ client.total_debt | number:'1.2-2' }}
+          </span>
+        </div>
+        <div class="debt-item">
+          <span class="debt-label">Unpaid Sales</span>
+          <span class="debt-amount text-blue">{{ unpaidSales.length }}</span>
+        </div>
+        <div class="debt-item">
+          <span class="debt-label">Total Sales</span>
+          <span class="debt-amount text-white">{{ clientSales.length }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+      <button class="tab-btn"
+              [class.tab-active]="activeTab === 'unpaid'"
+              (click)="activeTab = 'unpaid'">
+        Unpaid Sales ({{ unpaidSales.length }})
+      </button>
+      <button class="tab-btn"
+              [class.tab-active]="activeTab === 'all'"
+              (click)="activeTab = 'all'">
+        All Sales ({{ clientSales.length }})
+      </button>
+      <button class="tab-btn"
+              [class.tab-active]="activeTab === 'history'"
+              (click)="activeTab = 'history'">
+        Payment History ({{ allPayments.length }})
+      </button>
+    </div>
+
+    <!-- Unpaid Sales Tab -->
+    @if (activeTab === 'unpaid') {
+      <div class="table-card">
+        @if (unpaidSales.length === 0) {
+          <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" class="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p>No unpaid sales for this client</p>
+          </div>
+        } @else {
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Receipt #</th>
+                  <th>Date</th>
+                  <th>Amount (GH₵)</th>
+                  <th>Paid (GH₵)</th>
+                  <th>Remaining Debt (GH₵)</th>
+                  <th>Status</th>
+                  <th class="text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (sale of unpaidSales; track sale.id) {
+                  <tr class="table-row">
+                    <td><span class="receipt-badge">{{ sale.receipt_number }}</span></td>
+                    <td class="text-muted">{{ sale.created_at | date:'d MMM y' }}</td>
+                    <td class="text-white font-bold">{{ sale.total_amount | number:'1.2-2' }}</td>
+                    <td class="text-blue">{{ sale.amount_paid | number:'1.2-2' }}</td>
+                    <td>
+                      <span class="text-red font-bold">{{ sale.debt | number:'1.2-2' }}</span>
+                    </td>
+                    <td>
+                      <span class="pill pill-orange">{{ sale.status }}</span>
+                    </td>
+                    <td class="text-right">
+                      <button class="action-btn edit-btn" (click)="openPaymentModal(sale)">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Pay
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- All Sales Tab -->
+    @if (activeTab === 'all') {
+      <div class="table-card">
+        @if (clientSales.length === 0) {
+          <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" class="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p>No sales found for this client</p>
+          </div>
+        } @else {
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Receipt #</th>
+                  <th>Date</th>
+                  <th>Amount (GH₵)</th>
+                  <th>Paid (GH₵)</th>
+                  <th>Debt (GH₵)</th>
+                  <th>Status</th>
+                  <th class="text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (sale of clientSales; track sale.id) {
+                  <tr class="table-row" [class.opacity-60]="sale.debt === 0">
+                    <td><span class="receipt-badge">{{ sale.receipt_number }}</span></td>
+                    <td class="text-muted">{{ sale.created_at | date:'d MMM y' }}</td>
+                    <td class="text-white font-bold">{{ sale.total_amount | number:'1.2-2' }}</td>
+                    <td class="text-blue">{{ sale.amount_paid | number:'1.2-2' }}</td>
+                    <td>
+                      <span [class.text-red]="sale.debt > 0" [class.text-green]="sale.debt === 0" class="font-bold">
+                        {{ sale.debt | number:'1.2-2' }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="pill" [class.pill-green]="sale.status === 'completed'" [class.pill-orange]="sale.status === 'partial'">
+                        {{ sale.status }}
+                      </span>
+                    </td>
+                    <td class="text-right">
+                      @if (sale.debt > 0) {
+                        <button class="action-btn edit-btn" (click)="openPaymentModal(sale)">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                          </svg>
+                          Pay
+                        </button>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Payment History Tab -->
+    @if (activeTab === 'history') {
+      <div class="table-card">
+        @if (allPayments.length === 0) {
+          <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" class="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p>No payment history for this client</p>
+          </div>
+        } @else {
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Receipt #</th>
+                  <th>Date & Time</th>
+                  <th>Amount Paid (GH₵)</th>
+                  <th>Old Debt (GH₵)</th>
+                  <th>New Debt (GH₵)</th>
+                  <th>Note</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (payment of allPayments; track payment.id) {
+                  <tr class="table-row">
+                    <td><span class="receipt-badge">{{ payment.receiptNumber }}</span></td>
+                    <td class="text-muted">{{ payment.created_at | date:'d MMM y, h:mm a' }}</td>
+                    <td class="text-green font-bold">{{ payment.amount_paid | number:'1.2-2' }}</td>
+                    <td class="text-blue">{{ payment.old_debt | number:'1.2-2' }}</td>
+                    <td class="text-white">{{ payment.new_debt | number:'1.2-2' }}</td>
+                    <td class="text-muted text-sm">{{ payment.note || '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+  }
+
+</div>
+
+<!-- Payment Modal -->
+@if (showPaymentModal && selectedSale) {
+  <div class="modal-backdrop" (click)="closePaymentModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Record Payment</h2>
+        <button class="modal-close" (click)="closePaymentModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Sale Info -->
+        <div class="info-section">
+          <h3 class="section-title">Sale Details</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Receipt #</span>
+              <span class="info-value">{{ selectedSale.receipt_number }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Sale Date</span>
+              <span class="info-value">{{ selectedSale.created_at | date:'d MMM y' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Total Amount</span>
+              <span class="info-value">GH₵{{ selectedSale.total_amount | number:'1.2-2' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Already Paid</span>
+              <span class="info-value text-blue">GH₵{{ selectedSale.amount_paid | number:'1.2-2' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Remaining Debt</span>
+              <span class="info-value text-red">GH₵{{ selectedSale.debt | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Form -->
+        <div class="form-section">
+          <h3 class="section-title">Payment Details</h3>
+
+          <div class="field-group">
+            <label class="field-label">Amount to Pay (GH₵) *</label>
+            <input type="number" class="field-input"
+                   [(ngModel)]="paymentForm.amount_paid"
+                   [max]="selectedSale.debt"
+                   [min]="0"
+                   step="0.01"
+                   placeholder="Enter amount">
+            <p class="field-hint">Max: GH₵{{ selectedSale.debt | number:'1.2-2' }}</p>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Note / Reference</label>
+            <textarea class="field-input" [(ngModel)]="paymentForm.note" placeholder="e.g., Check #12345, MoMo reference, etc." rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="secondary-btn" (click)="closePaymentModal()" [disabled]="paymentProcessing">
+          Cancel
+        </button>
+        <button class="primary-btn" (click)="recordPayment()" [disabled]="paymentProcessing">
+          @if (paymentProcessing) {
+            <span class="spinner-small"></span>
+            Processing...
+          } @else {
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+            </svg>
+            Record Payment
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

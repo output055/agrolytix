@@ -73,7 +73,12 @@ import { StockTransfer, PaginatedResponse } from '../../../core/models/inventory
                   </div>
                 </td>
                 <td class="px-6 py-4 font-semibold" style="color: #c084fc;">
-                  {{ t.quantity }}
+                  <div>{{ t.display_quantity || t.quantity }} {{ t.source_unit_name || t.source_base_unit || 'unit' }}(s)</div>
+                  @if (t.source_unit_quantity_in_base && t.source_unit_quantity_in_base > 1) {
+                    <div class="text-[10px] font-normal text-gray-400 mt-0.5">
+                      {{ t.quantity }} {{ t.source_base_unit || 'base unit' }}(s)
+                    </div>
+                  }
                 </td>
                 <td class="px-6 py-4 text-gray-400 italic text-xs max-w-xs truncate">
                   {{ t.note || '—' }}
