@@ -5,7 +5,7 @@ import { InventoryService } from '../../../core/services/inventory.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { AuthService } from '../../../core/services/auth.service';
 
-import { Product, PaginatedResponse } from '../../../core/models/inventory.model';
+import { Product, WholesaleProduct, PaginatedResponse, EligibleBusiness } from '../../../core/models/inventory.model';
 import { ConfirmModal } from '../../../shared/confirm-modal/confirm-modal';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
@@ -124,6 +124,9 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </button>
                     @if (isAdmin) {
+                      <button (click)="openTransfer(product)" title="Transfer Stock" class="text-purple-400 hover:text-purple-300 font-medium transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+                      </button>
                       <button (click)="openForm(product)" title="Edit" class="text-blue-400 hover:text-blue-300 font-medium transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                       </button>
@@ -344,6 +347,135 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
       (confirm)="submitDelete()"
       (cancel)="closeDelete()">
     </app-confirm-modal>
+
+    <!-- Transfer Modal -->
+    @if (showTransferModal && selectedProduct) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="rounded-2xl p-6 w-full max-w-md border shadow-2xl relative my-auto"
+             style="background: #140d1f; border-color: rgba(192,132,252,0.25);">
+          <button (click)="closeTransfer()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          <div class="flex items-center gap-3 mb-5">
+            <div class="p-2 rounded-xl" style="background: rgba(192,132,252,0.15);">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color: #c084fc;">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold" style="color: #f0fdf4;">Transfer Stock</h3>
+              <p class="text-xs" style="color: #9ca3af;">Move stock from Retail to another store</p>
+            </div>
+          </div>
+
+          <!-- Transfer Mode Toggle -->
+          <div class="mb-4">
+            <label class="block text-xs font-medium mb-2 text-gray-400">Transfer Type</label>
+            <div class="flex gap-2">
+              <button (click)="setTransferMode('internal')"
+                      [class.ring-2]="transferMode === 'internal'"
+                      class="flex-1 py-2 rounded-xl text-sm font-medium transition-all"
+                      style="background: rgba(192,132,252,0.1); color: #c084fc; ring-color: #c084fc;">
+                Internal (Retail → Wholesale)
+              </button>
+              <button (click)="setTransferMode('branch')"
+                      [disabled]="eligibleBusinesses.length === 0"
+                      [class.ring-2]="transferMode === 'branch'"
+                      class="flex-1 py-2 rounded-xl text-sm font-medium transition-all disabled:opacity-40"
+                      style="background: rgba(251,191,36,0.1); color: #fbbf24; ring-color: #fbbf24;">
+                Branch Transfer
+              </button>
+            </div>
+            @if (eligibleBusinesses.length === 0) {
+              <p class="text-xs mt-1 text-gray-500">No linked branches configured for your business.</p>
+            }
+          </div>
+
+          <!-- Branch selector (only in branch mode) -->
+          @if (transferMode === 'branch') {
+            <div class="mb-4">
+              <label class="block text-xs font-medium mb-1 text-gray-400">Destination Branch</label>
+              <select [(ngModel)]="transferBusinessId" (ngModelChange)="onBranchSelected($event, 'wholesale')"
+                      class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-yellow-400">
+                <option [ngValue]="null" style="background:#111;">— Select a branch —</option>
+                @for (b of eligibleBusinesses; track b.id) {
+                  <option [ngValue]="b.id" style="background:#111;">{{ b.name }}</option>
+                }
+              </select>
+            </div>
+            <!-- Destination store type in branch mode -->
+            <div class="mb-4">
+              <label class="block text-xs font-medium mb-2 text-gray-400">Destination Store Type</label>
+              <div class="flex gap-2">
+                <button (click)="branchDestType = 'retail'; reloadBranchProducts()"
+                        [class.ring-2]="branchDestType === 'retail'"
+                        class="flex-1 py-2 rounded-xl text-sm font-medium"
+                        style="background: rgba(74,222,128,0.1); color: #4ade80;">Retail</button>
+                <button (click)="branchDestType = 'wholesale'; reloadBranchProducts()"
+                        [class.ring-2]="branchDestType === 'wholesale'"
+                        class="flex-1 py-2 rounded-xl text-sm font-medium"
+                        style="background: rgba(251,191,36,0.1); color: #fbbf24;">Wholesale</button>
+              </div>
+            </div>
+          }
+
+          <!-- Source info -->
+          <div class="rounded-xl p-3 mb-4" style="background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.15);">
+            <div class="text-xs font-semibold mb-1" style="color: #4ade80;">FROM — RETAIL</div>
+            <div class="font-medium" style="color: #f0fdf4;">{{ selectedProduct.name }}</div>
+            <div class="text-xs mt-1" style="color: #9ca3af;">Available stock: <span class="font-bold" style="color: #fbbf24;">{{ selectedProduct.quantity }} {{ selectedProduct.base_unit }}(s)</span></div>
+          </div>
+
+          <!-- Destination product dropdown -->
+          <div class="mb-4">
+            <label class="block text-xs font-medium mb-1 text-gray-400">
+              {{ transferMode === 'branch' ? 'Destination ' + branchDestType + ' Product' : 'Destination Wholesale Product' }}
+            </label>
+            <select [(ngModel)]="transferDestId"
+                    [disabled]="transferMode === 'branch' && !transferBusinessId"
+                    class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-purple-400 disabled:opacity-40">
+              <option [ngValue]="null" style="background:#111;">— Auto-create (product doesn't exist yet) —</option>
+              @for (p of destProducts; track p.id) {
+                <option [ngValue]="p.id" style="background:#111;">{{ p.name }} ({{ p.quantity }} {{ p.base_unit }}s)</option>
+              }
+            </select>
+            @if (transferDestId === null) {
+              <p class="text-xs mt-1" style="color: #a78bfa;">✨ A new product will be created automatically with the same details.</p>
+            }
+          </div>
+
+          <!-- Quantity -->
+          <div class="mb-4">
+            <label class="block text-xs font-medium mb-1 text-gray-400">Quantity to Transfer ({{ selectedProduct.base_unit }}s) *</label>
+            <input type="number" [(ngModel)]="transferQty" [max]="selectedProduct.quantity" min="1"
+                   class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-purple-400">
+            @if (transferQty > selectedProduct.quantity) {
+              <p class="text-xs mt-1 text-red-400">⚠️ Cannot exceed available stock ({{ selectedProduct.quantity }} {{ selectedProduct.base_unit }}s).</p>
+            }
+          </div>
+
+          <!-- Note -->
+          <div class="mb-6">
+            <label class="block text-xs font-medium mb-1 text-gray-400">Note (optional)</label>
+            <input type="text" [(ngModel)]="transferNote" placeholder="Reason for transfer..."
+                   class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-purple-400">
+          </div>
+
+          <div class="flex justify-end gap-3">
+            <button (click)="closeTransfer()" class="px-4 py-2 text-sm text-gray-400 hover:text-white">Cancel</button>
+            <button (click)="submitTransfer()"
+                    [disabled]="transferQty < 1 || transferQty > selectedProduct.quantity || isSubmitting || (transferMode === 'branch' && !transferBusinessId)"
+                    class="px-5 py-2 rounded-xl text-sm font-bold disabled:opacity-50 transition-colors"
+                    style="background: #c084fc; color: #1a0533;">
+              {{ isSubmitting ? 'Transferring...' : 'Transfer Stock' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
   `
 })
 export class RetailInventory implements OnInit, OnDestroy {
@@ -374,7 +506,20 @@ export class RetailInventory implements OnInit, OnDestroy {
   showFormModal = false;
   showRestockModal = false;
   showDeleteModal = false;
+  showTransferModal = false;
   isSubmitting = false;
+
+  // Transfer state
+  wholesaleProducts: WholesaleProduct[] = [];
+  transferDestId: number | null = null;
+  transferQty = 1;
+  transferNote = '';
+  // Branch transfer state
+  transferMode: 'internal' | 'branch' = 'internal';
+  transferBusinessId: number | null = null;
+  branchDestType: 'retail' | 'wholesale' = 'wholesale';
+  destProducts: (Product | WholesaleProduct)[] = [];
+  eligibleBusinesses: EligibleBusiness[] = [];
 
   productForm: FormGroup;
   restockControl = this.fb.control(0, [Validators.required, Validators.min(1)]);
@@ -588,6 +733,108 @@ export class RetailInventory implements OnInit, OnDestroy {
       error: () => {
         this.toastService.error('Failed to delete product');
         this.closeDelete();
+      }
+    });
+  }
+
+  // --- Transfer Actions ---
+
+  openTransfer(product: Product) {
+    this.selectedProduct = product;
+    this.transferDestId = null;
+    this.transferQty = 1;
+    this.transferNote = '';
+    this.transferMode = 'internal';
+    this.transferBusinessId = null;
+    this.branchDestType = 'wholesale';
+    this.destProducts = [];
+    this.eligibleBusinesses = [];
+
+    // Load internal wholesale products
+    this.inventoryService.getWholesaleProducts().subscribe({
+      next: (res: any) => {
+        this.wholesaleProducts = Array.isArray(res) ? res : (res.data || []);
+        this.destProducts = this.wholesaleProducts;
+        this.cdr.detectChanges();
+      },
+      error: () => this.toastService.error('Failed to load wholesale products')
+    });
+
+    // Load eligible branches in the background
+    this.inventoryService.getEligibleBusinesses().subscribe({
+      next: (branches) => {
+        this.eligibleBusinesses = branches;
+        this.cdr.detectChanges();
+      },
+      error: () => {} // silently ignore — branch mode just won't be available
+    });
+
+    this.showTransferModal = true;
+  }
+
+  setTransferMode(mode: 'internal' | 'branch') {
+    this.transferMode = mode;
+    this.transferDestId = null;
+    this.transferBusinessId = null;
+    this.branchDestType = 'wholesale';
+    this.destProducts = mode === 'internal' ? this.wholesaleProducts : [];
+  }
+
+  onBranchSelected(businessId: number | null, defaultType: 'retail' | 'wholesale') {
+    this.transferDestId = null;
+    this.destProducts = [];
+    if (!businessId) return;
+    this.inventoryService.getEligibleProducts(businessId, this.branchDestType).subscribe({
+      next: (products) => {
+        this.destProducts = products;
+        this.cdr.detectChanges();
+      },
+      error: () => this.toastService.error('Failed to load destination products')
+    });
+  }
+
+  reloadBranchProducts() {
+    if (!this.transferBusinessId) return;
+    this.onBranchSelected(this.transferBusinessId, this.branchDestType);
+  }
+
+  closeTransfer() {
+    this.showTransferModal = false;
+    this.selectedProduct = null;
+  }
+
+  submitTransfer() {
+    if (!this.selectedProduct || this.transferQty < 1 || this.transferQty > this.selectedProduct.quantity) return;
+    if (this.transferMode === 'branch' && !this.transferBusinessId) return;
+    this.isSubmitting = true;
+
+    const toType = this.transferMode === 'branch' ? this.branchDestType : 'wholesale';
+    const toBusinessId = this.transferMode === 'branch' ? this.transferBusinessId : null;
+
+    this.inventoryService.transferStock({
+      from_type: 'retail',
+      from_product_id: this.selectedProduct.id,
+      to_type: toType,
+      to_product_id: this.transferDestId,
+      to_business_id: toBusinessId,
+      quantity: this.transferQty,
+      note: this.transferNote || undefined,
+    }).subscribe({
+      next: (res) => {
+        const dest = this.transferMode === 'branch'
+          ? `${res.transfer?.to_business?.name || 'branch'} (${toType})`
+          : toType;
+        const msg = res.auto_created
+          ? `Transferred & auto-created "${res.destination.name}" in ${dest}.`
+          : `Transferred ${this.transferQty} ${this.selectedProduct!.base_unit}(s) to ${dest} successfully.`;
+        this.toastService.success(msg);
+        this.loadProducts();
+        this.closeTransfer();
+        this.isSubmitting = false;
+      },
+      error: (err) => {
+        this.toastService.error(err.error?.message || 'Transfer failed');
+        this.isSubmitting = false;
       }
     });
   }

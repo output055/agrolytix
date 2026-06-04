@@ -39,6 +39,7 @@ export class AuthService {
         );
     }
 
+
   hasPermission(permission: string): boolean {
     const user = this.currentUser() as {
       role?: string;
@@ -77,10 +78,19 @@ export class AuthService {
           localStorage.setItem('auth_user', JSON.stringify(user));
           this.currentUser.set(user);
         },
-        error: () => this.clearAuth()
+        error: (err) => {
+          console.error('Failed to restore session:', err);
+          // Only log out on explicit 401 Unauthorized or 403 Forbidden errors.
+          // Other errors (e.g. status 0 / network offline or 500 server error)
+          // should keep the cached user session active.
+          if (err.status === 401 || err.status === 403) {
+            this.clearAuth();
+          }
+        }
       });
     }
   }
+
 
   private clearAuth() {
     localStorage.removeItem('auth_token');
@@ -89,3 +99,4 @@ export class AuthService {
     this.router.navigate(['/auth']);
   }
 }
+

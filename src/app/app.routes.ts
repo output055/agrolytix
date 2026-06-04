@@ -64,6 +64,11 @@ export const routes: Routes = [
         loadChildren: () => import('./features/inventory/inventory.routes').then(m => m.INVENTORY_ROUTES)
       },
       {
+        path: 'branches',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/branches/branches-view/branches-view').then(m => m.BranchesView)
+      },
+      {
         path: 'pos',
         loadChildren: () => import('./features/pos/pos.routes').then(m => m.POS_ROUTES)
       },

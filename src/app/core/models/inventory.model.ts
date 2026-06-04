@@ -44,3 +44,36 @@ export interface PaginatedResponse<T> {
 // Wholesale product essentially shares the exact same schema.
 export interface WholesaleProduct extends Product {}
 
+export interface EligibleBusiness {
+  id: number;
+  name: string;
+}
+
+export interface StockTransferPayload {
+  from_type: 'retail' | 'wholesale';
+  from_product_id: number;
+  to_type: 'retail' | 'wholesale';
+  to_product_id: number | null;  // null = auto-create on destination
+  to_business_id?: number | null; // null = same business (internal)
+  quantity: number;
+  note?: string;
+}
+
+export interface StockTransfer {
+  id: number;
+  from_type: 'retail' | 'wholesale';
+  from_product_id: number;
+  from_product_name: string;
+  to_type: 'retail' | 'wholesale';
+  to_product_id: number;
+  to_product_name: string;
+  to_business_id?: number | null;
+  to_business?: { id: number; name: string } | null;
+  business?: { id: number; name: string } | null;
+  auto_created: boolean;
+  quantity: number;
+  note?: string;
+  transferred_by: number;
+  transferred_by_user?: { id: number; name: string };
+  created_at: string;
+}

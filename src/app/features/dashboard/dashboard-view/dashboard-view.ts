@@ -24,6 +24,13 @@ export class DashboardView implements OnInit {
     return this.auth.currentUser()?.role === 'Admin';
   }
 
+  get businessName(): string {
+    return this.user()?.business?.name ?? 'your agribusiness';
+  }
+
+  get isBranch(): boolean {
+    return !!this.user()?.business?.parent_id;
+  }
 
   formatCurrency(val: number) {
     return 'GH₵' + (val ?? 0).toLocaleString('en-GH', { minimumFractionDigits: 2 });

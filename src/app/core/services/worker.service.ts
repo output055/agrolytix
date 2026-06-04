@@ -10,6 +10,8 @@ export interface Worker {
   role: 'Admin' | 'Worker';
   contact: string | null;
   permissions: string[];
+  business_id?: number | null;
+  business?: { id: number; name: string } | null;
   last_login_at: string | null;
   created_at: string;
 }

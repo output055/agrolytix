@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Product, WholesaleProduct, PaginatedResponse } from '../models/inventory.model';
+import { Product, WholesaleProduct, PaginatedResponse, StockTransferPayload, StockTransfer, EligibleBusiness } from '../models/inventory.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -79,5 +79,34 @@ export class InventoryService {
 
   restockWholesaleProduct(id: number, quantity: number): Observable<WholesaleProduct> {
     return this.http.patch<WholesaleProduct>(`${this.apiUrl}/wholesale-products/${id}/restock`, { quantity });
+  }
+
+  // --- Stock Transfers ---
+
+  transferStock(payload: StockTransferPayload): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/stock-transfers`, payload);
+  }
+
+  getStockTransfers(params?: any): Observable<PaginatedResponse<StockTransfer>> {
+    let httpParams = new HttpParams();
+    if (params) {
+      Object.keys(params).forEach(key => {
+        if (params[key] !== undefined && params[key] !== null) {
+          httpParams = httpParams.set(key, String(params[key]));
+        }
+      });
+    }
+    return this.http.get<PaginatedResponse<StockTransfer>>(`${this.apiUrl}/stock-transfers`, { params: httpParams });
+  }
+
+  getEligibleBusinesses(): Observable<EligibleBusiness[]> {
+    return this.http.get<EligibleBusiness[]>(`${this.apiUrl}/stock-transfers/eligible-businesses`);
+  }
+
+  getEligibleProducts(targetBusinessId: number, type: 'retail' | 'wholesale'): Observable<Product[]> {
+    const params = new HttpParams()
+      .set('target_business_id', String(targetBusinessId))
+      .set('type', type);
+    return this.http.get<Product[]>(`${this.apiUrl}/stock-transfers/eligible-products`, { params });
   }
 }
