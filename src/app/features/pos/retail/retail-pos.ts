@@ -146,7 +146,7 @@ export class RetailPos implements OnInit {
   getMaxQuantityForSelection(): number {
     const product = this.selectedProduct();
     if (!product) return 0;
-    
+
     const unit = this.selectedUnit();
     if (unit === 'base' || !unit) {
       return product.quantity;
@@ -269,7 +269,7 @@ export class RetailPos implements OnInit {
 
   checkout() {
     if (this.cart().length === 0) return;
-    
+
     this.isCheckingOut.set(true);
 
     const payload: RetailPosPayload = {

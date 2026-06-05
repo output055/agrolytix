@@ -175,7 +175,7 @@ export class WholesalePos implements OnInit {
   getMaxQuantityForSelection(): number {
     const product = this.selectedProduct();
     if (!product) return 0;
-    
+
     const unit = this.selectedUnit();
     if (unit === 'base' || !unit) {
       return product.quantity;
@@ -305,7 +305,7 @@ export class WholesalePos implements OnInit {
       return;
     }
     if (this.cart().length === 0) return;
-    
+
     this.isCheckingOut.set(true);
 
     const payload: WholesalePosPayload = {
@@ -327,7 +327,7 @@ export class WholesalePos implements OnInit {
       next: (res) => {
         this.toastService.show('Wholesale checkout successful!', 'success');
         this.clearCart();
-        this.loadProducts(); 
+        this.loadProducts();
         this.selectedClientId.set(null);
         this.isCheckingOut.set(false);
       },

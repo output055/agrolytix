@@ -509,7 +509,7 @@ export class WholesaleSales implements OnInit {
   payingDebt  = false;
 
   get isAdmin(): boolean {
-    return this.authService.currentUser()?.role === 'Admin';
+    return this.authService.canViewProfit();
   }
 
   get filteredSales(): WholesaleSale[] {

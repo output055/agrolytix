@@ -21,7 +21,7 @@ export class DashboardView implements OnInit {
   loading = signal(true);
 
   get isAdmin(): boolean {
-    return this.auth.currentUser()?.role === 'Admin';
+    return this.auth.canViewProfit();
   }
 
   get businessName(): string {

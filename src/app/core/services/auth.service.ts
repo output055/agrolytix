@@ -60,6 +60,10 @@ export class AuthService {
     return user?.role === 'SuperAdmin';
   }
 
+  canViewProfit(): boolean {
+    return this.currentUser()?.role === 'Admin';
+  }
+
   logout() {
     return this.http.post(`${this.apiUrl}/logout`, {}).pipe(
       tap(() => this.clearAuth())

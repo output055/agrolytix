@@ -551,7 +551,7 @@ export class WholesaleInventory implements OnInit, OnDestroy {
   }
 
   get isAdmin(): boolean {
-    return this.authService.currentUser()?.role === 'Admin';
+    return this.authService.canViewProfit();
   }
 
   get selectedTransferUnit(): ProductUnit | undefined {

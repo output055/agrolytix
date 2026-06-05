@@ -25,7 +25,7 @@ export class ReversalsView implements OnInit {
   selectedReversal: Reversal | null = null;
 
   get isAdmin(): boolean {
-    return this.authService.currentUser()?.role === 'Admin';
+    return this.authService.canViewProfit();
   }
 
   ngOnInit() {
