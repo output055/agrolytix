@@ -133,7 +133,7 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
                       <span class="receipt-badge">{{ sale.receipt_number }}</span>
                     </td>
                     <td class="text-muted">{{ sale.created_at | date:'d MMM y, h:mm a' }}</td>
-                    <td class="text-muted">{{ sale.items?.length ?? 0 }} item(s)</td>
+                    <td class="text-muted">{{ sale.items.length }} item(s)</td>
                     <td>
                       <span class="pill" [class.pill-green]="sale.payment_method === 'Cash'"
                             [class.pill-blue]="sale.payment_method === 'MoMo'">

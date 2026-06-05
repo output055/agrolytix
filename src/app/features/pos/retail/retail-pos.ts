@@ -6,12 +6,11 @@ import { PosService } from '../../../core/services/pos.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Product, ProductUnit } from '../../../core/models/inventory.model';
 import { CartItem, RetailPosPayload, RetailPosItemPayload } from '../../../core/models/pos.model';
-import { ConfirmModal } from '../../../shared/confirm-modal/confirm-modal';
 
 @Component({
   selector: 'app-retail-pos',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConfirmModal],
+  imports: [CommonModule, FormsModule],
   templateUrl: './retail-pos.html',
   styleUrl: './retail-pos.css'
 })

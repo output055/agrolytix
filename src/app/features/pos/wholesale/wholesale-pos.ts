@@ -8,12 +8,11 @@ import { ToastService } from '../../../core/services/toast.service';
 import { WholesaleProduct, ProductUnit } from '../../../core/models/inventory.model';
 import { Client } from '../../../core/models/client.model';
 import { CartItem, WholesalePosPayload } from '../../../core/models/pos.model';
-import { ConfirmModal } from '../../../shared/confirm-modal/confirm-modal';
 
 @Component({
   selector: 'app-wholesale-pos',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConfirmModal],
+  imports: [CommonModule, FormsModule],
   templateUrl: './wholesale-pos.html',
   styleUrl: './wholesale-pos.css'
 })

@@ -1,13 +1,12 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-sa-overview',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, RouterLink],
+  imports: [DatePipe, DecimalPipe],
   templateUrl: './sa-overview.html',
 })
 export class SaOverview implements OnInit {

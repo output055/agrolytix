@@ -5,7 +5,6 @@ import { ReportService, FinancialReportData, RevenueReportData, SalesInsightsDat
 import { ToastService } from '../../../core/services/toast.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { LineChartComponent, LineDataset } from '../../../shared/line-chart/line-chart';
-import { BarChartComponent } from '../../../shared/bar-chart/bar-chart';
 import { DonutChartComponent } from '../../../shared/donut-chart/donut-chart';
 
 type Tab = 'revenue' | 'sales' | 'expenses' | 'debt' | 'inventory';
@@ -13,7 +12,7 @@ type Tab = 'revenue' | 'sales' | 'expenses' | 'debt' | 'inventory';
 @Component({
   selector: 'app-reports-view',
   standalone: true,
-  imports: [CommonModule, FormsModule, LineChartComponent, BarChartComponent, DonutChartComponent],
+  imports: [CommonModule, FormsModule, LineChartComponent, DonutChartComponent],
   templateUrl: './reports-view.html',
   styleUrls: ['./reports-view.css']
 })
