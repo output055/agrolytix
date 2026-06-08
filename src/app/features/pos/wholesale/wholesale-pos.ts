@@ -42,7 +42,6 @@ export class WholesalePos implements OnInit {
 
   isCheckingOut = signal<boolean>(false);
   showMobileCart = signal<boolean>(false);
-  latestCartItemId = signal<string | null>(null);
 
   toggleMobileCart() { this.showMobileCart.update(v => !v); }
   closeMobileCart()  { this.showMobileCart.set(false); }
@@ -250,32 +249,11 @@ export class WholesalePos implements OnInit {
         }
         return item;
       }));
-      this.latestCartItemId.set(existingMatch.cart_id);
     } else {
       this.cart.update(items => [...items, newItem]);
-      this.latestCartItemId.set(newItem.cart_id);
     }
 
-    this.focusLatestCartItem();
     this.closeProductSelection();
-  }
-
-  private focusLatestCartItem() {
-    const cartId = this.latestCartItemId();
-    if (!cartId) return;
-
-    setTimeout(() => {
-      const element = Array.from(document.querySelectorAll(`[data-cart-item-id="${cartId}"]`)).find((node): node is HTMLElement => {
-        const el = node as HTMLElement;
-        return !!el.offsetParent || el.getClientRects().length > 0;
-      });
-
-      if (!element) return;
-
-      element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      element.classList.add('cart-item-focus');
-      window.setTimeout(() => element.classList.remove('cart-item-focus'), 1600);
-    }, 0);
   }
 
   removeFromCart(cartId: string) {

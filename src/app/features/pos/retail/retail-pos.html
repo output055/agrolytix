@@ -144,10 +144,7 @@
     </div>
 
     <!-- Cart items -->
-    <div *ngFor="let item of cart()"
-         [attr.data-cart-item-id]="item.cart_id"
-         [class.cart-item-focus]="item.cart_id === latestCartItemId()"
-         class="p-3 rounded-xl border agro-fade-in"
+    <div *ngFor="let item of cart()" class="p-3 rounded-xl border agro-fade-in"
          style="background:rgba(0,0,0,0.2);border-color:rgba(255,255,255,0.06)">
       <div class="flex justify-between items-start mb-2.5">
         <div class="flex-1 min-w-0 mr-2">
