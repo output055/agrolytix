@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ClientService } from '../../../core/services/client.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Client } from '../../../core/models/client.model';
@@ -17,6 +18,7 @@ export class ClientsView implements OnInit {
   private clientService = inject(ClientService);
   private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
 
   clients: Client[] = [];
   loading = false;
@@ -42,8 +44,8 @@ export class ClientsView implements OnInit {
     let list = this.clients;
     if (this.searchQuery) {
       const q = this.searchQuery.toLowerCase();
-      list = list.filter(c => 
-        c.name.toLowerCase().includes(q) || 
+      list = list.filter(c =>
+        c.name.toLowerCase().includes(q) ||
         (c.contact && c.contact.toLowerCase().includes(q)) ||
         (c.location && c.location.toLowerCase().includes(q))
       );
@@ -80,11 +82,11 @@ export class ClientsView implements OnInit {
 
   openEditModal(client: Client) {
     this.editingId = client.id;
-    this.form = { 
-      name: client.name, 
-      contact: client.contact || '', 
-      location: client.location || '', 
-      email: client.email || '' 
+    this.form = {
+      name: client.name,
+      contact: client.contact || '',
+      location: client.location || '',
+      email: client.email || ''
     };
     this.showModal = true;
   }
@@ -96,7 +98,7 @@ export class ClientsView implements OnInit {
   saveClient() {
     if (!this.form.name) return;
     this.submitting = true;
-    
+
     if (this.editingId) {
       this.clientService.updateClient(this.editingId, this.form).subscribe({
         next: (updated) => {
@@ -163,5 +165,9 @@ export class ClientsView implements OnInit {
   cancelDelete() {
     this.showDeleteModal = false;
     this.clientToDelete = null;
+  }
+
+  viewClientDetails(client: Client) {
+    this.router.navigate(['/clients', client.id]);
   }
 }

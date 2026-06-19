@@ -2,9 +2,11 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SalesService } from '../../../core/services/sales.service';
+import { ClientService } from '../../../core/services/client.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { WholesaleSale, WholesaleSummary, SalesMeta, SalesFilter } from '../../../core/models/sales.model';
+import { Client } from '../../../core/models/client.model';
 
 type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' | 'custom' | '';
 
@@ -46,6 +48,15 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
 
         <div class="filter-row">
           <div class="field-group">
+            <label class="field-label">Client</label>
+            <select class="field-input" [(ngModel)]="filter.client_id" (change)="load()">
+              <option value="">All Clients</option>
+              @for (client of clients; track client.id) {
+                <option [value]="client.id">{{ client.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="field-group">
             <label class="field-label">Payment</label>
             <select class="field-input" [(ngModel)]="filter.payment_method" (change)="load()">
               <option value="">All</option>
@@ -62,6 +73,16 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
               <option value="partial">Partial (Debt)</option>
             </select>
           </div>
+        </div>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="search-card">
+        <div class="search-box">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input type="text" class="search-input" placeholder="Search by receipt number or client name..." [(ngModel)]="searchQuery">
         </div>
       </div>
 
@@ -137,12 +158,12 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
                 </tr>
               </thead>
               <tbody>
-                @for (sale of sales; track sale.id) {
+                @for (sale of filteredSales; track sale.id) {
                   <tr class="table-row" (click)="openReceipt(sale)">
                     <td><span class="receipt-badge">{{ sale.receipt_number }}</span></td>
                     <td class="text-muted">{{ sale.created_at | date:'d MMM y, h:mm a' }}</td>
                     <td class="text-white">{{ sale.client?.name ?? '—' }}</td>
-                    <td class="text-muted">{{ sale.items?.length ?? 0 }} item(s)</td>
+                    <td class="text-muted">{{ sale.items.length || 0 }} item(s)</td>
                     <td>
                       <span class="pill" [class.pill-green]="sale.payment_method === 'Cash'"
                             [class.pill-blue]="sale.payment_method === 'MoMo'"
@@ -362,6 +383,12 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
     .page-subtitle { font-size: 0.875rem; color: #9ca3af; margin-top: 0.25rem; }
 
     .filter-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 1rem; padding: 1.25rem; margin-bottom: 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
+    .search-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 1rem; padding: 0.75rem 1rem; margin-bottom: 1.25rem; }
+    .search-box { display: flex; align-items: center; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.625rem; padding: 0.5rem 1rem; gap: 0.5rem; transition: border-color 0.2s; }
+    .search-box:focus-within { border-color: rgba(74,222,128,0.5); }
+    .search-icon { color: #9ca3af; }
+    .search-input { background: transparent; border: none; outline: none; color: #f0fdf4; font-size: 0.875rem; width: 100%; }
+    .search-input::placeholder { color: #6b7280; }
     .preset-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
     .chip { padding: 0.375rem 0.875rem; border-radius: 9999px; font-size: 0.8125rem; font-weight: 500; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #9ca3af; cursor: pointer; transition: all .2s; }
     .chip:hover { border-color: #4ade80; color: #4ade80; }
@@ -462,9 +489,13 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
 })
 export class WholesaleSales implements OnInit {
   private salesService = inject(SalesService);
+  private clientService = inject(ClientService);
   private authService  = inject(AuthService);
   private toastService = inject(ToastService);
   private cdr          = inject(ChangeDetectorRef);
+
+  // Data
+  clients: Client[] = [];
 
   sales: WholesaleSale[]    = [];
   summary: WholesaleSummary | null = null;
@@ -478,7 +509,16 @@ export class WholesaleSales implements OnInit {
   payingDebt  = false;
 
   get isAdmin(): boolean {
-    return this.authService.currentUser()?.role === 'Admin';
+    return this.authService.canViewProfit();
+  }
+
+  get filteredSales(): WholesaleSale[] {
+    if (!this.searchQuery) return this.sales;
+    const q = this.searchQuery.toLowerCase();
+    return this.sales.filter(s =>
+      (s.receipt_number && s.receipt_number.toLowerCase().includes(q)) ||
+      (s.client?.name && s.client.name.toLowerCase().includes(q))
+    );
   }
 
   presets = [
@@ -489,9 +529,25 @@ export class WholesaleSales implements OnInit {
     { label: 'This Year',  value: 'this_year'  as Preset }
   ];
 
-  filter: SalesFilter = { preset: 'today', payment_method: '', status: '' };
+  filter: SalesFilter = { preset: 'today', payment_method: '', status: '', client_id: undefined };
+  searchQuery = '';
 
-  ngOnInit(): void { this.load(); }
+  ngOnInit(): void {
+    this.loadClients();
+    this.load();
+  }
+
+  loadClients() {
+    this.clientService.getClients().subscribe({
+      next: (clients) => {
+        this.clients = clients;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.toastService.show('Failed to load clients', 'error');
+      }
+    });
+  }
 
   setPreset(value: Preset) {
     this.filter.preset = value;

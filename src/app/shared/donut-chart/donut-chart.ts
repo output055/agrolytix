@@ -14,7 +14,7 @@ Chart.register(DoughnutController, ArcElement, Tooltip, Legend);
   template: `
     <div class="relative flex items-center justify-center" [style.height]="height">
       <canvas #canvas></canvas>
-      @if (!labels?.length) {
+      @if (!labels.length) {
         <div class="absolute inset-0 flex items-center justify-center text-sm" style="color:#6b7280">
           No data
         </div>

@@ -133,7 +133,7 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
                       <span class="receipt-badge">{{ sale.receipt_number }}</span>
                     </td>
                     <td class="text-muted">{{ sale.created_at | date:'d MMM y, h:mm a' }}</td>
-                    <td class="text-muted">{{ sale.items?.length ?? 0 }} item(s)</td>
+                    <td class="text-muted">{{ sale.items.length }} item(s)</td>
                     <td>
                       <span class="pill" [class.pill-green]="sale.payment_method === 'Cash'"
                             [class.pill-blue]="sale.payment_method === 'MoMo'">
@@ -318,9 +318,9 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
                             @if (selectedItems[item.id]) {
                               <div class="reverse-qty-control">
                                 <span class="qty-label">Qty:</span>
-                                <input type="number" class="qty-input" 
-                                       min="1" [max]="item.quantity" 
-                                       [(ngModel)]="selectedItems[item.id]" 
+                                <input type="number" class="qty-input"
+                                       min="1" [max]="item.quantity"
+                                       [(ngModel)]="selectedItems[item.id]"
                                        (input)="checkQty(item.id, item.quantity)">
                               </div>
                               <span class="reverse-item-amount">GH₵{{ (item.unit_price * selectedItems[item.id]) | number:'1.2-2' }}</span>
@@ -343,14 +343,16 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
                           <span>Revenue to reverse</span>
                           <span class="text-red font-bold">-GH₵{{ reverseAmount | number:'1.2-2' }}</span>
                         </div>
-                        <div class="reverse-summary-row">
-                          <span>Cost to reverse</span>
-                          <span class="text-blue">-GH₵{{ reverseCost | number:'1.2-2' }}</span>
-                        </div>
-                        <div class="reverse-summary-row">
-                          <span>Profit impact</span>
-                          <span class="text-red">-GH₵{{ reverseProfit | number:'1.2-2' }}</span>
-                        </div>
+                        @if (isAdmin) {
+                          <div class="reverse-summary-row">
+                            <span>Cost to reverse</span>
+                            <span class="text-blue">-GH₵{{ reverseCost | number:'1.2-2' }}</span>
+                          </div>
+                          <div class="reverse-summary-row">
+                            <span>Profit impact</span>
+                            <span class="text-red">-GH₵{{ reverseProfit | number:'1.2-2' }}</span>
+                          </div>
+                        }
                       </div>
                     }
 
@@ -536,7 +538,7 @@ export class RetailSales implements OnInit {
   selectedSale: RetailSale | null = null;
 
   get isAdmin(): boolean {
-    return this.authService.currentUser()?.role === 'Admin';
+    return this.authService.canViewProfit();
   }
 
   canReverse(sale: RetailSale | null): boolean {
@@ -692,7 +694,7 @@ export class RetailSales implements OnInit {
   executeReversal() {
     if (!this.selectedSale || this.selectedCount === 0) return;
     this.reversing = true;
-    
+
     const payloadItems = Object.entries(this.selectedItems).map(([id, qty]) => ({
       id: +id,
       quantity: qty

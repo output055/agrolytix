@@ -8,12 +8,11 @@ import { ToastService } from '../../../core/services/toast.service';
 import { WholesaleProduct, ProductUnit } from '../../../core/models/inventory.model';
 import { Client } from '../../../core/models/client.model';
 import { CartItem, WholesalePosPayload } from '../../../core/models/pos.model';
-import { ConfirmModal } from '../../../shared/confirm-modal/confirm-modal';
 
 @Component({
   selector: 'app-wholesale-pos',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConfirmModal],
+  imports: [CommonModule, FormsModule],
   templateUrl: './wholesale-pos.html',
   styleUrl: './wholesale-pos.css'
 })
@@ -43,6 +42,7 @@ export class WholesalePos implements OnInit {
 
   isCheckingOut = signal<boolean>(false);
   showMobileCart = signal<boolean>(false);
+  latestCartItemId = signal<string | null>(null);
 
   toggleMobileCart() { this.showMobileCart.update(v => !v); }
   closeMobileCart()  { this.showMobileCart.set(false); }
@@ -176,7 +176,7 @@ export class WholesalePos implements OnInit {
   getMaxQuantityForSelection(): number {
     const product = this.selectedProduct();
     if (!product) return 0;
-    
+
     const unit = this.selectedUnit();
     if (unit === 'base' || !unit) {
       return product.quantity;
@@ -250,11 +250,32 @@ export class WholesalePos implements OnInit {
         }
         return item;
       }));
+      this.latestCartItemId.set(existingMatch.cart_id);
     } else {
       this.cart.update(items => [...items, newItem]);
+      this.latestCartItemId.set(newItem.cart_id);
     }
 
+    this.focusLatestCartItem();
     this.closeProductSelection();
+  }
+
+  private focusLatestCartItem() {
+    const cartId = this.latestCartItemId();
+    if (!cartId) return;
+
+    setTimeout(() => {
+      const element = Array.from(document.querySelectorAll(`[data-cart-item-id="${cartId}"]`)).find((node): node is HTMLElement => {
+        const el = node as HTMLElement;
+        return !!el.offsetParent || el.getClientRects().length > 0;
+      });
+
+      if (!element) return;
+
+      element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      element.classList.add('cart-item-focus');
+      window.setTimeout(() => element.classList.remove('cart-item-focus'), 1600);
+    }, 0);
   }
 
   removeFromCart(cartId: string) {
@@ -306,7 +327,7 @@ export class WholesalePos implements OnInit {
       return;
     }
     if (this.cart().length === 0) return;
-    
+
     this.isCheckingOut.set(true);
 
     const payload: WholesalePosPayload = {
@@ -328,7 +349,7 @@ export class WholesalePos implements OnInit {
       next: (res) => {
         this.toastService.show('Wholesale checkout successful!', 'success');
         this.clearCart();
-        this.loadProducts(); 
+        this.loadProducts();
         this.selectedClientId.set(null);
         this.isCheckingOut.set(false);
       },

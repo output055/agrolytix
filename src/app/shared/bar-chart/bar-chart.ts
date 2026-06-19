@@ -17,7 +17,7 @@ Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, L
   template: `
     <div class="relative" [style.height]="height">
       <canvas #canvas></canvas>
-      @if (!labels?.length) {
+      @if (!labels.length) {
         <div class="absolute inset-0 flex items-center justify-center text-sm" style="color:#6b7280">
           No data for this period
         </div>

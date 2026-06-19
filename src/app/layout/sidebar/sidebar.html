@@ -16,6 +16,9 @@
     </button>
   </div>
 
+
+
+
   <!-- Navigation -->
   <nav class="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-1 scrollbar-hide">
 
@@ -118,6 +121,18 @@
       </a>
       }
 
+      @if (isAdmin()) {
+      <a routerLink="/inventory/transfers" (click)="layoutService.closeSidebar()"
+         routerLinkActive="nav-active-purple"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+        <svg class="h-5 w-5 nav-icon-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+        </svg>
+        Transfer History
+      </a>
+      }
+
       @if (isAdmin() || hasPermission('clients')) {
       <a routerLink="/clients" (click)="layoutService.closeSidebar()"
          routerLinkActive="nav-active-green"
@@ -167,6 +182,18 @@
         </svg>
         Workers
       </a>
+
+      @if (isMainBranch()) {
+      <a routerLink="/branches" (click)="layoutService.closeSidebar()"
+         routerLinkActive="nav-active-green"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
+        <svg class="h-5 w-5 nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+        </svg>
+        Branches
+      </a>
+      }
 
       <a routerLink="/admin/audit-logs" (click)="layoutService.closeSidebar()"
          routerLinkActive="nav-active-green"
@@ -236,10 +263,13 @@
   .nav-icon { color: #6b7280; }
   .nav-icon-amber { color: #6b7280; }
   .nav-icon-red { color: #6b7280; }
+  .nav-icon-purple { color: #6b7280; }
   .nav-link:hover .nav-icon { color: #4ade80; }
   .nav-link:hover .nav-icon-amber { color: #f59e0b; }
   .nav-link:hover .nav-icon-red { color: #f87171; }
+  .nav-link:hover .nav-icon-purple { color: #c084fc; }
   .nav-active-green { background: rgba(74,222,128,0.1) !important; color: #fff !important; box-shadow: inset 4px 0 0 0 #4ade80; }
   .nav-active-amber { background: rgba(245,158,11,0.1) !important; color: #fff !important; box-shadow: inset 4px 0 0 0 #f59e0b; }
   .nav-active-red { background: rgba(248,113,113,0.1) !important; color: #fff !important; box-shadow: inset 4px 0 0 0 #f87171; }
+  .nav-active-purple { background: rgba(192,132,252,0.1) !important; color: #fff !important; box-shadow: inset 4px 0 0 0 #c084fc; }
 </style>

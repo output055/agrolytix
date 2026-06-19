@@ -6,12 +6,11 @@ import { PosService } from '../../../core/services/pos.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Product, ProductUnit } from '../../../core/models/inventory.model';
 import { CartItem, RetailPosPayload, RetailPosItemPayload } from '../../../core/models/pos.model';
-import { ConfirmModal } from '../../../shared/confirm-modal/confirm-modal';
 
 @Component({
   selector: 'app-retail-pos',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConfirmModal],
+  imports: [CommonModule, FormsModule],
   templateUrl: './retail-pos.html',
   styleUrl: './retail-pos.css'
 })
@@ -35,6 +34,7 @@ export class RetailPos implements OnInit {
 
   isCheckingOut = signal<boolean>(false);
   showMobileCart = signal<boolean>(false);
+  latestCartItemId = signal<string | null>(null);
 
   toggleMobileCart() { this.showMobileCart.update(v => !v); }
   closeMobileCart()  { this.showMobileCart.set(false); }
@@ -147,7 +147,7 @@ export class RetailPos implements OnInit {
   getMaxQuantityForSelection(): number {
     const product = this.selectedProduct();
     if (!product) return 0;
-    
+
     const unit = this.selectedUnit();
     if (unit === 'base' || !unit) {
       return product.quantity;
@@ -224,11 +224,32 @@ export class RetailPos implements OnInit {
         }
         return item;
       }));
+      this.latestCartItemId.set(existingMatch.cart_id);
     } else {
       this.cart.update(items => [...items, newItem]);
+      this.latestCartItemId.set(newItem.cart_id);
     }
 
+    this.focusLatestCartItem();
     this.closeProductSelection();
+  }
+
+  private focusLatestCartItem() {
+    const cartId = this.latestCartItemId();
+    if (!cartId) return;
+
+    setTimeout(() => {
+      const element = Array.from(document.querySelectorAll(`[data-cart-item-id="${cartId}"]`)).find((node): node is HTMLElement => {
+        const el = node as HTMLElement;
+        return !!el.offsetParent || el.getClientRects().length > 0;
+      });
+
+      if (!element) return;
+
+      element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      element.classList.add('cart-item-focus');
+      window.setTimeout(() => element.classList.remove('cart-item-focus'), 1600);
+    }, 0);
   }
 
   removeFromCart(cartId: string) {
@@ -270,7 +291,7 @@ export class RetailPos implements OnInit {
 
   checkout() {
     if (this.cart().length === 0) return;
-    
+
     this.isCheckingOut.set(true);
 
     const payload: RetailPosPayload = {
