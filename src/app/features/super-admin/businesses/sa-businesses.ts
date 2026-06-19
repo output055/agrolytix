@@ -125,6 +125,19 @@ export class SaBusinesses implements OnInit {
     this.closeDropdown();
   }
 
+  makePro(id: number) {
+    if (!confirm('Grant this business permanent Pro access? This takes effect immediately.')) return;
+    this.http.post(`${this.api}/super-admin/businesses/${id}/make-pro`, {}).subscribe(() => {
+      this.load();
+      // If the drawer is open for this business, refresh it too
+      if (this.drawerBusiness()?.business?.id === id) {
+        const biz = this.businesses().find(b => b.id === id);
+        if (biz) this.openDrawer(biz);
+      }
+    });
+    this.closeDropdown();
+  }
+
   // Drawer
   openDrawer(biz: Business) {
     this.drawerBusiness.set(null);
