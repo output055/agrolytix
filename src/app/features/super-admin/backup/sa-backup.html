@@ -1,0 +1,149 @@
+<div class="max-w-4xl mx-auto space-y-8">
+
+  <!-- Header -->
+  <div class="flex items-start justify-between gap-4 flex-wrap">
+    <div>
+      <h1 class="text-2xl font-black text-white tracking-tight">Database Backup</h1>
+      <p class="text-gray-400 text-sm mt-1">Mirror your live MySQL data to Supabase for recovery and reporting.</p>
+    </div>
+
+    <!-- Run Backup Button -->
+    <button
+      id="run-backup-btn"
+      (click)="runBackup()"
+      [disabled]="running()"
+      class="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all duration-200"
+      [style.opacity]="running() ? '0.6' : '1'"
+      [style.cursor]="running() ? 'not-allowed' : 'pointer'"
+      style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; box-shadow: 0 0 20px rgba(99,102,241,0.3);">
+
+      @if (running()) {
+        <!-- Spinner -->
+        <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+        </svg>
+        <span>Backing up...</span>
+      } @else {
+        <!-- Cloud icon -->
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+        </svg>
+        <span>Back Up to Supabase</span>
+      }
+    </button>
+  </div>
+
+  <!-- Status Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+    <!-- Last Successful Backup -->
+    <div class="rounded-2xl p-5 border flex flex-col gap-2"
+         style="background: rgba(74,222,128,0.06); border-color: rgba(74,222,128,0.2);">
+      <span class="text-[11px] font-bold uppercase tracking-wider" style="color: #4ade80;">Last Successful Backup</span>
+      @if (lastSuccess()) {
+        <span class="text-white font-bold text-sm">{{ lastSuccess()!.finished_at | date:'MMM d, y · HH:mm' }}</span>
+        <span class="text-xs text-gray-400">{{ lastSuccess()!.records_synced | number }} records</span>
+      } @else {
+        <span class="text-gray-500 text-sm">Never run</span>
+      }
+    </div>
+
+    <!-- Latest Run Status -->
+    <div class="rounded-2xl p-5 border flex flex-col gap-2"
+         [style.background]="latest() ? statusBg(latest()!.status) : 'rgba(255,255,255,0.03)'"
+         [style.border-color]="latest() ? statusBorder(latest()!.status) : 'rgba(255,255,255,0.08)'">
+      <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">Latest Run Status</span>
+      @if (latest()) {
+        <span class="font-black text-sm uppercase tracking-wide"
+              [style.color]="statusColor(latest()!.status)">
+          {{ latest()!.status }}
+        </span>
+        <span class="text-xs text-gray-400">{{ latest()!.started_at | date:'MMM d · HH:mm' }}</span>
+      } @else {
+        <span class="text-gray-500 text-sm">No runs yet</span>
+      }
+    </div>
+
+    <!-- Duration -->
+    <div class="rounded-2xl p-5 border flex flex-col gap-2"
+         style="background: rgba(99,102,241,0.06); border-color: rgba(99,102,241,0.2);">
+      <span class="text-[11px] font-bold uppercase tracking-wider" style="color: #818cf8;">Last Run Duration</span>
+      @if (latest()) {
+        <span class="text-white font-black text-2xl">{{ durationSeconds(latest()!) }}</span>
+        <span class="text-xs text-gray-400">{{ latest()!.records_synced | number }} records synced</span>
+      } @else {
+        <span class="text-gray-500 text-sm">—</span>
+      }
+    </div>
+
+  </div>
+
+  <!-- Loading state -->
+  @if (loadingLatest()) {
+    <div class="text-gray-500 text-sm">Loading backup status...</div>
+  }
+
+  <!-- Per-Table Breakdown -->
+  @if (latest() && latest()!.tables_synced) {
+    <div class="rounded-2xl border overflow-hidden" style="background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.08);">
+
+      <div class="px-5 py-4 border-b flex items-center gap-2" style="border-color: rgba(255,255,255,0.06);">
+        <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582 4 8 4"/>
+        </svg>
+        <span class="text-sm font-bold text-white">Table Breakdown</span>
+        <span class="ml-auto text-xs text-gray-500">Last run · {{ latest()!.started_at | date:'MMM d, y · HH:mm' }}</span>
+      </div>
+
+      <div class="divide-y" style="border-color: rgba(255,255,255,0.05);">
+        @for (entry of tableEntries(latest()!.tables_synced); track entry.key) {
+          <div class="px-5 py-3 flex items-center gap-3">
+
+            <!-- Status icon -->
+            @if (entry.value.status === 'ok') {
+              <svg class="w-4 h-4 flex-shrink-0" style="color: #4ade80;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+              </svg>
+            } @else {
+              <svg class="w-4 h-4 flex-shrink-0" style="color: #f87171;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            }
+
+            <!-- Table name -->
+            <span class="text-sm text-white font-mono flex-1">{{ entry.key }}</span>
+
+            <!-- Error message -->
+            @if (entry.value.status === 'failed' && entry.value.error) {
+              <span class="text-xs truncate max-w-xs" style="color: #f87171;">{{ entry.value.error }}</span>
+            }
+
+            <!-- Record count -->
+            <span class="text-sm font-bold ml-auto"
+                  [style.color]="entry.value.status === 'ok' ? '#e2e8f0' : '#f87171'">
+              {{ entry.value.synced | number }}
+              <span class="text-xs font-normal text-gray-500 ml-1">rows</span>
+            </span>
+
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Error message if last run failed -->
+  @if (latest() && latest()!.status === 'failed' && latest()!.error_message) {
+    <div class="rounded-xl px-5 py-4 border text-sm" style="background: rgba(239,68,68,0.06); border-color: rgba(239,68,68,0.2); color: #f87171;">
+      <span class="font-bold">Error: </span>{{ latest()!.error_message }}
+    </div>
+  }
+
+  <!-- Info note -->
+  <p class="text-xs text-gray-600">
+    🔒 Backup is read-only from MySQL. Passwords and tokens are never mirrored. Only super admins can trigger a backup.
+  </p>
+
+</div>
