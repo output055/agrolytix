@@ -26,6 +26,10 @@ export class InventoryService {
     return this.http.get<any>(`${this.apiUrl}/products`, { params: httpParams });
   }
 
+  getRetailCategories(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}/products/categories`);
+  }
+
   getRetailProduct(id: number): Observable<Product> {
     return this.http.get<Product>(`${this.apiUrl}/products/${id}`);
   }
@@ -58,6 +62,10 @@ export class InventoryService {
       });
     }
     return this.http.get<any>(`${this.apiUrl}/wholesale-products`, { params: httpParams });
+  }
+
+  getWholesaleCategories(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}/wholesale-products/categories`);
   }
 
 

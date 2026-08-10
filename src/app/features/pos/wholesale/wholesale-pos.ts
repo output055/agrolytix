@@ -5,9 +5,12 @@ import { InventoryService } from '../../../core/services/inventory.service';
 import { PosService } from '../../../core/services/pos.service';
 import { ClientService } from '../../../core/services/client.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { WholesaleProduct, ProductUnit } from '../../../core/models/inventory.model';
+import { WholesaleProduct, ProductUnit, PaginatedResponse } from '../../../core/models/inventory.model';
 import { Client } from '../../../core/models/client.model';
 import { CartItem, WholesalePosPayload } from '../../../core/models/pos.model';
+
+import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import { OnDestroy } from '@angular/core';
 
 @Component({
   selector: 'app-wholesale-pos',
@@ -16,7 +19,7 @@ import { CartItem, WholesalePosPayload } from '../../../core/models/pos.model';
   templateUrl: './wholesale-pos.html',
   styleUrl: './wholesale-pos.css'
 })
-export class WholesalePos implements OnInit {
+export class WholesalePos implements OnInit, OnDestroy {
   private inventoryService = inject(InventoryService);
   private posService = inject(PosService);
   private clientService = inject(ClientService);
@@ -28,6 +31,14 @@ export class WholesalePos implements OnInit {
   cart = signal<CartItem[]>([]);
   searchQuery = signal<string>('');
   selectedCategory = signal<string>('All');
+  categories = signal<string[]>(['All']);
+
+  currentPage = signal<number>(1);
+  lastPage = signal<number>(1);
+  totalItems = signal<number>(0);
+
+  private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   selectedProduct = signal<WholesaleProduct | null>(null);
   selectedUnit = signal<ProductUnit | 'base' | null>(null);
@@ -49,28 +60,8 @@ export class WholesalePos implements OnInit {
 
 
   // Computed
-  categories = computed(() => {
-    const cats = [...new Set(this.products().map(p => p.category).filter(Boolean))];
-    return ['All', ...cats.sort()];
-  });
-
-  // Products sorted by real sales_count from the API (most-sold first),
-  // then filtered by search/category. Out-of-stock items sink to the bottom.
   filteredProducts = computed(() => {
-    const q = this.searchQuery().toLowerCase();
-    const cat = this.selectedCategory();
-    return this.products()
-      .filter(p =>
-        (p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)) &&
-        (cat === 'All' || p.category === cat)
-      )
-      .sort((a, b) => {
-        const soldDiff = (b.sales_count ?? 0) - (a.sales_count ?? 0);
-        if (soldDiff !== 0) return soldDiff;
-        if (a.quantity <= 0 && b.quantity > 0) return 1;
-        if (b.quantity <= 0 && a.quantity > 0) return -1;
-        return 0;
-      });
+    return this.products();
   });
 
   cartTotal = computed(() => {
@@ -114,18 +105,87 @@ export class WholesalePos implements OnInit {
   }
 
   ngOnInit() {
-    this.loadProducts();
+    this.loadCategories();
+    this.loadProducts(true);
     this.loadClients();
+
+    this.searchSubject.pipe(
+      debounceTime(400),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(term => {
+      this.searchQuery.set(term);
+      this.currentPage.set(1);
+      this.loadProducts(true);
+    });
   }
 
-  loadProducts() {
-    this.inventoryService.getWholesaleProducts().subscribe({
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  onSearch(term: string) {
+    this.searchSubject.next(term);
+  }
+
+  onCategoryChange(cat: string) {
+    this.selectedCategory.set(cat);
+    this.currentPage.set(1);
+    this.loadProducts(true);
+  }
+
+  loadCategories() {
+    this.inventoryService.getWholesaleCategories().subscribe({
+      next: (cats: any) => {
+        let data: string[] = [];
+        if (Array.isArray(cats)) {
+          data = cats;
+        } else if (cats && Array.isArray(cats.data)) {
+          data = cats.data;
+        } else if (cats && typeof cats === 'object') {
+          data = Object.keys(cats).map(k => cats[k]);
+        }
+        data = data.filter(c => typeof c === 'string');
+        this.categories.set(['All', ...data.sort()]);
+      },
+      error: (err) => console.error('Failed to load categories', err)
+    });
+  }
+
+  loadProducts(reset: boolean = false) {
+    if (reset) {
+      this.currentPage.set(1);
+    }
+
+    const params = {
+      paginate: 1,
+      page: this.currentPage(),
+      per_page: 50,
+      search: this.searchQuery(),
+      category: this.selectedCategory()
+    };
+
+    this.inventoryService.getWholesaleProducts(params).subscribe({
       next: (res: any) => {
-        const data = Array.isArray(res) ? res : res.data;
-        this.products.set(data);
+        const paginated = res as PaginatedResponse<WholesaleProduct>;
+        if (reset) {
+          this.products.set(paginated.data);
+        } else {
+          this.products.update(prev => [...prev, ...paginated.data]);
+        }
+        this.totalItems.set(paginated.total);
+        this.lastPage.set(paginated.last_page);
       },
       error: () => this.toastService.show('Failed to load wholesale products', 'error')
     });
+  }
+
+  loadMore() {
+    if (this.currentPage() < this.lastPage()) {
+      this.currentPage.update(p => p + 1);
+      this.loadProducts();
+    }
   }
 
   loadClients() {

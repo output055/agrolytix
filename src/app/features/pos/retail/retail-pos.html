@@ -8,9 +8,9 @@
       <div class="flex items-center justify-between gap-3 mb-4">
         <div>
           <h2 class="text-xl md:text-2xl font-black" style="color:#f0fdf4">Retail POS</h2>
-          <p class="text-xs mt-0.5" style="color:#6b7280">{{ filteredProducts().length }} products available</p>
+          <p class="text-xs mt-0.5" style="color:#6b7280">{{ products().length }} loaded / {{ totalItems() }} products available</p>
         </div>
-        <span class="agro-badge agro-badge-green text-xs">{{ filteredProducts().length }} items</span>
+        <span class="agro-badge agro-badge-green text-xs">{{ totalItems() }} items</span>
       </div>
 
       <!-- Search input -->
@@ -18,13 +18,13 @@
         <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style="color:#6b7280" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
         </svg>
-        <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+        <input type="text" [ngModel]="searchQuery()" (ngModelChange)="onSearch($event)"
                placeholder="Search products..." class="agro-input pl-9 text-sm"/>
       </div>
 
       <!-- Category chips -->
       <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
-        <button *ngFor="let cat of categories()" (click)="selectedCategory.set(cat)"
+        <button *ngFor="let cat of categories()" (click)="onCategoryChange(cat)"
                 class="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide transition-all duration-150 border whitespace-nowrap"
                 [style.background]="selectedCategory() === cat ? '#4ade80' : 'transparent'"
                 [style.color]="selectedCategory() === cat ? '#0a150a' : '#9ca3af'"
@@ -83,6 +83,14 @@
         </svg>
         <p class="font-medium" style="color:#6b7280">No products found</p>
         <p class="text-sm mt-1" style="color:#4b5563">Try a different search or category</p>
+      </div>
+
+      <!-- Load More Button -->
+      <div *ngIf="currentPage() < lastPage()" class="col-span-full py-6 flex justify-center">
+        <button (click)="loadMore()" class="px-6 py-2.5 rounded-xl font-bold transition-all text-sm"
+                style="background:rgba(74,222,128,0.15);color:#4ade80;border:1px solid rgba(74,222,128,0.2)">
+          Load More Products
+        </button>
       </div>
     </div>
   </div>
