@@ -64,6 +64,11 @@ export class AuthService {
     return this.currentUser()?.role === 'Admin';
   }
 
+  canViewRevenue(): boolean {
+    const role = this.currentUser()?.role;
+    return role === 'Admin' || role === 'SuperAdmin';
+  }
+
   logout() {
     return this.http.post(`${this.apiUrl}/logout`, {}).pipe(
       tap(() => this.clearAuth())

@@ -47,7 +47,7 @@
   }
 
   <!-- ══ REVENUE TAB ═══════════════════════════════════════════════════════ -->
-  @if (!loading() && activeTab() === 'revenue') {
+  @if (!loading() && activeTab() === 'revenue' && isAdmin) {
     @if (revenueData(); as rv) {
       <div class="space-y-5">
         <!-- KPIs -->

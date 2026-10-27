@@ -38,7 +38,7 @@ export class ReportsView implements OnInit {
   dateFrom = '';
   dateTo   = '';
 
-  readonly tabs: { id: Tab; label: string; icon: string }[] = [
+  readonly allTabs: { id: Tab; label: string; icon: string }[] = [
     { id: 'revenue',   label: 'Revenue',   icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
     { id: 'sales',     label: 'Sales',     icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z' },
     { id: 'expenses',  label: 'Expenses',  icon: 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z' },
@@ -46,13 +46,23 @@ export class ReportsView implements OnInit {
     { id: 'inventory', label: 'Inventory', icon: 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4' },
   ];
 
+  get tabs() {
+    return this.isAdmin ? this.allTabs : this.allTabs.filter(t => t.id !== 'revenue');
+  }
+
   readonly PIE_COLORS = ['#4ade80','#f59e0b','#60a5fa','#f87171','#a78bfa','#34d399','#fb923c','#e879f9'];
 
   get isAdmin(): boolean { return this.authService.currentUser()?.role === 'Admin'; }
 
-  ngOnInit() { this.applyPreset(); }
+  ngOnInit() {
+    if (!this.isAdmin && this.activeTab() === 'revenue') {
+      this.activeTab.set('sales');
+    }
+    this.applyPreset();
+  }
 
   setTab(tab: Tab) {
+    if (!this.isAdmin && tab === 'revenue') return;
     this.activeTab.set(tab);
     this.loadCurrentTab();
   }

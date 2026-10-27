@@ -74,10 +74,12 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
             <div class="summary-label">Transactions</div>
             <div class="summary-value text-white">{{ summary.total_transactions }}</div>
           </div>
-          <div class="summary-card">
-            <div class="summary-label">Total Revenue</div>
-            <div class="summary-value text-green">GH₵{{ summary.total_revenue | number:'1.2-2' }}</div>
-          </div>
+          @if (isAdmin) {
+            <div class="summary-card">
+              <div class="summary-label">Total Revenue</div>
+              <div class="summary-value text-green">GH₵{{ summary.total_revenue | number:'1.2-2' }}</div>
+            </div>
+          }
           @if (isAdmin) {
             <div class="summary-card">
               <div class="summary-label">Total Cost</div>
@@ -116,7 +118,7 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
                   <th>Date & Time</th>
                   <th>Items</th>
                   <th>Payment</th>
-                  <th>Revenue (GH₵)</th>
+                  <th>{{ isAdmin ? 'Revenue (GH₵)' : 'Amount (GH₵)' }}</th>
                   @if (isAdmin) {
                     <th>Cost (GH₵)</th>
                     <th>Profit (GH₵)</th>
@@ -263,7 +265,7 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
           <!-- Totals -->
           <div class="totals-section">
             <div class="total-row">
-              <span class="total-label">Total Revenue</span>
+              <span class="total-label">{{ isAdmin ? 'Total Revenue' : 'Total Amount' }}</span>
               <span class="total-value text-green">GH₵{{ selectedSale.total_amount | number:'1.2-2' }}</span>
             </div>
             @if (isAdmin) {

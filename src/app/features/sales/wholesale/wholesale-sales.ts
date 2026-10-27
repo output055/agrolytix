@@ -93,10 +93,12 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
             <div class="summary-label">Transactions</div>
             <div class="summary-value text-white">{{ summary.total_transactions }}</div>
           </div>
-          <div class="summary-card">
-            <div class="summary-label">Total Revenue</div>
-            <div class="summary-value text-green">GH₵{{ summary.total_revenue | number:'1.2-2' }}</div>
-          </div>
+          @if (isAdmin) {
+            <div class="summary-card">
+              <div class="summary-label">Total Revenue</div>
+              <div class="summary-value text-green">GH₵{{ summary.total_revenue | number:'1.2-2' }}</div>
+            </div>
+          }
           <div class="summary-card">
             <div class="summary-label">Collected</div>
             <div class="summary-value text-blue">GH₵{{ summary.total_collected | number:'1.2-2' }}</div>
@@ -146,7 +148,7 @@ type Preset = 'today' | 'yesterday' | 'this_week' | 'this_month' | 'this_year' |
                   <th>Client</th>
                   <th>Items</th>
                   <th>Payment</th>
-                  <th>Revenue (GH₵)</th>
+                  <th>{{ isAdmin ? 'Revenue (GH₵)' : 'Amount (GH₵)' }}</th>
                   <th>Collected</th>
                   <th>Debt</th>
                   @if (isAdmin) {
