@@ -1,0 +1,78 @@
+.active-room-pill {
+  background: rgba(74, 222, 128, 0.12) !important;
+  border: 1px solid rgba(74, 222, 128, 0.3) !important;
+}
+
+.inactive-room-pill {
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.inactive-room-pill:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.reply-highlight {
+  background-color: rgba(74, 222, 128, 0.18) !important;
+  border-radius: 1rem;
+  box-shadow: 0 0 20px rgba(74, 222, 128, 0.25);
+  transition: all 0.3s ease-in-out;
+}
+
+/* ─── Mobile responsiveness ─────────────────────────────────────────── */
+
+/* Sidebar: slide-over drawer below md (768px), static column above */
+@media (max-width: 767.98px) {
+  .chat-sidebar {
+    max-width: 85vw;
+    height: 100dvh;
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.5);
+  }
+
+  .chat-sidebar.sidebar-hidden {
+    transform: translateX(-100%);
+    box-shadow: none;
+  }
+
+  /* Prevent iOS auto-zoom on input focus (needs >= 16px) */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .chat-sidebar,
+  .chat-sidebar.sidebar-hidden {
+    transform: none;
+    height: auto;
+  }
+}
+
+/* Respect notches / home indicator on phones */
+.safe-top {
+  padding-top: max(1rem, env(safe-area-inset-top));
+}
+
+.safe-bottom {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}

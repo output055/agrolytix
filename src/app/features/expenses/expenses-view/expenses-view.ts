@@ -20,12 +20,14 @@ import { Expense, EXPENSE_CATEGORIES, ExpenseCategory } from '../../../core/mode
             Log and manage operational costs
           </p>
         </div>
-        <div class="flex flex-col items-end">
-          <div class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Remaining Today</div>
-          <div class="text-xl font-black text-white" [class.text-red-400]="(todayStats()?.net_revenue < 0)">
-            GH₵{{ fmt(todayStats()?.net_revenue) }}
+        @if (isAdmin) {
+          <div class="flex flex-col items-end">
+            <div class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Remaining Today</div>
+            <div class="text-xl font-black text-white" [class.text-red-400]="(todayStats()?.net_revenue < 0)">
+              GH₵{{ fmt(todayStats()?.net_revenue) }}
+            </div>
           </div>
-        </div>
+        }
       </div>
 
       <!-- Filters & Add -->
@@ -83,10 +85,12 @@ import { Expense, EXPENSE_CATEGORIES, ExpenseCategory } from '../../../core/mode
           <div class="absolute -right-10 -top-10 w-40 h-40 bg-green-500/5 rounded-full blur-3xl pointer-events-none"></div>
           <div class="flex items-center justify-between mb-5">
             <h2 class="text-lg font-bold" style="color: #f0fdf4;">Record New Expense ({{ todayStr() }})</h2>
-            <div class="px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest"
-                 style="background: rgba(255,255,255,0.03); color: #9ca3af;">
-              Available Cash: GH₵{{ fmt(todayStats()?.net_revenue) }}
-            </div>
+            @if (isAdmin) {
+              <div class="px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest"
+                   style="background: rgba(255,255,255,0.03); color: #9ca3af;">
+                Available Cash: GH₵{{ fmt(todayStats()?.net_revenue) }}
+              </div>
+            }
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Title -->

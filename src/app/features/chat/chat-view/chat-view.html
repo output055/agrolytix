@@ -1,0 +1,1834 @@
+<!-- Mobile sidebar backdrop -->
+@if (showMobileSidebar()) {
+  <div class="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm md:hidden" (click)="showMobileSidebar.set(false)"></div>
+}
+
+<div class="h-[calc(100dvh-5rem)] flex flex-col md:flex-row gap-0 md:gap-4 overflow-hidden -m-4 sm:-m-6 md:-m-8 md:p-8">
+
+  <!-- ─── Left Sidebar: Rooms & Channels (slide-over on mobile, permanent on md+) ──── -->
+  <div class="chat-sidebar fixed md:relative inset-y-0 left-0 z-50 md:z-auto w-80 md:w-80 lg:w-96 flex flex-col rounded-none md:rounded-2xl border-r md:border shrink-0 overflow-hidden transition-transform duration-300 ease-in-out"
+       [class.sidebar-hidden]="!showMobileSidebar()"
+       style="background: rgba(10,21,10,0.97); backdrop-filter: blur(20px); border-color: rgba(255,255,255,0.08); top: 0; bottom: 0;">
+    
+    <!-- Sidebar Header -->
+    <div class="p-4 border-b flex items-center justify-between shrink-0 safe-top"
+         style="border-color: rgba(255,255,255,0.08); background: rgba(0,0,0,0.2);">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+             style="background: rgba(74,222,128,0.15); color: #4ade80;">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold text-gray-100">Agrolytix Chat</h2>
+          <div class="text-[11px] text-gray-400 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+            {{ currentBranchName() }}
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1.5">
+        <!-- Quick Actions (icon-only on mobile sidebar) -->
+        <button (click)="openStockIntakeModal(); showMobileSidebar.set(false)"
+                title="Receive Stock Delivery"
+                class="p-2 rounded-lg text-xs font-bold flex items-center gap-1 transition-all active:scale-95"
+                style="background: rgba(2,132,199,0.2); color: #38bdf8;">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+          </svg>
+        </button>
+
+        <button (click)="openDeclareModal(); showMobileSidebar.set(false)"
+                title="Declare Today's Cash"
+                class="p-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95"
+                style="background: rgba(22,163,74,0.2); color: #4ade80;">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+        </button>
+
+        <!-- Close drawer button (mobile only) -->
+        <button (click)="showMobileSidebar.set(false)"
+                class="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors md:hidden">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Rooms List -->
+    <div class="flex-1 overflow-y-auto p-2.5 space-y-4 custom-scrollbar">
+
+      <!-- Section: Global -->
+      <div>
+        <div class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">All Branches</div>
+        @for (r of rooms(); track r.id) {
+          @if (r.type === 'general') {
+            <button (click)="selectRoom(r.id)"
+                    class="w-full text-left p-3 rounded-xl transition-all flex items-center justify-between group mb-1"
+                    [class.active-room-pill]="activeRoom() === r.id"
+                    [class.inactive-room-pill]="activeRoom() !== r.id">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                     style="background: rgba(74,222,128,0.12); color: #4ade80;">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                  </svg>
+                </div>
+                <div class="min-w-0">
+                  <div class="text-xs font-bold text-gray-200 truncate">{{ r.title }}</div>
+                  <div class="text-[10px] text-gray-400 truncate">{{ r.subtitle }}</div>
+                </div>
+              </div>
+              @if ((r.unreadCount || 0) > 0) {
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold text-black"
+                      style="background: #4ade80;">
+                  {{ r.unreadCount }}
+                </span>
+              }
+            </button>
+          }
+        }
+      </div>
+
+      <!-- Section: Cash Reconciliation -->
+      <div>
+        <div class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider flex items-center justify-between text-gray-400">
+          <span>Cash Reconciliation</span>
+          @if (isHqAdmin()) {
+            <span class="text-[9px] text-green-400 lowercase font-medium">hq live board</span>
+          }
+        </div>
+
+        @for (r of rooms(); track r.id) {
+          @if (r.type === 'recon') {
+            <button (click)="selectRoom(r.id)"
+                    class="w-full text-left p-2.5 rounded-xl transition-all flex items-center justify-between group mb-1"
+                    [class.active-room-pill]="activeRoom() === r.id"
+                    [class.inactive-room-pill]="activeRoom() !== r.id">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                     style="background: rgba(245,158,11,0.12); color: #fbbf24;">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
+                  </svg>
+                </div>
+                <div class="min-w-0">
+                  <div class="text-xs font-bold text-gray-200 truncate">{{ r.title }}</div>
+                  <div class="text-[10px] text-gray-400 truncate">{{ r.subtitle }}</div>
+                </div>
+              </div>
+
+              <!-- Status pill -->
+              <div class="flex items-center gap-1.5 shrink-0">
+                @if (r.status === 'balanced') {
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1"
+                        style="background: rgba(74,222,128,0.15); color: #4ade80;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+                    Balanced
+                  </span>
+                } @else if (r.status === 'short') {
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1"
+                        style="background: rgba(248,113,113,0.15); color: #f87171;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                    Short
+                  </span>
+                } @else if (r.status === 'over') {
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1"
+                        style="background: rgba(251,191,36,0.15); color: #fbbf24;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                    Surplus
+                  </span>
+                } @else {
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-medium"
+                        style="background: rgba(255,255,255,0.05); color: #9ca3af;">
+                    Pending
+                  </span>
+                }
+
+                @if ((r.unreadCount || 0) > 0) {
+                  <span class="w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center text-black"
+                        style="background: #4ade80;">
+                    {{ r.unreadCount }}
+                  </span>
+                }
+              </div>
+            </button>
+          }
+        }
+      </div>
+
+      <!-- Section: Branch Direct Messages -->
+      <div>
+        <div class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">Direct Messages</div>
+        @for (r of rooms(); track r.id) {
+          @if (r.type === 'dm') {
+            <button (click)="selectRoom(r.id)"
+                    class="w-full text-left p-2.5 rounded-xl transition-all flex items-center justify-between group mb-1"
+                    [class.active-room-pill]="activeRoom() === r.id"
+                    [class.inactive-room-pill]="activeRoom() !== r.id">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                     style="background: rgba(192,132,252,0.12); color: #c084fc;">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                  </svg>
+                </div>
+                <div class="min-w-0">
+                  <div class="text-xs font-semibold text-gray-200 truncate">{{ r.title }}</div>
+                  <div class="text-[10px] text-gray-400 truncate">{{ r.subtitle }}</div>
+                </div>
+              </div>
+              @if ((r.unreadCount || 0) > 0) {
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold text-black"
+                      style="background: #4ade80;">
+                  {{ r.unreadCount }}
+                </span>
+              }
+            </button>
+          }
+        }
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── Center / Main Chat Area ─────────────────────────────────────────── -->
+  <div class="flex-1 flex flex-col md:rounded-2xl border-0 md:border min-w-0 overflow-hidden relative"
+       style="background: rgba(10,21,10,0.97); backdrop-filter: blur(24px); border-color: rgba(255,255,255,0.08);">
+
+    <!-- Chat Header -->
+    <div class="px-3 py-3 sm:p-4 border-b flex items-center justify-between shrink-0 gap-2"
+         style="border-color: rgba(255,255,255,0.08); background: rgba(0,0,0,0.25);">
+
+      <!-- Left: Hamburger (mobile) + Room info -->
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+        <!-- Rooms list toggle (mobile only) — chat-bubbles icon to distinguish from app menu -->
+        <button (click)="showMobileSidebar.set(true)"
+                class="p-2 rounded-xl text-green-400 hover:text-green-300 hover:bg-white/10 transition-colors shrink-0 md:hidden"
+                style="background: rgba(74,222,128,0.08);"
+                title="Switch chat room">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/>
+          </svg>
+        </button>
+
+        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0"
+             [style.background]="activeRoomMeta().type === 'recon' ? 'rgba(245,158,11,0.15)' : (activeRoomMeta().type === 'dm' ? 'rgba(192,132,252,0.15)' : 'rgba(74,222,128,0.15)')">
+          @if (activeRoomMeta().type === 'recon') {
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
+            </svg>
+          } @else if (activeRoomMeta().type === 'dm') {
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+          } @else {
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+            </svg>
+          }
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <h1 class="text-sm sm:text-base font-bold text-gray-100 truncate">{{ activeRoomMeta().title }}</h1>
+            @if (activeRoomMeta().type === 'recon') {
+              <span class="hidden sm:inline px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
+                    style="background: rgba(245,158,11,0.15); color: #fbbf24;">
+                Audited
+              </span>
+            }
+          </div>
+          <p class="text-[11px] sm:text-xs text-gray-400 truncate">{{ activeRoomMeta().subtitle || 'Realtime communication' }}</p>
+        </div>
+      </div>
+
+      <!-- Right: Action Buttons (compact on mobile) -->
+      <div class="flex items-center gap-1.5 shrink-0">
+        <!-- Stock button: icon-only on mobile -->
+        <button (click)="openStockIntakeModal()"
+                title="Report Stock Arrival"
+                class="p-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 shadow-md"
+                style="background: linear-gradient(135deg, #0284c7, #0369a1); color: white;">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+          </svg>
+          <span class="hidden sm:inline">Stock</span>
+        </button>
+
+        <!-- Cash button: icon-only on mobile -->
+        <button (click)="openDeclareModal()"
+                title="Declare Cash"
+                class="p-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 shadow-md"
+                style="background: linear-gradient(135deg, #16a34a, #15803d); color: white;">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+          <span class="hidden sm:inline">Cash</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages Container -->
+    <div #scrollContainer
+         (scroll)="onScroll($event)"
+         class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar">
+
+      @if (loading() || connecting()) {
+        <div class="h-full flex flex-col items-center justify-center gap-3 text-gray-400">
+          <div class="w-8 h-8 border-2 border-green-400 border-t-transparent rounded-full animate-spin"></div>
+          <span class="text-xs">Connecting to Agrolytix Realtime...</span>
+        </div>
+      } @else if (messages().length === 0) {
+        <div class="h-full flex flex-col items-center justify-center text-center p-6 text-gray-400">
+          <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-3"
+               style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); color: #4ade80;">
+            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+          </div>
+          <h3 class="text-sm font-bold text-gray-200">No messages yet</h3>
+          <p class="text-xs text-gray-400 max-w-sm mt-1">
+            Start the conversation with your team or declare physical daily cash.
+          </p>
+        </div>
+      } @else {
+
+        @for (msg of messages(); track msg.id) {
+
+          <!-- 1. Recon Status Pill in public chat -->
+          @if (msg.kind === 'recon_status') {
+            <div class="flex justify-center my-3">
+              <div class="px-4 py-1.5 rounded-full text-xs font-medium border flex items-center gap-2 shadow-sm"
+                   style="background: rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.1); color: #d1d5db;">
+                <span>{{ msg.body }}</span>
+                <span class="text-[10px] text-gray-400">{{ formatTime(msg.created_at) }}</span>
+              </div>
+            </div>
+          }
+
+          <!-- 2. Cash Declaration Card -->
+          @else if (msg.kind === 'cash_declaration') {
+            @if (msg.is_deleted) {
+              <div class="flex flex-col gap-1 max-w-xl"
+                   [class.items-end]="isOwn(msg)"
+                   [class.items-start]="!isOwn(msg)"
+                   [class.ml-auto]="isOwn(msg)">
+                <div class="rounded-2xl px-4 py-2.5 text-xs italic border flex items-center gap-2 select-none shadow-sm"
+                     style="background: rgba(255, 255, 255, 0.02); border-color: rgba(255, 255, 255, 0.06); color: #9ca3af;">
+                  <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                  </svg>
+                  <span>Physical cash declaration was deleted by <strong class="font-semibold text-gray-300">{{ msg.deleted_by_name || 'Admin' }}</strong></span>
+                  <span class="text-[10px] text-gray-500 ml-1">• {{ formatTime(msg.deleted_at || msg.created_at) }}</span>
+                </div>
+              </div>
+            } @else {
+              <div class="flex flex-col gap-1 max-w-xl group/decl"
+                   [class.items-end]="isOwn(msg)"
+                   [class.ml-auto]="isOwn(msg)">
+                
+                <div class="text-[11px] text-gray-400 flex items-center gap-1.5 px-1">
+                  <span class="font-bold text-gray-300">{{ msg.sender_name }}</span>
+                  <span class="px-1.5 py-0.2 rounded text-[10px] bg-white/10 text-gray-300">
+                    {{ msg.sender_business_name || 'Branch' }}
+                  </span>
+                  <span>• {{ formatTime(msg.created_at) }}</span>
+                </div>
+
+                <div class="rounded-2xl p-4 border w-full relative overflow-hidden"
+                     style="background: linear-gradient(135deg, rgba(22,163,74,0.12), rgba(10,21,10,0.95)); border-color: rgba(74,222,128,0.3);">
+                  <div class="flex items-start justify-between gap-4 mb-2">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                           style="background: rgba(74,222,128,0.15); color: #4ade80;">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-green-400">Physical Cash Declared</div>
+                        <div class="text-2xl font-black text-white">{{ formatCurrency(msg.meta.declared) }}</div>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-[10px] px-2 py-0.5 rounded-md font-bold text-gray-300 bg-white/10">
+                        Attempt #{{ msg.meta.attempt || 1 }}
+                      </span>
+
+                      <!-- Admin Delete Declaration Button -->
+                      @if (isAdmin()) {
+                        <button (click)="confirmDeleteDeclaration(msg)"
+                                title="Delete this cash declaration (Admin)"
+                                class="p-1 rounded-lg text-red-400/80 hover:text-red-300 hover:bg-red-500/20 transition-all">
+                          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      }
+                    </div>
+                  </div>
+
+                  @if (msg.body) {
+                    <p class="text-xs text-gray-300 mt-2 bg-black/30 p-2.5 rounded-xl border border-white/5">
+                      "{{ msg.body }}"
+                    </p>
+                  }
+
+                  @if (msg.image_url) {
+                    <div class="mt-3">
+                      <img [src]="msg.image_url"
+                           (click)="openLightbox(msg.image_url)"
+                           alt="Declaration Proof"
+                           class="max-h-48 rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity border border-white/10">
+                      <div class="text-[10px] text-gray-400 mt-1">Click to view attached cash/slip photo</div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          }
+
+          <!-- 3. Recon Result Card (Auditor Bot) -->
+          @else if (msg.kind === 'recon_result' && !msg.is_deleted) {
+            <div class="flex justify-center my-2 w-full">
+              <div class="w-full max-w-xl rounded-2xl p-4 sm:p-5 border relative overflow-hidden shadow-xl"
+                   [style.background]="msg.meta.status === 'balanced' ? 'linear-gradient(135deg, rgba(74,222,128,0.12) 0%, rgba(10,21,10,0.98) 100%)' : (msg.meta.status === 'short' ? 'linear-gradient(135deg, rgba(248,113,113,0.15) 0%, rgba(10,21,10,0.98) 100%)' : 'linear-gradient(135deg, rgba(251,191,36,0.15) 0%, rgba(10,21,10,0.98) 100%)')"
+                   [style.border-color]="msg.meta.status === 'balanced' ? 'rgba(74,222,128,0.4)' : (msg.meta.status === 'short' ? 'rgba(248,113,113,0.4)' : 'rgba(251,191,36,0.4)')">
+
+                <div class="flex items-start justify-between gap-3 mb-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                         [style.background]="msg.meta.status === 'balanced' ? 'rgba(74,222,128,0.2)' : (msg.meta.status === 'short' ? 'rgba(248,113,113,0.2)' : 'rgba(251,191,36,0.2)')">
+                      @if (msg.meta.status === 'balanced') {
+                        <svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                        </svg>
+                      } @else if (msg.meta.status === 'short') {
+                        <svg class="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                      } @else {
+                        <svg class="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      }
+                    </div>
+                    <div>
+                      <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Agrolytix Automated Audit</div>
+                      <h4 class="text-sm sm:text-base font-extrabold text-white">
+                        {{ msg.meta.status === 'balanced' ? 'Cash Fully Balanced' : (msg.meta.status === 'short' ? 'Cash Shortage Alert' : 'Cash Surplus Alert') }}
+                      </h4>
+                    </div>
+                  </div>
+                  <span class="text-[10px] text-gray-400 font-mono">{{ formatTime(msg.created_at) }}</span>
+                </div>
+
+                <p class="text-xs sm:text-sm text-gray-200 leading-relaxed font-medium mb-3">
+                  {{ msg.body }}
+                </p>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 rounded-xl bg-black/40 border border-white/5 text-xs">
+                  <div>
+                    <span class="text-[10px] text-gray-400 block">Declared</span>
+                    <span class="font-bold text-white">{{ formatCurrency(msg.meta.declared) }}</span>
+                  </div>
+                  <div>
+                    <span class="text-[10px] text-gray-400 block">Difference</span>
+                    <span class="font-bold"
+                          [class.text-green-400]="msg.meta.status === 'balanced'"
+                          [class.text-red-400]="msg.meta.status === 'short'"
+                          [class.text-amber-400]="msg.meta.status === 'over'">
+                      {{ ((msg.meta.difference || 0) > 0 ? '+' : '') + formatCurrency(msg.meta.difference) }}
+                    </span>
+                  </div>
+                  <div class="col-span-2 sm:col-span-1">
+                    <span class="text-[10px] text-gray-400 block">Verified For</span>
+                    <span class="font-bold text-gray-300 truncate block">{{ msg.meta.business_name }}</span>
+                  </div>
+                </div>
+
+                <div class="mt-2.5 flex items-center justify-between text-[10px] text-gray-400">
+                  <span>Tolerance: ±GH₵{{ msg.meta.tolerance || 1 }}.00</span>
+                  <span class="text-green-400 font-semibold">✓ Server Verified</span>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- 4. Stock Delivery Intake Card (Batch Multi-Item) -->
+          @else if (msg.kind === 'stock_intake') {
+            <div class="flex justify-center my-3 w-full">
+              <div class="w-full max-w-xl rounded-2xl p-4 sm:p-5 border relative overflow-hidden shadow-xl"
+                   [style.background]="msg.meta.status === 'approved' ? 'linear-gradient(135deg, rgba(34,197,94,0.12) 0%, rgba(10,21,10,0.98) 100%)' : (msg.meta.status === 'rejected' ? 'linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(10,21,10,0.98) 100%)' : 'linear-gradient(135deg, rgba(2,132,199,0.12) 0%, rgba(10,21,10,0.98) 100%)')"
+                   [style.border-color]="msg.meta.status === 'approved' ? 'rgba(74,222,128,0.4)' : (msg.meta.status === 'rejected' ? 'rgba(239,68,68,0.4)' : 'rgba(56,189,248,0.35)')">
+
+                <!-- Header -->
+                <div class="flex items-start justify-between gap-3 mb-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                         [style.background]="msg.meta.status === 'approved' ? 'rgba(74,222,128,0.2)' : (msg.meta.status === 'rejected' ? 'rgba(239,68,68,0.2)' : 'rgba(2,132,199,0.2)')"
+                         [style.color]="msg.meta.status === 'approved' ? '#4ade80' : (msg.meta.status === 'rejected' ? '#f87171' : '#38bdf8')">
+                      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="text-[10px] font-bold uppercase tracking-wider text-sky-400">Stock Arrival Intake</div>
+                      <h4 class="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
+                        <span>{{ msg.meta.items?.length || 0 }} Item(s) Delivered</span>
+                        @if (msg.meta.supplier_name) {
+                          <span class="text-xs font-normal text-gray-300">from {{ msg.meta.supplier_name }}</span>
+                        }
+                      </h4>
+                    </div>
+                  </div>
+
+                  <!-- Status badge -->
+                  <div class="flex flex-col items-end gap-1 shrink-0">
+                    @if (msg.meta.status === 'approved') {
+                      <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border flex items-center gap-1 shadow-sm"
+                            style="background: rgba(74,222,128,0.15); border-color: rgba(74,222,128,0.3); color: #4ade80;">
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+                        ✓ Added to Stock
+                      </span>
+                    } @else if (msg.meta.status === 'rejected') {
+                      <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border flex items-center gap-1 shadow-sm"
+                            style="background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); color: #f87171;">
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                        ✕ Rejected
+                      </span>
+                    } @else {
+                      <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border flex items-center gap-1 shadow-sm animate-pulse"
+                            style="background: rgba(245,158,11,0.15); border-color: rgba(245,158,11,0.3); color: #fbbf24;">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                        Awaiting Admin Approval
+                      </span>
+                    }
+                    <span class="text-[10px] text-gray-400">{{ formatTime(msg.created_at) }}</span>
+                  </div>
+                </div>
+
+                <!-- Waybill & Sender details -->
+                <div class="flex flex-wrap items-center gap-3 text-xs text-gray-300 mb-3 px-1">
+                  <span class="text-gray-400">Received by: <strong class="text-white">{{ msg.sender_name }}</strong></span>
+                  @if (msg.meta.waybill_number) {
+                    <span>• Waybill: <strong class="text-sky-300 font-mono">{{ msg.meta.waybill_number }}</strong></span>
+                  }
+                  @if (msg.meta.total_quantity) {
+                    <span>• Total Qty: <strong class="text-green-300 font-semibold">{{ msg.meta.total_quantity }} units</strong></span>
+                  }
+                </div>
+
+                <!-- Attached Waybill / Slip Image (if provided) -->
+                @if (msg.image_url) {
+                  <div class="mb-3 rounded-xl overflow-hidden border border-white/10 bg-black/40">
+                    <img [src]="msg.image_url"
+                         (click)="openLightbox(msg.image_url)"
+                         alt="Delivery Slip Proof"
+                         class="max-h-48 w-full object-cover cursor-pointer hover:opacity-90 transition-opacity">
+                    <div class="px-3 py-1.5 text-[10px] text-gray-400 flex items-center justify-between border-t border-white/5">
+                      <span>Delivery Slip / Invoice Photo</span>
+                      <span class="text-green-400 font-medium">Click to inspect</span>
+                    </div>
+                  </div>
+                }
+
+                <!-- Batch Items Table / List -->
+                <div class="space-y-2 mb-3">
+                  <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-1">Delivered Items (Batch)</div>
+                  <div class="rounded-xl border border-white/10 overflow-hidden divide-y divide-white/5 bg-black/40 text-xs">
+                    @for (item of msg.meta.items; track $index) {
+                      <div class="p-2.5 flex items-center justify-between gap-3 hover:bg-white/[0.02] transition-colors">
+                        <div class="min-w-0 flex-1">
+                          <div class="flex items-center gap-2">
+                            <span class="font-bold text-gray-100 truncate">{{ item.name }}</span>
+                            <span class="px-1.5 py-0.2 text-[9px] rounded font-semibold uppercase tracking-wider"
+                                  [class.bg-sky-500/20]="item.inventory_type === 'retail'"
+                                  [class.text-sky-300]="item.inventory_type === 'retail'"
+                                  [class.bg-purple-500/20]="item.inventory_type === 'wholesale'"
+                                  [class.text-purple-300]="item.inventory_type === 'wholesale'">
+                              {{ item.inventory_type }}
+                            </span>
+                            @if (item.is_new_product) {
+                              <span class="px-1.5 py-0.2 text-[9px] rounded font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300">
+                                New Product
+                              </span>
+                            }
+                          </div>
+                          @if (item.current_stock != null && msg.meta.status === 'approved') {
+                            <div class="text-[10px] text-gray-400 mt-0.5">
+                              Stock before: <span class="font-mono text-gray-300">{{ item.current_stock }}</span> ➔ Stock now: <span class="font-mono text-green-400 font-bold">{{ item.new_stock ?? (item.current_stock + item.quantity) }}</span>
+                            </div>
+                          } @else if (item.current_stock != null) {
+                            <div class="text-[10px] text-gray-400 mt-0.5">
+                              Current in stock: <span class="font-mono text-gray-300">{{ item.current_stock }}</span> {{ item.base_unit || 'pcs' }}
+                            </div>
+                          }
+                          @if (item.cost_price != null || item.sell_price != null) {
+                            @if (item.is_new_product) {
+                              <div class="text-[10px] text-amber-300 font-mono mt-0.5">
+                                Cost: GH₵{{ (item.cost_price || 0) | number:'1.2-2' }} • Sell: GH₵{{ (item.sell_price || 0) | number:'1.2-2' }}
+                              </div>
+                            } @else if ((item.cost_price != null && item.previous_cost_price != null && item.cost_price !== item.previous_cost_price) || (item.sell_price != null && item.previous_sell_price != null && item.sell_price !== item.previous_sell_price)) {
+                              <div class="text-[10px] text-amber-300 font-medium mt-0.5 flex flex-wrap items-center gap-1">
+                                <span>⚡ New Prices:</span>
+                                @if (item.cost_price !== item.previous_cost_price) {
+                                  <span>Cost GH₵{{ item.cost_price | number:'1.2-2' }} (was {{ item.previous_cost_price | number:'1.2-2' }})</span>
+                                }
+                                @if (item.sell_price !== item.previous_sell_price) {
+                                  <span>• Sell GH₵{{ item.sell_price | number:'1.2-2' }} (was {{ item.previous_sell_price | number:'1.2-2' }})</span>
+                                }
+                              </div>
+                            }
+                          }
+                        </div>
+
+                        <div class="text-right shrink-0">
+                          <span class="text-sm font-extrabold text-green-400">
+                            +{{ item.quantity }}
+                          </span>
+                          <span class="text-[10px] text-gray-400 block">{{ item.base_unit || 'pcs' }}</span>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <!-- Note (if worker included one) -->
+                @if (msg.meta.note) {
+                  <p class="text-xs text-gray-300 italic mb-3 bg-black/30 p-2 rounded-xl border border-white/5">
+                    "{{ msg.meta.note }}"
+                  </p>
+                }
+
+                <!-- Footer: Admin Action Bar OR Approval Confirmation -->
+                @if (msg.meta.status === 'pending') {
+                  @if (isAdmin()) {
+                    <div class="pt-3 border-t border-white/10 flex items-center justify-between gap-3">
+                      <span class="text-xs text-amber-400/90 font-medium hidden sm:inline">Admin Review Required</span>
+                      <div class="flex items-center gap-2 ml-auto">
+                        <button (click)="openRejectModal(msg)"
+                                type="button"
+                                class="px-3 py-1.5 rounded-xl text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-red-500/20 transition-all">
+                          Reject
+                        </button>
+                        <button (click)="openApproveModal(msg)"
+                                type="button"
+                                class="px-4 py-1.5 rounded-xl text-xs font-bold text-white shadow-md transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
+                                style="background: linear-gradient(135deg, #16a34a, #15803d);">
+                          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                          </svg>
+                          <span>Approve & Add to Stock</span>
+                        </button>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="pt-2.5 border-t border-white/5 text-[11px] text-gray-400 flex items-center gap-1.5">
+                      <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
+                      <span>Awaiting off-site admin approval before stock is entered into POS.</span>
+                    </div>
+                  }
+                } @else if (msg.meta.status === 'approved') {
+                  <div class="pt-2.5 border-t border-white/5 text-[11px] text-green-400 flex items-center justify-between">
+                    <span>✓ Approved & updated into inventory by {{ msg.meta.approved_by_name || 'Admin' }}</span>
+                    <span class="text-[10px] text-gray-400">{{ formatTime(msg.meta.approved_at || msg.created_at) }}</span>
+                  </div>
+                } @else if (msg.meta.status === 'rejected') {
+                  <div class="pt-2.5 border-t border-white/5 text-[11px] text-red-400">
+                    <span>✕ Delivery rejected by {{ msg.meta.rejected_by_name || 'Admin' }}</span>
+                    @if (msg.meta.rejection_reason) {
+                      <span class="text-gray-400 block text-[10px] mt-0.5">Reason: "{{ msg.meta.rejection_reason }}"</span>
+                    }
+                  </div>
+                }
+
+              </div>
+            </div>
+          }
+
+          <!-- 5. Regular Text & Image Chat Bubble -->
+          @else {
+            <!-- If message is deleted, display the watermark! -->
+            @if (msg.is_deleted) {
+              <div class="flex flex-col gap-1 max-w-[85%] sm:max-w-lg w-fit"
+                   [class.items-end]="isOwn(msg)"
+                   [class.items-start]="!isOwn(msg)"
+                   [class.ml-auto]="isOwn(msg)">
+                <div class="rounded-2xl px-4 py-2.5 text-xs italic border flex items-center gap-2 select-none shadow-sm"
+                     style="background: rgba(255, 255, 255, 0.02); border-color: rgba(255, 255, 255, 0.06); color: #9ca3af;">
+                  <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                  </svg>
+                  <span>This message was deleted by <strong class="font-semibold text-gray-300">{{ msg.deleted_by_name || msg.sender_name }}</strong></span>
+                  <span class="text-[10px] text-gray-500 ml-1">• {{ formatTime(msg.deleted_at || msg.created_at) }}</span>
+                </div>
+              </div>
+            }
+            @else {
+              <div [id]="'msg-' + msg.id"
+                   class="flex flex-col gap-1 max-w-[85%] sm:max-w-lg w-fit group relative transition-all duration-300"
+                   [class.items-end]="isOwn(msg)"
+                   [class.items-start]="!isOwn(msg)"
+                   [class.ml-auto]="isOwn(msg)">
+                
+                <!-- Sender Header -->
+                <div class="text-[11px] text-gray-400 flex items-center gap-1.5 px-1">
+                  <span class="font-bold text-gray-300">{{ msg.sender_name }}</span>
+                  @if (msg.sender_business_name) {
+                    <span class="px-1.5 py-0.2 rounded text-[10px] bg-white/10 text-gray-300">
+                      {{ msg.sender_business_name }}
+                    </span>
+                  }
+                  @if (msg.sender_role === 'Admin') {
+                    <span class="text-[9px] px-1 rounded font-bold uppercase text-amber-400 bg-amber-400/10">Admin</span>
+                  }
+                  <span>• {{ formatTime(msg.created_at) }}</span>
+                  @if (msg.is_edited) {
+                    <span class="text-[9px] text-gray-400 italic" title="Edited at {{ formatTime(msg.edited_at || '') }}">(edited)</span>
+                  }
+                </div>
+
+                <!-- Bubble Container with Hover Action Menu -->
+                <div class="relative group/bubble"
+                     (click)="toggleMsgActions(msg.id, $event)">
+                  <!-- Bubble -->
+                  <div class="rounded-2xl p-3 sm:p-4 text-sm break-words border w-fit max-w-full"
+                       [style.background]="isOwn(msg) ? 'rgba(22,163,74,0.25)' : 'rgba(255,255,255,0.04)'"
+                       [style.border-color]="isOwn(msg) ? 'rgba(74,222,128,0.3)' : 'rgba(255,255,255,0.08)'"
+                       [style.color]="'#f3f4f6'">
+
+                    <!-- Quoted Reply Snippet -->
+                    @if (msg.meta.reply_to_id) {
+                      <div (click)="scrollToMessage(msg.meta.reply_to_id)"
+                           title="Click to jump to message"
+                           class="mb-2 p-2 rounded-xl text-xs border-l-2 cursor-pointer transition-colors hover:bg-white/10 flex flex-col gap-0.5 select-none"
+                           style="border-color: #4ade80; background: rgba(0, 0, 0, 0.4);">
+                        <div class="flex items-center gap-1 font-bold text-[11px] text-green-400">
+                          <svg class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                          </svg>
+                          <span>{{ msg.meta.reply_to_sender || 'User' }}</span>
+                        </div>
+                        <p class="text-gray-300 truncate max-w-xs text-[11px]">{{ msg.meta.reply_to_body || 'Original message' }}</p>
+                      </div>
+                    }
+                    
+                    @if (msg.image_url) {
+                      <div [class.mb-2]="msg.body" class="w-fit">
+                        <img [src]="msg.image_url"
+                             (click)="openLightbox(msg.image_url)"
+                             alt="Attached Image"
+                             class="max-h-64 max-w-full rounded-xl object-contain cursor-pointer hover:opacity-90 transition-opacity border border-white/10">
+                      </div>
+                    }
+
+                    <!-- Inline editing mode for this message -->
+                    @if (editingMessageId() === msg.id) {
+                      <div class="space-y-2 min-w-[220px] sm:min-w-[280px]">
+                        <textarea [(ngModel)]="editMessageText"
+                                  rows="2"
+                                  class="w-full p-2.5 rounded-xl text-xs sm:text-sm bg-black/60 border border-green-500/50 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-green-400 resize-none"></textarea>
+                        <div class="flex items-center justify-end gap-2 text-xs">
+                          <button (click)="cancelEdit()"
+                                  type="button"
+                                  class="px-2.5 py-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
+                            Cancel
+                          </button>
+                          <button (click)="saveEdit()"
+                                  type="button"
+                                  [disabled]="savingEdit()"
+                                  class="px-3 py-1 rounded-lg font-bold bg-green-600 hover:bg-green-500 text-white transition-all disabled:opacity-50">
+                            {{ savingEdit() ? 'Saving...' : 'Save' }}
+                          </button>
+                        </div>
+                      </div>
+                    }
+                    @else if (msg.body) {
+                      <p class="whitespace-pre-wrap leading-relaxed">{{ msg.body }}</p>
+                    }
+                  </div>
+
+                  <!-- Hover Action Buttons (Reply / Edit / Delete) -->
+                  @if (editingMessageId() !== msg.id) {
+                    <div class="absolute -top-3.5 opacity-0 group-hover/bubble:opacity-100 transition-all duration-150 flex items-center gap-1 p-1 rounded-xl shadow-lg border backdrop-blur-md z-10"
+                         [class.!opacity-100]="activeActionsMsgId() === msg.id"
+                         [class.right-1]="isOwn(msg)"
+                         [class.left-1]="!isOwn(msg)"
+                         style="background: rgba(15, 23, 15, 0.95); border-color: rgba(255, 255, 255, 0.12);">
+                      
+                      <!-- Reply Button -->
+                      <button (click)="startReply(msg)"
+                              title="Reply to message"
+                              class="p-1 rounded-lg text-gray-300 hover:text-green-400 hover:bg-white/10 transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                        </svg>
+                      </button>
+
+                      @if (canEdit(msg)) {
+                        <button (click)="startEdit(msg)"
+                                title="Edit message (within 5 minutes)"
+                                class="p-1 rounded-lg text-gray-300 hover:text-green-400 hover:bg-white/10 transition-colors">
+                          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                        </button>
+                      }
+
+                      @if (canDelete(msg)) {
+                        <button (click)="confirmDelete(msg)"
+                                title="Delete message"
+                                class="p-1 rounded-lg text-gray-300 hover:text-red-400 hover:bg-white/10 transition-colors">
+                          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          }
+
+        }
+
+      }
+
+    </div>
+
+    <!-- WhatsApp-style Scroll to Bottom Floating Button -->
+    @if (isScrolledUp()) {
+      <button (click)="scrollToBottom(true)"
+              type="button"
+              title="Scroll to latest messages"
+              class="absolute bottom-20 sm:bottom-24 right-5 sm:right-6 z-30 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 group shadow-2xl border"
+              style="background: rgba(15, 30, 15, 0.95); backdrop-filter: blur(10px); border-color: rgba(74,222,128,0.4); color: #4ade80; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.7), 0 0 15px rgba(34,197,94,0.3);">
+        <svg class="w-5 h-5 transition-transform group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+        </svg>
+        @if (newMessagesCount() > 0) {
+          <span class="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full text-[10px] font-black flex items-center justify-center text-black shadow-lg animate-bounce"
+                style="background: #4ade80;">
+            {{ newMessagesCount() }}
+          </span>
+        }
+      </button>
+    }
+
+    <!-- Image upload progress indicator -->
+    @if (uploadingImage()) {
+      <div class="px-4 py-2 border-t flex items-center gap-3 shrink-0"
+           style="background: rgba(22,163,74,0.1); border-color: rgba(74,222,128,0.2);">
+        <div class="w-4 h-4 border-2 border-green-400 border-t-transparent rounded-full animate-spin"></div>
+        <span class="text-xs text-green-300 font-medium">Uploading image to cloud... {{ uploadProgress() }}%</span>
+      </div>
+    }
+
+    <!-- Staged Image Preview in Composer -->
+    @if (stagedImageUrl()) {
+      <div class="px-4 py-2 border-t flex items-center justify-between shrink-0"
+           style="background: rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.08);">
+        <div class="flex items-center gap-2">
+          <img [src]="stagedImageUrl()" class="w-10 h-10 rounded-lg object-cover border border-white/20">
+          <span class="text-xs text-gray-300">Image attached</span>
+        </div>
+        <button (click)="stagedImageUrl.set(null)" class="text-xs text-red-400 hover:text-red-300 p-1">
+          ✕ Remove
+        </button>
+      </div>
+    }
+
+    <!-- Active Reply Context Banner in Composer -->
+    @if (replyingTo(); as rep) {
+      <div class="px-4 py-2 border-t flex items-center justify-between shrink-0 animate-fadeIn"
+           style="background: rgba(22,163,74,0.12); border-color: rgba(74,222,128,0.25);">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="text-green-400 text-sm shrink-0">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <div class="text-xs font-semibold text-green-300 flex items-center gap-1">
+              <span>Replying to</span>
+              <strong class="text-white truncate">{{ rep.sender }}</strong>
+            </div>
+            <p class="text-[11px] text-gray-300 truncate max-w-md">{{ rep.body }}</p>
+          </div>
+        </div>
+        <button (click)="cancelReply()"
+                title="Cancel reply"
+                class="text-xs text-gray-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors">
+          ✕
+        </button>
+      </div>
+    }
+
+    <!-- Composer Box -->
+    <div class="px-2 py-2 sm:p-4 border-t flex items-end gap-2 shrink-0 safe-bottom"
+         style="border-color: rgba(255,255,255,0.08); background: rgba(0,0,0,0.3);">
+      
+      <!-- Hidden file input -->
+      <input #fileInput type="file" accept="image/*" class="hidden" (change)="onFileSelected($event)">
+
+      <!-- Attach button -->
+      <button (click)="triggerFileInput()"
+              [disabled]="uploadingImage()"
+              title="Attach Image"
+              class="p-2.5 rounded-xl border transition-colors hover:bg-white/10 text-gray-300 disabled:opacity-40 shrink-0"
+              style="border-color: rgba(255,255,255,0.1);">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+      </button>
+
+      <!-- Text input (auto-grows on mobile) -->
+      <div class="flex-1 rounded-2xl border px-3.5 py-2.5 flex items-center min-w-0"
+           style="background: rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.12);">
+        <input id="chat-message-input"
+               type="text"
+               [(ngModel)]="messageText"
+               (keydown)="onKeyDown($event)"
+               [placeholder]="replyingTo() ? 'Reply...' : 'Message...'"
+               autocomplete="off"
+               class="w-full bg-transparent outline-none text-sm text-gray-100 placeholder-gray-500 min-w-0">
+      </div>
+
+      <!-- Send button (icon only on mobile) -->
+      <button (click)="sendMessage()"
+              [disabled]="(!messageText().trim() && !stagedImageUrl()) || uploadingImage()"
+              class="p-2.5 sm:px-4 sm:py-2.5 rounded-2xl font-bold text-sm flex items-center gap-1.5 transition-all disabled:opacity-30 disabled:scale-100 hover:scale-105 active:scale-95 shrink-0"
+              style="background: #16a34a; color: white;">
+        <span class="hidden sm:inline">Send</span>
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+        </svg>
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ─── Declare Cash Modal ────────────────────────────────────────────────── -->
+@if (showDeclareModal()) {
+  <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/75 backdrop-blur-sm" (click)="closeDeclareModal()"></div>
+
+    <!-- Modal Content -->
+    <div class="relative w-full max-w-lg rounded-t-3xl sm:rounded-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[90vh] safe-bottom"
+         style="background: #0a150a; border-color: rgba(74,222,128,0.3);">
+      
+      <!-- Modal Header -->
+      <div class="p-6 border-b shrink-0 flex items-center justify-between"
+           style="border-color: rgba(255,255,255,0.08); background: rgba(22,163,74,0.1);">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+               style="background: rgba(74,222,128,0.15); color: #4ade80;">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-white">Daily Cash Declaration</h3>
+            <p class="text-xs text-gray-400">Declare physical money counted at branch</p>
+          </div>
+        </div>
+        <button (click)="closeDeclareModal()" class="text-gray-400 hover:text-white p-1">✕</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto space-y-4 custom-scrollbar">
+
+        <!-- Explanation alert -->
+        <div class="p-3.5 rounded-xl text-xs flex items-start gap-2.5 border"
+             style="background: rgba(74,222,128,0.06); border-color: rgba(74,222,128,0.2); color: #d1fae5;">
+          <svg class="w-4 h-4 shrink-0 text-green-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <div>
+            The system will automatically cross-check your declared cash against electronic sales and expenses for the selected date. A report will be generated instantly and sent to you and management.
+          </div>
+        </div>
+
+        <!-- Declaration Date Selection -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold uppercase tracking-wider text-gray-300">
+              Declaration Date *
+            </label>
+            <span class="text-[10px] text-green-400 font-medium">Auto-selected to Today</span>
+          </div>
+          <div class="rounded-xl border px-3.5 py-2.5 flex items-center gap-2 bg-black/50"
+               style="border-color: rgba(255,255,255,0.12);">
+            <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <input type="date"
+                   [ngModel]="declareDate()"
+                   (ngModelChange)="onDateChange($event)"
+                   [max]="maxDate()"
+                   class="w-full bg-transparent outline-none text-sm font-semibold text-white cursor-pointer"
+                   style="color-scheme: dark;">
+          </div>
+        </div>
+
+        <!-- Alert if cash already declared for this date -->
+        @if (dateAlreadyDeclared()) {
+          <div class="p-3.5 rounded-xl text-xs flex items-start gap-2.5 border animate-fadeIn"
+               style="background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.35); color: #fca5a5;">
+            <svg class="w-4 h-4 shrink-0 text-red-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <div>
+              <div class="font-bold text-white mb-0.5">Cash Already Declared For This Date</div>
+              Cash has already been declared for your branch on <span class="font-bold underline">{{ declareDate() }}</span>. Only one declaration per date is permitted.
+            </div>
+          </div>
+        }
+
+        <!-- Amount -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold uppercase tracking-wider text-gray-300">
+            Physical Cash Amount (GH₵) *
+          </label>
+          <div class="rounded-xl border px-4 py-3 flex items-center"
+               style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.12);">
+            <span class="text-gray-400 font-bold mr-2 text-base">GH₵</span>
+            <input type="number"
+                   [(ngModel)]="declareAmount"
+                   step="0.01"
+                   min="0"
+                   placeholder="0.00"
+                   class="w-full bg-transparent outline-none text-xl font-bold text-white placeholder-gray-600">
+          </div>
+        </div>
+
+        <!-- Note / Breakdown -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold uppercase tracking-wider text-gray-300">
+            Notes / Denomination Breakdown (Optional)
+          </label>
+          <textarea [(ngModel)]="declareNote"
+                    rows="2"
+                    placeholder="e.g. 200s x 10, 100s x 5, 50s x 4..."
+                    class="w-full rounded-xl border p-3 bg-black/40 text-sm text-gray-100 placeholder-gray-600 outline-none"
+                    style="border-color: rgba(255,255,255,0.12);"></textarea>
+        </div>
+
+        <!-- Image Upload (Receipt/Cash Photo) -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold uppercase tracking-wider text-gray-300">
+            Cash / Daily Slip Photo (Optional)
+          </label>
+          <input #modalFileInput type="file" accept="image/*" class="hidden" (change)="onModalFileSelected($event)">
+          
+          @if (declareImageUrl()) {
+            <div class="relative rounded-xl overflow-hidden border border-white/20">
+              <img [src]="declareImageUrl()" class="w-full h-36 object-cover">
+              <button (click)="declareImageUrl.set(null)"
+                      class="absolute top-2 right-2 px-2 py-1 rounded bg-black/70 text-red-400 text-xs font-bold">
+                ✕ Remove
+              </button>
+            </div>
+          } @else {
+            <button (click)="triggerModalFileInput()"
+                    [disabled]="uploadingImage()"
+                    class="w-full p-4 rounded-xl border border-dashed flex flex-col items-center justify-center gap-1.5 transition-colors hover:bg-white/5"
+                    style="border-color: rgba(255,255,255,0.2);">
+              <svg class="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              <span class="text-xs font-medium text-gray-300">Upload Photo of Cash or Slip</span>
+              <span class="text-[10px] text-gray-500">Auto-compressed & stored free on Cloudinary</span>
+            </button>
+          }
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-6 border-t flex items-center justify-end gap-3 shrink-0"
+           style="border-color: rgba(255,255,255,0.08); background: rgba(0,0,0,0.3);">
+        <button (click)="closeDeclareModal()"
+                class="px-4 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white transition-colors">
+          Cancel
+        </button>
+        <button (click)="submitCashDeclaration()"
+                [disabled]="!declareAmount() || declareAmount()! < 0 || dateAlreadyDeclared() || checkingDateDeclared() || submittingDeclaration() || uploadingImage()"
+                class="px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-40 disabled:hover:scale-100 hover:scale-105 active:scale-95 shadow-lg"
+                style="background: #16a34a; color: white;">
+          {{ submittingDeclaration() ? 'Verifying & Submitting...' : (checkingDateDeclared() ? 'Checking date...' : (dateAlreadyDeclared() ? 'Already Declared' : 'Submit Declaration')) }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- ─── Lightbox Modal ────────────────────────────────────────────────────── -->
+@if (lightboxUrl()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+       (click)="closeLightbox()">
+    <button (click)="closeLightbox()" class="absolute top-4 right-4 text-white text-2xl font-bold p-2">✕</button>
+    <img [src]="lightboxUrl()" class="max-w-full max-h-[90vh] rounded-2xl object-contain shadow-2xl" (click)="$event.stopPropagation()">
+  </div>
+}
+
+<!-- ─── Delete Confirmation Modal ─────────────────────────────────────────── -->
+@if (deletingMessageId()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+       (click)="cancelDelete()">
+    <div class="w-full max-w-sm rounded-2xl border p-5 space-y-4 shadow-2xl animate-scale-in"
+         style="background: #0d1a0d; border-color: rgba(239, 68, 68, 0.3);"
+         (click)="$event.stopPropagation()">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-red-500/10 text-red-400 border border-red-500/20 shrink-0">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white">Delete Message?</h3>
+          <p class="text-xs text-gray-400 mt-0.5">A watermark will remain in the chat showing you deleted this message.</p>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-white/5">
+        <button (click)="cancelDelete()"
+                type="button"
+                class="px-3.5 py-2 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+          Cancel
+        </button>
+        <button (click)="executeDelete()"
+                type="button"
+                [disabled]="deletingInProgress()"
+                class="px-4 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-500 text-white transition-all disabled:opacity-50">
+          {{ deletingInProgress() ? 'Deleting...' : 'Delete Message' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ─── Delete Cash Declaration Modal (Admin) ────────────────────────────── -->
+@if (deletingDeclarationMsg()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+       (click)="cancelDeleteDeclaration()">
+    <div class="w-full max-w-sm rounded-2xl border p-5 space-y-4 shadow-2xl animate-scale-in"
+         style="background: #0d1a0d; border-color: rgba(239, 68, 68, 0.4);"
+         (click)="$event.stopPropagation()">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-red-500/15 text-red-400 border border-red-500/30 shrink-0">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white">Delete Cash Declaration?</h3>
+          <p class="text-xs text-gray-400 mt-0.5">This will delete this declaration, remove the audit report, and allow a new declaration to be submitted for this date.</p>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-white/5">
+        <button (click)="cancelDeleteDeclaration()"
+                type="button"
+                class="px-3.5 py-2 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+          Cancel
+        </button>
+        <button (click)="executeDeleteDeclaration()"
+                type="button"
+                [disabled]="deletingInProgress()"
+                class="px-4 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-500 text-white transition-all disabled:opacity-50">
+          {{ deletingInProgress() ? 'Deleting...' : 'Delete Declaration' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ─── Stock Arrival (Batch Intake) Modal ─────────────────────────────────── -->
+@if (showStockIntakeModal()) {
+  <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" (click)="closeStockIntakeModal()"></div>
+
+    <!-- Modal Content -->
+    <div class="relative w-full max-w-2xl rounded-t-3xl sm:rounded-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[94dvh] sm:max-h-[92vh] safe-bottom"
+         style="background: #091309; border-color: rgba(56,189,248,0.35);">
+      
+      <!-- Modal Header -->
+      <div class="p-5 sm:p-6 border-b shrink-0 flex items-center justify-between"
+           style="border-color: rgba(255,255,255,0.08); background: rgba(2,132,199,0.12);">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+               style="background: rgba(56,189,248,0.15); color: #38bdf8;">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-bold text-white">Report Stock Arrival (Batch Intake)</h3>
+            <p class="text-xs text-gray-400">Record delivery items & waybill for instant admin inventory entry</p>
+          </div>
+        </div>
+        <button (click)="closeStockIntakeModal()" class="text-gray-400 hover:text-white p-1">✕</button>
+      </div>
+
+      <!-- Hidden file inputs for delivery slip (Gallery vs Direct Camera) -->
+      <input #stockFileInput type="file" accept="image/*" class="hidden" (change)="onStockFileSelected($event)">
+      <input #stockCameraInput type="file" accept="image/*" capture="environment" class="hidden" (change)="onStockFileSelected($event)">
+
+      <!-- Modal Body -->
+      <div class="p-5 sm:p-6 overflow-y-auto space-y-5 custom-scrollbar">
+
+        <!-- 1. Delivery Details (Supplier, Waybill, Photo) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <!-- Supplier -->
+          <div class="space-y-1">
+            <label class="text-[11px] font-bold uppercase tracking-wider text-gray-300">Supplier / Transporter</label>
+            <input type="text"
+                   [(ngModel)]="stockSupplierName"
+                   placeholder="e.g. Yara Ghana, Star Chemicals"
+                   class="w-full rounded-xl border px-3.5 py-2.5 bg-black/40 text-xs sm:text-sm text-white placeholder-gray-500 outline-none focus:border-sky-400"
+                   style="border-color: rgba(255,255,255,0.12);">
+          </div>
+
+          <!-- Waybill # -->
+          <div class="space-y-1">
+            <label class="text-[11px] font-bold uppercase tracking-wider text-gray-300">Waybill / Invoice #</label>
+            <input type="text"
+                   [(ngModel)]="stockWaybillNumber"
+                   placeholder="e.g. WB-9024"
+                   class="w-full rounded-xl border px-3.5 py-2.5 bg-black/40 text-xs sm:text-sm text-white placeholder-gray-500 outline-none focus:border-sky-400 font-mono"
+                   style="border-color: rgba(255,255,255,0.12);">
+          </div>
+
+          <!-- Photo of Waybill / Delivery Slip (Camera + File options) -->
+          <div class="sm:col-span-2 space-y-1.5">
+            <label class="text-[11px] font-bold uppercase tracking-wider text-gray-300 flex items-center justify-between">
+              <span>Delivery Slip / Waybill Photo (Optional)</span>
+              <span class="text-[10px] text-gray-400 font-normal">Camera or Gallery</span>
+            </label>
+
+            @if (stockImageUrl()) {
+              <div class="relative rounded-xl overflow-hidden border border-white/20 bg-black/50">
+                <img [src]="stockImageUrl()" class="w-full h-36 object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-between p-3">
+                  <span class="text-xs text-green-400 font-medium flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Waybill Photo Attached
+                  </span>
+                  <div class="flex items-center gap-1.5">
+                    <button (click)="triggerStockCameraInput()"
+                            type="button"
+                            class="px-2.5 py-1 rounded-lg bg-black/80 text-sky-300 text-xs font-semibold hover:bg-black border border-sky-500/30">
+                      Retake
+                    </button>
+                    <button (click)="stockImageUrl.set(null)"
+                            type="button"
+                            class="px-2.5 py-1 rounded-lg bg-black/80 text-red-400 text-xs font-semibold hover:bg-black border border-red-500/30">
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            } @else {
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <!-- Direct Camera Button -->
+                <button (click)="triggerStockCameraInput()"
+                        type="button"
+                        [disabled]="uploadingImage()"
+                        class="p-3.5 rounded-xl border border-dashed flex items-center justify-center gap-2.5 transition-all hover:bg-sky-500/10 active:scale-95 group text-left"
+                        style="border-color: rgba(56,189,248,0.4); background: rgba(2,132,199,0.06);">
+                  <div class="w-9 h-9 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="text-xs font-bold text-sky-300">Take Photo (Camera)</div>
+                    <div class="text-[10px] text-gray-400">Snap waybill directly with phone camera</div>
+                  </div>
+                </button>
+
+                <!-- Gallery / File Upload Button -->
+                <button (click)="triggerStockFileInput()"
+                        type="button"
+                        [disabled]="uploadingImage()"
+                        class="p-3.5 rounded-xl border border-dashed flex items-center justify-center gap-2.5 transition-all hover:bg-white/5 active:scale-95 group text-left"
+                        style="border-color: rgba(255,255,255,0.18); background: rgba(255,255,255,0.03);">
+                  <div class="w-9 h-9 rounded-lg bg-white/10 text-gray-300 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="text-xs font-bold text-gray-200">Upload File / Gallery</div>
+                    <div class="text-[10px] text-gray-400">Select image from device storage</div>
+                  </div>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- 2. Delivered Items (Batch Rows) -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center gap-2">
+              <span>Items in this Delivery</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/20 text-sky-300">
+                {{ stockItems().length }} Item(s)
+              </span>
+            </label>
+            <button (click)="addStockItemRow()"
+                    type="button"
+                    class="px-2.5 py-1 rounded-lg text-xs font-bold text-sky-400 hover:text-white hover:bg-sky-500/20 transition-all flex items-center gap-1 border border-sky-500/30">
+              <span>+ Add Item</span>
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            @for (item of stockItems(); track $index) {
+              <div class="p-3.5 rounded-xl border relative transition-all"
+                   style="background: rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.08);">
+                
+                <div class="flex items-center justify-between gap-2 mb-2.5">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-sky-400">#{{ $index + 1 }}</span>
+                    <!-- Retail / Wholesale pills -->
+                    <div class="inline-flex rounded-lg p-0.5 bg-black/60 border border-white/10 text-[10px] font-bold">
+                      <button type="button"
+                              (click)="onItemTypeChange($index, 'retail')"
+                              class="px-2 py-0.5 rounded-md transition-colors"
+                              [class.bg-sky-600]="item.inventory_type === 'retail'"
+                              [class.text-white]="item.inventory_type === 'retail'"
+                              [class.text-gray-400]="item.inventory_type !== 'retail'">
+                        Retail
+                      </button>
+                      <button type="button"
+                              (click)="onItemTypeChange($index, 'wholesale')"
+                              class="px-2 py-0.5 rounded-md transition-colors"
+                              [class.bg-purple-600]="item.inventory_type === 'wholesale'"
+                              [class.text-white]="item.inventory_type === 'wholesale'"
+                              [class.text-gray-400]="item.inventory_type !== 'wholesale'">
+                        Wholesale
+                      </button>
+                    </div>
+                  </div>
+
+                  @if (stockItems().length > 1) {
+                    <button (click)="removeStockItemRow($index)"
+                            type="button"
+                            title="Remove this item"
+                            class="p-1 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/20 transition-colors">
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                      </svg>
+                    </button>
+                  }
+                </div>
+
+                @if (!item.is_new_product) {
+                  <!-- Existing Product Searchable Autocomplete -->
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    
+                    @if (!item.id) {
+                      <!-- Search Input & Autocomplete Dropdown -->
+                      <div class="sm:col-span-2 space-y-1 relative">
+                        <label class="text-[10px] uppercase font-bold text-gray-300 flex items-center justify-between">
+                          <span>Search Product ({{ item.inventory_type }})</span>
+                          <span class="text-[9px] text-gray-400 font-normal">Type to filter</span>
+                        </label>
+                        <div class="relative">
+                          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                          </div>
+                          <input type="text"
+                                 [(ngModel)]="item.search_query"
+                                 (focus)="onProductSearchFocus($index)"
+                                 (click)="onProductSearchFocus($index)"
+                                 (blur)="onProductSearchBlur($index)"
+                                 placeholder="Type product name (e.g. NPK, Urea, Weedicide)..."
+                                 class="w-full rounded-xl border pl-9 pr-7 py-2.5 bg-black/60 text-xs text-white placeholder-gray-500 outline-none focus:border-sky-400"
+                                 style="border-color: rgba(255,255,255,0.14);">
+                          @if (item.search_query) {
+                            <button (click)="item.search_query = ''; onProductSearchFocus($index)"
+                                    type="button"
+                                    class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-400 hover:text-white">
+                              ✕
+                            </button>
+                          }
+                        </div>
+
+                        <!-- Floating Real-Time Filtered Results -->
+                        @if (item.dropdown_open) {
+                          <div class="absolute left-0 right-0 top-full mt-1 z-30 max-h-56 overflow-y-auto rounded-xl border shadow-2xl backdrop-blur-xl divide-y divide-white/5 custom-scrollbar"
+                               style="background: rgba(10,21,10,0.98); border-color: rgba(56,189,248,0.4);">
+                            @for (p of filterProducts(item); track p.id) {
+                              <div (mousedown)="selectProduct($index, p)"
+                                   class="p-2.5 cursor-pointer hover:bg-sky-500/20 transition-colors flex items-center justify-between gap-3">
+                                <div class="min-w-0">
+                                  <div class="text-xs font-bold text-white truncate">{{ p.name }}</div>
+                                  <div class="text-[10px] text-gray-400 flex items-center gap-2 mt-0.5">
+                                    <span class="px-1.5 py-0.2 rounded text-[9px] bg-white/10 text-gray-300">{{ p.category || 'General' }}</span>
+                                    <span>Stock: <strong class="text-gray-200">{{ p.quantity }} {{ p.base_unit || 'pcs' }}</strong></span>
+                                  </div>
+                                </div>
+                                <div class="text-right shrink-0 text-[10px]">
+                                  <div class="text-emerald-400 font-mono font-medium">Sell: GH₵{{ p.sell_price | number:'1.2-2' }}</div>
+                                  <div class="text-gray-400 font-mono">Cost: GH₵{{ p.cost_price | number:'1.2-2' }}</div>
+                                </div>
+                              </div>
+                            } @empty {
+                              <div class="p-3.5 text-center text-xs text-gray-400">
+                                No products found for "{{ item.search_query }}"
+                                <div class="mt-1">
+                                  <button (mousedown)="toggleNewProduct($index)"
+                                          type="button"
+                                          class="text-amber-400 hover:underline font-bold text-[11px]">
+                                    + Add as new product instead
+                                  </button>
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        }
+                      </div>
+                    } @else {
+                      <!-- Selected Product Badge with Change Action -->
+                      <div class="sm:col-span-2 p-2.5 rounded-xl border flex items-center justify-between gap-3"
+                           style="background: rgba(56,189,248,0.08); border-color: rgba(56,189,248,0.3);">
+                        <div class="min-w-0">
+                          <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-white truncate">{{ item.name }}</span>
+                            <span class="px-1.5 py-0.2 rounded text-[9px] bg-sky-500/20 text-sky-300 font-semibold uppercase">{{ item.category }}</span>
+                          </div>
+                          <div class="text-[10px] text-gray-300 mt-0.5 flex items-center gap-2">
+                            <span>Current: <strong class="text-white">{{ item.current_stock }} {{ item.base_unit }}</strong></span>
+                            <span>➔ Becomes: <strong class="text-green-400 font-bold">{{ (item.current_stock || 0) + (item.quantity || 0) }} {{ item.base_unit }}</strong></span>
+                          </div>
+                        </div>
+                        <button (click)="clearProductSelection($index)"
+                                type="button"
+                                class="px-2.5 py-1 rounded-lg bg-black/60 text-sky-300 hover:text-white hover:bg-sky-500/30 text-xs font-semibold border border-sky-500/30 shrink-0">
+                          Change
+                        </button>
+                      </div>
+                    }
+
+                    <!-- Quantity Input -->
+                    <div class="space-y-1">
+                      <label class="text-[10px] uppercase font-bold text-gray-300">Qty Delivered *</label>
+                      <input type="number"
+                             [(ngModel)]="item.quantity"
+                             min="1"
+                             placeholder="Qty"
+                             class="w-full rounded-xl border p-2.5 bg-black/60 text-xs font-bold text-green-400 outline-none focus:border-sky-400"
+                             style="border-color: rgba(255,255,255,0.14);">
+                    </div>
+                  </div>
+
+                  <!-- Price Infusion (Cost & Selling Price adjustment for existing product) -->
+                  @if (item.id) {
+                    <div class="mt-2.5 pt-2 border-t border-white/5">
+                      <div class="flex items-center justify-between mb-1.5">
+                        <button type="button"
+                                (click)="toggleItemPriceInputs($index)"
+                                class="text-[11px] font-semibold text-gray-300 hover:text-white flex items-center gap-1.5">
+                          <svg class="w-3.5 h-3.5 text-amber-400 transition-transform" [class.rotate-90]="item.show_price_inputs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                          </svg>
+                          <span>Price changed on this batch? (Cost / Sell)</span>
+                          @if (isPriceModified(item)) {
+                            <span class="px-1.5 py-0.2 rounded-full text-[9px] bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+                              Price Updated
+                            </span>
+                          }
+                        </button>
+                        @if (!item.show_price_inputs && !isPriceModified(item)) {
+                          <span class="text-[10px] text-gray-400 font-mono">
+                            Cost: GH₵{{ (item.previous_cost_price || 0) | number:'1.2-2' }} • Sell: GH₵{{ (item.previous_sell_price || 0) | number:'1.2-2' }}
+                          </span>
+                        }
+                      </div>
+
+                      @if (item.show_price_inputs || isPriceModified(item)) {
+                        <div class="p-2.5 rounded-xl border space-y-2 mt-1.5"
+                             style="background: rgba(245,158,11,0.05); border-color: rgba(245,158,11,0.25);">
+                          <div class="grid grid-cols-2 gap-2.5">
+                            <div class="space-y-0.5">
+                              <label class="text-[10px] text-gray-300 font-bold uppercase flex items-center justify-between">
+                                <span>Cost Price (GH₵)</span>
+                                @if (item.previous_cost_price != null) {
+                                  <span class="text-[9px] text-gray-400 font-normal">was {{ item.previous_cost_price | number:'1.2-2' }}</span>
+                                }
+                              </label>
+                              <input type="number"
+                                     [(ngModel)]="item.cost_price"
+                                     step="0.01"
+                                     placeholder="0.00"
+                                     class="w-full rounded-lg border p-1.5 bg-black/60 text-xs text-white outline-none focus:border-amber-400"
+                                     [class.border-amber-400]="item.cost_price !== item.previous_cost_price"
+                                     style="border-color: rgba(255,255,255,0.12);">
+                            </div>
+                            <div class="space-y-0.5">
+                              <label class="text-[10px] text-gray-300 font-bold uppercase flex items-center justify-between">
+                                <span>Selling Price (GH₵)</span>
+                                @if (item.previous_sell_price != null) {
+                                  <span class="text-[9px] text-gray-400 font-normal">was {{ item.previous_sell_price | number:'1.2-2' }}</span>
+                                }
+                              </label>
+                              <input type="number"
+                                     [(ngModel)]="item.sell_price"
+                                     step="0.01"
+                                     placeholder="0.00"
+                                     class="w-full rounded-lg border p-1.5 bg-black/60 text-xs text-white outline-none focus:border-amber-400"
+                                     [class.border-amber-400]="item.sell_price !== item.previous_sell_price"
+                                     style="border-color: rgba(255,255,255,0.12);">
+                            </div>
+                          </div>
+                          @if (isPriceModified(item)) {
+                            <div class="text-[10px] text-amber-300 flex items-center gap-1 font-medium">
+                              <span>⚡</span>
+                              <span>Unit prices will update in inventory upon admin approval.</span>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+
+                  <div class="mt-2 flex items-center justify-between text-[11px]">
+                    <span class="text-gray-500">Not the item you received?</span>
+                    <button (click)="toggleNewProduct($index)"
+                            type="button"
+                            class="text-sky-400 hover:text-sky-300 underline font-medium">
+                      + Brand new product (not in inventory)
+                    </button>
+                  </div>
+                } @else {
+                  <!-- New Product Form -->
+                  <div class="p-3 rounded-xl border space-y-3"
+                       style="background: rgba(245,158,11,0.06); border-color: rgba(245,158,11,0.25);">
+                    <div class="flex items-center justify-between">
+                      <span class="text-[11px] font-bold uppercase tracking-wider text-amber-300">
+                        New Product Proposal ({{ item.inventory_type }})
+                      </span>
+                      <button (click)="toggleNewProduct($index)"
+                              type="button"
+                              class="text-[11px] text-gray-400 hover:text-white underline">
+                        ← Pick Existing Product Instead
+                      </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div class="space-y-0.5">
+                        <label class="text-[10px] text-gray-400 font-bold uppercase">Product Name *</label>
+                        <input type="text"
+                               [(ngModel)]="item.name"
+                               placeholder="e.g. Herbicide Power 1L"
+                               class="w-full rounded-xl border p-2 bg-black/60 text-xs text-white outline-none focus:border-amber-400"
+                               style="border-color: rgba(255,255,255,0.12);">
+                      </div>
+
+                      <div class="grid grid-cols-2 gap-2">
+                        <div class="space-y-0.5">
+                          <label class="text-[10px] text-gray-400 font-bold uppercase">Unit</label>
+                          <input type="text"
+                                 [(ngModel)]="item.base_unit"
+                                 placeholder="bags, bottles"
+                                 class="w-full rounded-xl border p-2 bg-black/60 text-xs text-white outline-none"
+                                 style="border-color: rgba(255,255,255,0.12);">
+                        </div>
+                        <div class="space-y-0.5">
+                          <label class="text-[10px] text-gray-400 font-bold uppercase">Qty *</label>
+                          <input type="number"
+                                 [(ngModel)]="item.quantity"
+                                 min="1"
+                                 class="w-full rounded-xl border p-2 bg-black/60 text-xs font-bold text-green-400 outline-none"
+                                 style="border-color: rgba(255,255,255,0.12);">
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Cost & Selling Price for New Product -->
+                    <div class="grid grid-cols-2 gap-2.5 pt-2 border-t border-amber-500/20">
+                      <div class="space-y-0.5">
+                        <label class="text-[10px] text-gray-300 font-bold uppercase">Cost Price (GH₵)</label>
+                        <input type="number"
+                               [(ngModel)]="item.cost_price"
+                               step="0.01"
+                               placeholder="0.00"
+                               class="w-full rounded-xl border p-2 bg-black/60 text-xs text-white outline-none focus:border-amber-400"
+                               style="border-color: rgba(255,255,255,0.12);">
+                      </div>
+                      <div class="space-y-0.5">
+                        <label class="text-[10px] text-gray-300 font-bold uppercase">Selling Price (GH₵) *</label>
+                        <input type="number"
+                               [(ngModel)]="item.sell_price"
+                               step="0.01"
+                               placeholder="0.00"
+                               class="w-full rounded-xl border p-2 bg-black/60 text-xs text-white outline-none focus:border-amber-400"
+                               style="border-color: rgba(255,255,255,0.12);">
+                      </div>
+                    </div>
+                  </div>
+                }
+
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- 3. Notes -->
+        <div class="space-y-1">
+          <label class="text-[11px] font-bold uppercase tracking-wider text-gray-300">Driver / Condition Notes (Optional)</label>
+          <textarea [(ngModel)]="stockNote"
+                    rows="2"
+                    placeholder="e.g. Delivered in good condition; driver signed waybill."
+                    class="w-full rounded-xl border p-3 bg-black/40 text-xs sm:text-sm text-gray-100 placeholder-gray-500 outline-none"
+                    style="border-color: rgba(255,255,255,0.12);"></textarea>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-5 sm:p-6 border-t flex items-center justify-between shrink-0"
+           style="border-color: rgba(255,255,255,0.08); background: rgba(0,0,0,0.3);">
+        <button (click)="closeStockIntakeModal()"
+                type="button"
+                class="px-4 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white transition-colors">
+          Cancel
+        </button>
+
+        <button (click)="submitStockIntakeReport()"
+                type="button"
+                [disabled]="submittingStockIntake() || uploadingImage() || stockItems().length === 0"
+                class="px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-40 disabled:hover:scale-100 hover:scale-105 active:scale-95 shadow-lg flex items-center gap-2"
+                style="background: linear-gradient(135deg, #0284c7, #0369a1); color: white;">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+          </svg>
+          <span>{{ submittingStockIntake() ? 'Submitting...' : 'Send Delivery to Admin' }}</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- ─── Admin Stock Review & Approval Modal ────────────────────────────────── -->
+@if (showApproveStockModal()) {
+  <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm"
+       (click)="closeApproveModal()">
+    <div class="relative w-full max-w-xl rounded-t-3xl sm:rounded-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[90vh] safe-bottom"
+         style="background: #091309; border-color: rgba(74,222,128,0.4);"
+         (click)="$event.stopPropagation()">
+      
+      <!-- Modal Header -->
+      <div class="p-5 border-b shrink-0 flex items-center justify-between"
+           style="border-color: rgba(255,255,255,0.08); background: rgba(22,163,74,0.12);">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+               style="background: rgba(74,222,128,0.2); color: #4ade80;">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">Approve & Add Stock to Inventory</h3>
+            <p class="text-xs text-gray-400">Confirm items and quantities to update the database</p>
+          </div>
+        </div>
+        <button (click)="closeApproveModal()" class="text-gray-400 hover:text-white p-1">✕</button>
+      </div>
+
+      <!-- Items Review List -->
+      <div class="p-5 overflow-y-auto space-y-3 custom-scrollbar">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+          Items to Restock ({{ adminReviewItems().length }})
+        </div>
+
+        @for (item of adminReviewItems(); track $index) {
+          <div class="p-3.5 rounded-xl border space-y-2 bg-black/40 border-white/10">
+            <div class="flex items-center justify-between gap-3">
+              <div class="min-w-0">
+                <span class="font-bold text-white text-sm block truncate">{{ item.name }}</span>
+                <span class="text-[10px] text-gray-400 uppercase tracking-wider">
+                  {{ item.inventory_type }} • {{ item.is_new_product ? 'NEW PRODUCT' : 'EXISTING PRODUCT' }}
+                </span>
+              </div>
+
+              <!-- Quantity adjustment if admin noticed difference -->
+              <div class="flex items-center gap-1.5 shrink-0">
+                <span class="text-xs text-gray-400">Qty:</span>
+                <input type="number"
+                       [(ngModel)]="item.quantity"
+                       min="1"
+                       class="w-20 rounded-lg border px-2 py-1 text-center font-bold text-sm bg-black/70 text-green-400 outline-none border-green-500/40">
+                <span class="text-xs text-gray-400">{{ item.base_unit || 'pcs' }}</span>
+              </div>
+            </div>
+
+            <!-- Cost & Sell price review/adjustment for inventory -->
+            <div class="pt-2 border-t border-white/5 grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <label class="text-[10px] text-gray-400 block flex items-center justify-between">
+                  <span>Cost Price (GH₵)</span>
+                  @if (item.previous_cost_price != null && item.cost_price !== item.previous_cost_price) {
+                    <span class="text-amber-400 font-mono text-[9px]">was {{ item.previous_cost_price | number:'1.2-2' }}</span>
+                  }
+                </label>
+                <input type="number"
+                       [(ngModel)]="item.cost_price"
+                       step="0.01"
+                       placeholder="0.00"
+                       class="w-full rounded-lg border p-1.5 bg-black/60 text-white outline-none focus:border-green-400"
+                       [class.border-amber-400]="item.previous_cost_price != null && item.cost_price !== item.previous_cost_price"
+                       [class.border-white-10]="!item.previous_cost_price || item.cost_price === item.previous_cost_price"
+                       style="border-color: rgba(255,255,255,0.12);">
+              </div>
+              <div>
+                <label class="text-[10px] text-gray-400 block flex items-center justify-between">
+                  <span>Sell Price (GH₵)</span>
+                  @if (item.previous_sell_price != null && item.sell_price !== item.previous_sell_price) {
+                    <span class="text-amber-400 font-mono text-[9px]">was {{ item.previous_sell_price | number:'1.2-2' }}</span>
+                  }
+                </label>
+                <input type="number"
+                       [(ngModel)]="item.sell_price"
+                       step="0.01"
+                       placeholder="0.00"
+                       class="w-full rounded-lg border p-1.5 bg-black/60 text-white outline-none focus:border-green-400"
+                       [class.border-amber-400]="item.previous_sell_price != null && item.sell_price !== item.previous_sell_price"
+                       [class.border-white-10]="!item.previous_sell_price || item.sell_price === item.previous_sell_price"
+                       style="border-color: rgba(255,255,255,0.12);">
+              </div>
+            </div>
+
+            @if ((item.cost_price != null && item.previous_cost_price != null && item.cost_price !== item.previous_cost_price) || (item.sell_price != null && item.previous_sell_price != null && item.sell_price !== item.previous_sell_price)) {
+              <div class="text-[10px] text-amber-300 flex items-center gap-1 font-medium bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20">
+                <span>⚡</span>
+                <span>Price update will be applied to this product in inventory upon confirmation.</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-5 border-t flex items-center justify-end gap-3 shrink-0"
+           style="border-color: rgba(255,255,255,0.08); background: rgba(0,0,0,0.3);">
+        <button (click)="closeApproveModal()"
+                type="button"
+                class="px-4 py-2 rounded-xl text-xs font-medium text-gray-400 hover:text-white transition-colors">
+          Cancel
+        </button>
+        <button (click)="confirmApproveStock()"
+                type="button"
+                [disabled]="approvingStock()"
+                class="px-6 py-2.5 rounded-xl text-xs font-bold text-white shadow-lg transition-all disabled:opacity-50 hover:scale-105 active:scale-95 flex items-center gap-2"
+                style="background: linear-gradient(135deg, #16a34a, #15803d);">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+          </svg>
+          <span>{{ approvingStock() ? 'Updating Inventory...' : 'Confirm & Add to Stock' }}</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- ─── Admin Stock Rejection Modal ────────────────────────────────────────── -->
+@if (showRejectModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm"
+       (click)="closeRejectModal()">
+    <div class="w-full max-w-sm rounded-2xl border p-5 space-y-4 shadow-2xl animate-scale-in"
+         style="background: #0d1a0d; border-color: rgba(239,68,68,0.4);"
+         (click)="$event.stopPropagation()">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-red-400 bg-red-500/15 border border-red-500/30 shrink-0">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white">Reject Delivery Report?</h3>
+          <p class="text-xs text-gray-400 mt-0.5">Inventory will not be modified. State a reason for the worker.</p>
+        </div>
+      </div>
+
+      <div class="space-y-1">
+        <label class="text-[10px] text-gray-400 font-bold uppercase">Rejection Reason</label>
+        <textarea [(ngModel)]="rejectionReason"
+                  rows="2"
+                  placeholder="e.g. Wrong items sent / supplier return"
+                  class="w-full rounded-xl border p-2.5 bg-black/50 text-xs text-white placeholder-gray-500 outline-none focus:border-red-400"
+                  style="border-color: rgba(255,255,255,0.12);"></textarea>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-white/5">
+        <button (click)="closeRejectModal()"
+                type="button"
+                class="px-3.5 py-2 rounded-xl text-xs font-medium text-gray-400 hover:text-white transition-colors">
+          Cancel
+        </button>
+        <button (click)="confirmRejectStock()"
+                type="button"
+                [disabled]="rejectingStock()"
+                class="px-4 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-500 text-white transition-all disabled:opacity-50">
+          {{ rejectingStock() ? 'Rejecting...' : 'Reject Delivery' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
