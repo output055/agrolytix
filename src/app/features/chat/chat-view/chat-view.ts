@@ -121,6 +121,28 @@ export class ChatView implements OnInit, AfterViewChecked {
   // Mobile sidebar visibility toggle
   showMobileSidebar = signal(false);
 
+  // SMS Alerts Management Modal State (HQ Admin only)
+  showSmsModal = signal(false);
+  loadingSmsSettings = signal(false);
+  savingSmsSettings = signal(false);
+  checkingSmsBalance = signal(false);
+  triggeringSmsAction = signal(false);
+  smsBalanceInfo = signal<any>(null);
+  smsForm = {
+    arkesel_api_key: '',
+    sender_id: 'Agrolytix',
+    enabled: true,
+    alert_stock_intake: true,
+    alert_cash_declaration: true,
+    alert_cash_balanced: true,
+    alert_cash_imbalance: true,
+    alert_price_change: true,
+    alert_missing_cash: true,
+    alert_daily_summary: true,
+    alert_low_balance: true,
+    low_balance_threshold: 10,
+  };
+
   // Touch devices: which message has its action menu revealed (tap-to-show)
   activeActionsMsgId = signal<string | null>(null);
 
@@ -1054,8 +1076,17 @@ export class ChatView implements OnInit, AfterViewChecked {
         })),
       });
 
+      const hasPriceChanges = items.some((it) => this.isPriceModified(it) || it.is_new_product);
+
       this.toast.success('Stock intake submitted! Admin notified for inventory approval.');
       this.closeStockIntakeModal();
+
+      // Trigger SMS alert asynchronously
+      this.chatService.notifySms('stock_intake', {
+        items_count: items.length,
+        supplier: this.stockSupplierName() || undefined,
+        has_price_changes: hasPriceChanges,
+      }).catch((err) => console.warn('SMS stock intake dispatch notice:', err));
     } catch (e: any) {
       this.toast.error(e.message || 'Failed to submit delivery report');
     } finally {
@@ -1160,6 +1191,13 @@ export class ChatView implements OnInit, AfterViewChecked {
       this.toast.success('Stock successfully added to inventory!');
       this.closeApproveModal();
       this.cdr.markForCheck();
+
+      // Trigger SMS notification for approval
+      this.chatService.notifySms('stock_approved', {
+        business_id: msg.meta?.business_id || msg.sender_business_id,
+        business_name: msg.meta?.business_name || msg.sender_business_name,
+        submitted_by_phone: (msg.meta as any)?.submitted_by_phone,
+      }).catch((err) => console.warn('SMS stock approved notice error:', err));
     } catch (e: any) {
       this.toast.error(e.error?.message || e.message || 'Failed to approve and restock items');
     } finally {
@@ -1203,10 +1241,123 @@ export class ChatView implements OnInit, AfterViewChecked {
       this.toast.info('Delivery report marked as rejected');
       this.closeRejectModal();
       this.cdr.markForCheck();
+
+      // Trigger SMS notification for rejection
+      this.chatService.notifySms('stock_rejected', {
+        business_id: msg.meta?.business_id || msg.sender_business_id,
+        business_name: msg.meta?.business_name || msg.sender_business_name,
+        reason: this.rejectionReason().trim() || undefined,
+      }).catch((err) => console.warn('SMS stock rejected notice error:', err));
     } catch (e: any) {
       this.toast.error(e.message || 'Failed to reject stock delivery');
     } finally {
       this.rejectingStock.set(false);
+    }
+  }
+
+  // ─── SMS Alert Configuration Handlers (HQ Admin only) ──────────────────────
+
+  async openSmsModal() {
+    this.showSmsModal.set(true);
+    this.loadingSmsSettings.set(true);
+    this.cdr.markForCheck();
+
+    try {
+      const data = await this.chatService.getSmsSettings();
+      if (data) {
+        this.smsForm = {
+          arkesel_api_key: data.arkesel_api_key || '',
+          sender_id: data.sender_id || 'Agrolytix',
+          enabled: data.enabled ?? true,
+          alert_stock_intake: data.alert_stock_intake ?? true,
+          alert_cash_declaration: data.alert_cash_declaration ?? true,
+          alert_cash_balanced: data.alert_cash_balanced ?? true,
+          alert_cash_imbalance: data.alert_cash_imbalance ?? true,
+          alert_price_change: data.alert_price_change ?? true,
+          alert_missing_cash: data.alert_missing_cash ?? true,
+          alert_daily_summary: data.alert_daily_summary ?? true,
+          alert_low_balance: data.alert_low_balance ?? true,
+          low_balance_threshold: data.low_balance_threshold ?? 10,
+        };
+      }
+      // Check live balance if key is present
+      if (this.smsForm.arkesel_api_key) {
+        this.fetchSmsBalance();
+      }
+    } catch (err: any) {
+      console.warn('Could not load SMS settings:', err);
+    } finally {
+      this.loadingSmsSettings.set(false);
+      this.cdr.markForCheck();
+    }
+  }
+
+  closeSmsModal() {
+    this.showSmsModal.set(false);
+  }
+
+  async fetchSmsBalance() {
+    this.checkingSmsBalance.set(true);
+    try {
+      const res: any = await this.chatService.getArkeselBalance();
+      if (res && res.data) {
+        this.smsBalanceInfo.set(res.data);
+      } else {
+        this.smsBalanceInfo.set(null);
+      }
+    } catch {
+      this.smsBalanceInfo.set(null);
+    } finally {
+      this.checkingSmsBalance.set(false);
+      this.cdr.markForCheck();
+    }
+  }
+
+  async saveSmsSettings() {
+    this.savingSmsSettings.set(true);
+    try {
+      await this.chatService.saveSmsSettings(this.smsForm);
+      this.toast.success('SMS alert settings saved successfully!');
+      this.closeSmsModal();
+    } catch (e: any) {
+      this.toast.error(e.message || 'Failed to save SMS settings');
+    } finally {
+      this.savingSmsSettings.set(false);
+      this.cdr.markForCheck();
+    }
+  }
+
+  async testTriggerMissingCashCheck() {
+    this.triggeringSmsAction.set(true);
+    try {
+      const res: any = await this.chatService.checkMissingCash();
+      if (res.missing_count === 0) {
+        this.toast.info('All branches have declared cash today!');
+      } else {
+        this.toast.success(`Sent missing-cash reminder for ${res.missing_count} branch(es)!`);
+      }
+    } catch (e: any) {
+      this.toast.error(e.error?.message || e.message || 'Missing cash check failed');
+    } finally {
+      this.triggeringSmsAction.set(false);
+      this.cdr.markForCheck();
+    }
+  }
+
+  async testTriggerDailySummary() {
+    this.triggeringSmsAction.set(true);
+    try {
+      const res: any = await this.chatService.triggerDailySummary();
+      if (res.success) {
+        this.toast.success('Daily summary SMS dispatched to HQ Admins!');
+      } else {
+        this.toast.info(res.message || 'Daily summary SMS not sent');
+      }
+    } catch (e: any) {
+      this.toast.error(e.error?.message || e.message || 'Daily summary dispatch failed');
+    } finally {
+      this.triggeringSmsAction.set(false);
+      this.cdr.markForCheck();
     }
   }
 }

@@ -706,4 +706,127 @@ export class ChatService {
     const id = businessId || user?.business?.id || user?.business_id || this.profile()?.businessId || 0;
     return `recon:${id}`;
   }
+
+  // ─── SMS Management & Trigger Methods ──────────────────────────────────────
+
+  /**
+   * Get SMS Alert Settings for the organization
+   */
+  async getSmsSettings(): Promise<any> {
+    try {
+      const client = await this.getClient();
+      const prof = this.profile();
+      if (!prof) return null;
+      const { data } = await client
+        .from('chat_sms_settings')
+        .select('*')
+        .eq('org_id', prof.orgId)
+        .single();
+      return data;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Update or create SMS Alert Settings for organization (HQ Admin only)
+   */
+  async saveSmsSettings(settings: any): Promise<void> {
+    const client = await this.getClient();
+    const prof = this.profile();
+    if (!prof) throw new Error('Not logged into chat');
+
+    const { error } = await client
+      .from('chat_sms_settings')
+      .upsert({
+        ...settings,
+        org_id: prof.orgId,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'org_id' });
+
+    if (error) throw new Error(error.message || 'Failed to save SMS settings');
+  }
+
+  /**
+   * Check live Arkesel SMS credit balance
+   */
+  async getArkeselBalance(): Promise<any> {
+    const token = localStorage.getItem('auth_token') || '';
+    return firstValueFrom(
+      this.http.post(
+        `${this.functionsUrl}/agx-chat/arkesel-balance`,
+        {},
+        {
+          headers: {
+            'apikey': this.supabaseAnonKey,
+            'Authorization': `Bearer ${this.supabaseAnonKey}`,
+            'x-agx-token': token,
+          },
+        }
+      )
+    );
+  }
+
+  /**
+   * Programmatically dispatch an SMS event through the Edge Function
+   */
+  async notifySms(event: string, details: any): Promise<any> {
+    const token = localStorage.getItem('auth_token') || '';
+    if (!token) return;
+
+    return firstValueFrom(
+      this.http.post(
+        `${this.functionsUrl}/agx-chat/send-sms`,
+        { event, details },
+        {
+          headers: {
+            'apikey': this.supabaseAnonKey,
+            'Authorization': `Bearer ${this.supabaseAnonKey}`,
+            'x-agx-token': token,
+          },
+        }
+      )
+    );
+  }
+
+  /**
+   * Trigger missing cash check
+   */
+  async checkMissingCash(): Promise<any> {
+    const token = localStorage.getItem('auth_token') || '';
+    return firstValueFrom(
+      this.http.post(
+        `${this.functionsUrl}/agx-chat/check-missing-cash`,
+        {},
+        {
+          headers: {
+            'apikey': this.supabaseAnonKey,
+            'Authorization': `Bearer ${this.supabaseAnonKey}`,
+            'x-agx-token': token,
+          },
+        }
+      )
+    );
+  }
+
+  /**
+   * Trigger nightly summary
+   */
+  async triggerDailySummary(): Promise<any> {
+    const token = localStorage.getItem('auth_token') || '';
+    return firstValueFrom(
+      this.http.post(
+        `${this.functionsUrl}/agx-chat/daily-summary`,
+        {},
+        {
+          headers: {
+            'apikey': this.supabaseAnonKey,
+            'Authorization': `Bearer ${this.supabaseAnonKey}`,
+            'x-agx-token': token,
+          },
+        }
+      )
+    );
+  }
 }
+

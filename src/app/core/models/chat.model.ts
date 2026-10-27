@@ -144,3 +144,33 @@ export interface DeclareCashPayload {
   note?: string;
   image_url?: string;
 }
+
+export interface ChatSmsSettings {
+  org_id: number;
+  arkesel_api_key?: string | null;
+  sender_id?: string | null;
+  enabled: boolean;
+  alert_stock_intake: boolean;
+  alert_cash_declaration: boolean;
+  alert_cash_balanced: boolean;
+  alert_cash_imbalance: boolean;
+  alert_price_change: boolean;
+  alert_missing_cash: boolean;
+  alert_daily_summary: boolean;
+  alert_low_balance: boolean;
+  low_balance_threshold: number;
+  last_low_balance_alert_at?: string | null;
+}
+
+export interface ChatSmsLog {
+  id: string;
+  org_id: number;
+  event_type: string;
+  recipients: string[];
+  message: string;
+  status: 'success' | 'failed' | 'skipped';
+  response?: any;
+  error_message?: string | null;
+  created_at: string;
+}
+

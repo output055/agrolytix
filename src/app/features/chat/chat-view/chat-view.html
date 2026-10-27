@@ -281,6 +281,20 @@
           </svg>
           <span class="hidden sm:inline">Cash</span>
         </button>
+
+        <!-- SMS Settings button (HQ Admin only) -->
+        @if (isHqAdmin()) {
+          <button (click)="openSmsModal()"
+                  title="Configure Arkesel SMS Alerts"
+                  class="p-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 shadow-md"
+                  style="background: linear-gradient(135deg, #d97706, #b45309); color: white;">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+            </svg>
+            <span class="hidden sm:inline">SMS Alerts</span>
+          </button>
+        }
       </div>
     </div>
 
@@ -1842,3 +1856,230 @@
     </div>
   </div>
 }
+
+<!-- ─── SMS Alert Configuration Modal (HQ Admin Only) ──────────────────────── -->
+@if (showSmsModal()) {
+  <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm"
+       (click)="closeSmsModal()">
+    <div class="relative w-full max-w-xl rounded-t-3xl sm:rounded-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[90vh] safe-bottom"
+         style="background: #091309; border-color: rgba(245,158,11,0.4);"
+         (click)="$event.stopPropagation()">
+
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 border-b flex items-center justify-between shrink-0"
+           style="border-color: rgba(255,255,255,0.08); background: rgba(0,0,0,0.3);">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-amber-400 bg-amber-500/15 border border-amber-500/30">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-sm sm:text-base font-bold text-gray-100 flex items-center gap-2">
+              <span>Arkesel SMS Notifications</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
+                    style="background: rgba(245,158,11,0.15); color: #fbbf24;">
+                HQ Live System
+              </span>
+            </h3>
+            <p class="text-xs text-gray-400">Automated SMS alerts for stock arrivals, cash declarations, and missing reconciliations</p>
+          </div>
+        </div>
+        <button (click)="closeSmsModal()"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
+          ✕
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 custom-scrollbar text-gray-300">
+
+        <!-- Live Credit Balance Card -->
+        <div class="p-4 rounded-xl border flex items-center justify-between"
+             style="background: rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.08);">
+          <div>
+            <div class="text-[10px] uppercase font-bold text-gray-400">Arkesel SMS Balance</div>
+            <div class="text-xl font-bold text-white mt-0.5 flex items-center gap-2">
+              @if (checkingSmsBalance()) {
+                <span class="text-sm text-gray-400 animate-pulse">Checking credit balance...</span>
+              } @else if (smsBalanceInfo()) {
+                <span class="text-green-400">{{ smsBalanceInfo().sms_balance ?? smsBalanceInfo().main_balance ?? 'Active' }} units</span>
+              } @else {
+                <span class="text-sm text-gray-400">Save API key to view balance</span>
+              }
+            </div>
+          </div>
+          <button (click)="fetchSmsBalance()"
+                  type="button"
+                  [disabled]="checkingSmsBalance() || !smsForm.arkesel_api_key"
+                  class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/5 hover:bg-white/10 text-gray-200 transition-colors border border-white/10 disabled:opacity-40">
+            Refresh
+          </button>
+        </div>
+
+        <!-- Master Switch -->
+        <div class="flex items-center justify-between p-3.5 rounded-xl border"
+             style="background: rgba(245,158,11,0.06); border-color: rgba(245,158,11,0.25);">
+          <div>
+            <div class="text-xs font-bold text-white">Enable Automated SMS Service</div>
+            <div class="text-[11px] text-gray-400">Master switch for all SMS notifications in the organization</div>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" [(ngModel)]="smsForm.enabled" class="sr-only peer">
+            <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+          </label>
+        </div>
+
+        <!-- Credentials Form -->
+        <div class="space-y-3">
+          <div class="text-xs font-bold text-gray-300 uppercase tracking-wider">Arkesel Account Credentials</div>
+          
+          <div class="space-y-1">
+            <label class="text-[11px] font-semibold text-gray-400">Arkesel API Key</label>
+            <input type="password"
+                   [(ngModel)]="smsForm.arkesel_api_key"
+                   placeholder="Enter your Arkesel API Key"
+                   class="w-full rounded-xl border px-3.5 py-2.5 bg-black/50 text-xs text-white placeholder-gray-500 outline-none focus:border-amber-400"
+                   style="border-color: rgba(255,255,255,0.12);">
+            <p class="text-[10px] text-gray-500">Found on your Arkesel dashboard under API Settings</p>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[11px] font-semibold text-gray-400">Sender ID (Max 11 Characters)</label>
+            <input type="text"
+                   maxlength="11"
+                   [(ngModel)]="smsForm.sender_id"
+                   placeholder="e.g. Agrolytix"
+                   class="w-full rounded-xl border px-3.5 py-2.5 bg-black/50 text-xs text-white placeholder-gray-500 outline-none focus:border-amber-400"
+                   style="border-color: rgba(255,255,255,0.12);">
+            <p class="text-[10px] text-gray-500">Must be an approved sender ID on your Arkesel account</p>
+          </div>
+        </div>
+
+        <!-- Alert Triggers Switches -->
+        <div class="space-y-3 pt-2 border-t border-white/5">
+          <div class="text-xs font-bold text-gray-300 uppercase tracking-wider">Automated Notification Triggers</div>
+
+          <div class="space-y-2">
+            <!-- Stock Arrival -->
+            <label class="flex items-center justify-between p-2.5 rounded-lg border hover:bg-white/5 transition-colors cursor-pointer"
+                   style="border-color: rgba(255,255,255,0.06);">
+              <div>
+                <div class="text-xs font-medium text-gray-200">Stock Arrival (Batch Intake)</div>
+                <div class="text-[10px] text-gray-400">Alerts HQ admins when a worker submits stock delivery awaiting approval</div>
+              </div>
+              <input type="checkbox" [(ngModel)]="smsForm.alert_stock_intake" class="w-4 h-4 accent-amber-500 rounded">
+            </label>
+
+            <!-- Price Change Alert -->
+            <label class="flex items-center justify-between p-2.5 rounded-lg border hover:bg-white/5 transition-colors cursor-pointer"
+                   style="border-color: rgba(255,255,255,0.06);">
+              <div>
+                <div class="text-xs font-medium text-gray-200">Delivery Price Changes</div>
+                <div class="text-[10px] text-gray-400">Highlights when worker modifies cost or selling prices on arrival</div>
+              </div>
+              <input type="checkbox" [(ngModel)]="smsForm.alert_price_change" class="w-4 h-4 accent-amber-500 rounded">
+            </label>
+
+            <!-- Cash Imbalance Alert (Shortage / Surplus) -->
+            <label class="flex items-center justify-between p-2.5 rounded-lg border hover:bg-white/5 transition-colors cursor-pointer"
+                   style="border-color: rgba(255,255,255,0.06);">
+              <div>
+                <div class="text-xs font-medium text-gray-200">Cash Discrepancy (Shortage / Surplus)</div>
+                <div class="text-[10px] text-gray-400">Instant alert to HQ admins and declaring worker when physical cash differs from system</div>
+              </div>
+              <input type="checkbox" [(ngModel)]="smsForm.alert_cash_imbalance" class="w-4 h-4 accent-amber-500 rounded">
+            </label>
+
+            <!-- Cash Balanced -->
+            <label class="flex items-center justify-between p-2.5 rounded-lg border hover:bg-white/5 transition-colors cursor-pointer"
+                   style="border-color: rgba(255,255,255,0.06);">
+              <div>
+                <div class="text-xs font-medium text-gray-200">Balanced Cash Declarations</div>
+                <div class="text-[10px] text-gray-400">Sends confirmation SMS to HQ and declaring worker when cash matches perfectly</div>
+              </div>
+              <input type="checkbox" [(ngModel)]="smsForm.alert_cash_balanced" class="w-4 h-4 accent-amber-500 rounded">
+            </label>
+
+            <!-- Missing Cash (Nightly Check) -->
+            <label class="flex items-center justify-between p-2.5 rounded-lg border hover:bg-white/5 transition-colors cursor-pointer"
+                   style="border-color: rgba(255,255,255,0.06);">
+              <div>
+                <div class="text-xs font-medium text-gray-200">Missing Cash Declaration Check (8:00 PM)</div>
+                <div class="text-[10px] text-gray-400">Alerts HQ admins and reminds workers of any branch that hasn't declared today's cash</div>
+              </div>
+              <input type="checkbox" [(ngModel)]="smsForm.alert_missing_cash" class="w-4 h-4 accent-amber-500 rounded">
+            </label>
+
+            <!-- Nightly Organization Summary -->
+            <label class="flex items-center justify-between p-2.5 rounded-lg border hover:bg-white/5 transition-colors cursor-pointer"
+                   style="border-color: rgba(255,255,255,0.06);">
+              <div>
+                <div class="text-xs font-medium text-gray-200">Nightly Reconciliation Summary (9:30 PM)</div>
+                <div class="text-[10px] text-gray-400">One comprehensive SMS summarizing total declared cash and variances across all branches</div>
+              </div>
+              <input type="checkbox" [(ngModel)]="smsForm.alert_daily_summary" class="w-4 h-4 accent-amber-500 rounded">
+            </label>
+
+            <!-- Low SMS Credit Warning -->
+            <label class="flex items-center justify-between p-2.5 rounded-lg border hover:bg-white/5 transition-colors cursor-pointer"
+                   style="border-color: rgba(255,255,255,0.06);">
+              <div>
+                <div class="text-xs font-medium text-gray-200">Low Arkesel Balance Warning</div>
+                <div class="text-[10px] text-gray-400">Alerts HQ admins when SMS credit drops below 10 units</div>
+              </div>
+              <input type="checkbox" [(ngModel)]="smsForm.alert_low_balance" class="w-4 h-4 accent-amber-500 rounded">
+            </label>
+          </div>
+        </div>
+
+        <!-- On-Demand Manual Triggers -->
+        <div class="space-y-2 pt-2 border-t border-white/5">
+          <div class="text-xs font-bold text-gray-300 uppercase tracking-wider">Manual SMS Test Actions</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <button (click)="testTriggerMissingCashCheck()"
+                    type="button"
+                    [disabled]="triggeringSmsAction() || !smsForm.enabled || !smsForm.arkesel_api_key"
+                    class="p-2.5 rounded-xl text-xs font-semibold text-gray-200 bg-white/5 hover:bg-white/10 border border-white/10 transition-all flex items-center justify-center gap-1.5 disabled:opacity-40">
+              <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Run Missing-Cash Check</span>
+            </button>
+
+            <button (click)="testTriggerDailySummary()"
+                    type="button"
+                    [disabled]="triggeringSmsAction() || !smsForm.enabled || !smsForm.arkesel_api_key"
+                    class="p-2.5 rounded-xl text-xs font-semibold text-gray-200 bg-white/5 hover:bg-white/10 border border-white/10 transition-all flex items-center justify-center gap-1.5 disabled:opacity-40">
+              <svg class="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <span>Send Daily Summary SMS</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 sm:p-5 border-t flex items-center justify-end gap-3 shrink-0"
+           style="border-color: rgba(255,255,255,0.08); background: rgba(0,0,0,0.3);">
+        <button (click)="closeSmsModal()"
+                type="button"
+                class="px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-white transition-colors">
+          Cancel
+        </button>
+        <button (click)="saveSmsSettings()"
+                type="button"
+                [disabled]="savingSmsSettings()"
+                class="px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-lg transition-all disabled:opacity-50 hover:scale-105 active:scale-95 flex items-center gap-2"
+                style="background: linear-gradient(135deg, #d97706, #b45309);">
+          <span>{{ savingSmsSettings() ? 'Saving Settings...' : 'Save SMS Settings' }}</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
