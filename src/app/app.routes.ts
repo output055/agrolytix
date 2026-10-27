@@ -59,6 +59,10 @@ export const routes: Routes = [
         loadChildren: () => import('./features/dashboard/dashboard.routes').then(m => m.DASHBOARD_ROUTES)
       },
       {
+        path: 'chat',
+        loadComponent: () => import('./features/chat/chat-view/chat-view').then(m => m.ChatView)
+      },
+      {
         path: 'inventory',
         canActivate: [adminGuard],
         loadChildren: () => import('./features/inventory/inventory.routes').then(m => m.INVENTORY_ROUTES)

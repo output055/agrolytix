@@ -1,10 +1,11 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet, RouterLink } from '@angular/router';
 import { Sidebar } from '../sidebar/sidebar';
 import { Header } from '../header/header';
 import { LayoutService } from '../../core/services/layout.service';
 import { Toast } from '../../shared/toast/toast';
 import { AuthService } from '../../core/services/auth.service';
+import { ChatNotifierService } from '../../core/services/chat-notifier.service';
 
 @Component({
   selector: 'app-layout',
@@ -12,11 +13,20 @@ import { AuthService } from '../../core/services/auth.service';
   imports: [RouterOutlet, Sidebar, Header, Toast, RouterLink],
   templateUrl: './app-layout.html',
 })
-export class AppLayout {
+export class AppLayout implements OnInit, OnDestroy {
   layoutService = inject(LayoutService);
   private auth  = inject(AuthService);
+  private chatNotifier = inject(ChatNotifierService);
 
   user = computed(() => this.auth.currentUser());
+
+  ngOnInit() {
+    this.chatNotifier.start();
+  }
+
+  ngOnDestroy() {
+    this.chatNotifier.stop();
+  }
 
   /** Show warning banner when trial expires in ≤5 days */
   trialWarning = computed(() => {
