@@ -37,6 +37,15 @@
   transition: all 0.3s ease-in-out;
 }
 
+/* WhatsApp-style date pill: pins to the top of the scroll area while
+   scrolling through that day; the next day's pill paints over it. */
+.chat-date-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  padding: 0.25rem 0;
+}
+
 /* ─── Mobile responsiveness ─────────────────────────────────────────── */
 
 /* Sidebar: slide-over drawer below md (768px), static column above */

@@ -587,6 +587,37 @@ export class ChatView implements OnInit, AfterViewChecked {
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
+  /**
+   * WhatsApp-style day separators: maps the id of the first message of each
+   * calendar day to its label ("Today", "Yesterday", "Monday", "12 Oct 2026").
+   */
+  dayBreaks = computed(() => {
+    const map = new Map<string, string>();
+    let lastKey = '';
+    for (const msg of this.messages()) {
+      if (!msg.created_at) continue;
+      const d = new Date(msg.created_at);
+      const key = d.toDateString();
+      if (key !== lastKey) {
+        map.set(msg.id, this.dayLabel(d));
+        lastKey = key;
+      }
+    }
+    return map;
+  });
+
+  private dayLabel(d: Date): string {
+    const startOf = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+    const diffDays = Math.round((startOf(new Date()) - startOf(d)) / 86_400_000);
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays > 1 && diffDays < 7) return d.toLocaleDateString([], { weekday: 'long' });
+    const sameYear = d.getFullYear() === new Date().getFullYear();
+    return d.toLocaleDateString([], sameYear
+      ? { day: 'numeric', month: 'long' }
+      : { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
   formatDate(iso: string): string {
     if (!iso) return '';
     const d = new Date(iso);

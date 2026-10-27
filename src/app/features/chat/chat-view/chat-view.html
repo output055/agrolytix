@@ -312,6 +312,16 @@
 
         @for (msg of messages(); track msg.id) {
 
+          <!-- WhatsApp-style sticky date separator -->
+          @if (dayBreaks().get(msg.id); as dayLabel) {
+            <div class="chat-date-sticky flex justify-center pointer-events-none">
+              <span class="px-3 py-1 rounded-lg text-[11px] font-semibold tracking-wide text-gray-300 border shadow-md"
+                    style="background: rgba(17,32,17,0.92); border-color: rgba(255,255,255,0.08); backdrop-filter: blur(8px);">
+                {{ dayLabel }}
+              </span>
+            </div>
+          }
+
           <!-- 1. Recon Status Pill in public chat -->
           @if (msg.kind === 'recon_status') {
             <div class="flex justify-center my-3">
