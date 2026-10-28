@@ -1,0 +1,352 @@
+<div class="stocktake-hub space-y-6 pb-12">
+  
+  <!-- Header Bar -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-3">
+        <div class="p-2.5 rounded-2xl bg-green-500/10 text-green-400">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-2xl font-black text-white tracking-tight">Stocktake & Inventory Audit</h1>
+          <p class="text-xs text-gray-400">Monthly physical recounts, variance analysis & salary deduction reconciliation</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Start Stocktake Actions -->
+    <div class="flex items-center gap-3 flex-wrap">
+      <button (click)="openStartModal('retail')"
+              class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-black transition-transform active:scale-95 shadow-lg shadow-green-500/20"
+              style="background: #4ade80;">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        New Retail Stocktake
+      </button>
+
+      <button (click)="openStartModal('wholesale')"
+              class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-black transition-transform active:scale-95 shadow-lg shadow-amber-500/20"
+              style="background: #fbbf24;">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        New Wholesale Stocktake
+      </button>
+    </div>
+  </div>
+
+  <!-- Active In-Progress Draft Banners -->
+  @if (activeRetailDraft) {
+    <div class="p-4 sm:p-5 rounded-2xl border border-green-500/30 bg-green-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <span class="flex h-3 w-3 relative">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+        </span>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs uppercase font-extrabold px-2 py-0.5 rounded bg-green-500 text-black">Retail Draft</span>
+            <h3 class="font-bold text-white text-sm sm:text-base">{{ activeRetailDraft.session.title }}</h3>
+          </div>
+          <p class="text-xs text-gray-300 mt-0.5">
+            Progress: {{ activeRetailDraft.session.counted_products }} / {{ activeRetailDraft.session.total_products }} products counted
+            • Started {{ activeRetailDraft.session.started_at | date:'mediumDate' }}
+          </p>
+        </div>
+      </div>
+      <a [routerLink]="['/inventory/stocktake', activeRetailDraft.session.id]"
+         class="px-4 py-2 rounded-xl text-xs font-bold text-black bg-green-400 hover:bg-green-300 text-center transition-colors">
+        Resume Retail Count →
+      </a>
+    </div>
+  }
+
+  @if (activeWholesaleDraft) {
+    <div class="p-4 sm:p-5 rounded-2xl border border-amber-500/30 bg-amber-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <span class="flex h-3 w-3 relative">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+        </span>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs uppercase font-extrabold px-2 py-0.5 rounded bg-amber-400 text-black">Wholesale Draft</span>
+            <h3 class="font-bold text-white text-sm sm:text-base">{{ activeWholesaleDraft.session.title }}</h3>
+          </div>
+          <p class="text-xs text-gray-300 mt-0.5">
+            Progress: {{ activeWholesaleDraft.session.counted_products }} / {{ activeWholesaleDraft.session.total_products }} products counted
+            • Started {{ activeWholesaleDraft.session.started_at | date:'mediumDate' }}
+          </p>
+        </div>
+      </div>
+      <a [routerLink]="['/inventory/stocktake', activeWholesaleDraft.session.id]"
+         class="px-4 py-2 rounded-xl text-xs font-bold text-black bg-amber-400 hover:bg-amber-300 text-center transition-colors">
+        Resume Wholesale Count →
+      </a>
+    </div>
+  }
+
+  <!-- History & Audit Logs -->
+  <div class="hub-glass-card rounded-2xl p-6 space-y-4">
+    
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <h2 class="text-lg font-bold text-white">Stocktake Audit History</h2>
+        <p class="text-xs text-gray-400">Previous monthly reconciliation records and salary deduction archives</p>
+      </div>
+
+      <!-- Type Filter Buttons -->
+      <div class="flex bg-black/40 p-1 rounded-xl border border-white/10 text-xs font-medium self-start sm:self-auto">
+        <button (click)="filterType = 'all'"
+                class="px-3 py-1.5 rounded-lg transition-colors"
+                [class.bg-white-15]="filterType === 'all'"
+                [class.text-white]="filterType === 'all'"
+                [class.text-gray-400]="filterType !== 'all'">
+          All Audits
+        </button>
+        <button (click)="filterType = 'retail'"
+                class="px-3 py-1.5 rounded-lg transition-colors"
+                [class.bg-white-15]="filterType === 'retail'"
+                [class.text-white]="filterType === 'retail'"
+                [class.text-gray-400]="filterType !== 'retail'">
+          Retail Only
+        </button>
+        <button (click)="filterType = 'wholesale'"
+                class="px-3 py-1.5 rounded-lg transition-colors"
+                [class.bg-white-15]="filterType === 'wholesale'"
+                [class.text-white]="filterType === 'wholesale'"
+                [class.text-gray-400]="filterType !== 'wholesale'">
+          Wholesale Only
+        </button>
+      </div>
+    </div>
+
+    <!-- Sessions Table -->
+    @if (loading) {
+      <div class="py-16 text-center text-gray-400 text-sm">
+        <div class="w-8 h-8 border-4 border-green-500/20 border-t-green-400 rounded-full animate-spin mx-auto mb-3"></div>
+        Loading stocktake history...
+      </div>
+    } @else {
+      <div class="overflow-x-auto rounded-xl border border-white/10">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-black/30 border-b border-white/10 text-gray-400 font-semibold uppercase tracking-wider text-[10px]">
+            <tr>
+              <th class="py-3 px-4">Audit Session</th>
+              <th class="py-3 px-4">Type</th>
+              <th class="py-3 px-4 text-center">Items Counted</th>
+              <th class="py-3 px-4 text-center">Variance Summary</th>
+              <th class="py-3 px-4 text-right">Shortage Value</th>
+              <th class="py-3 px-4 text-right">Salary Deduction</th>
+              <th class="py-3 px-4">Status</th>
+              <th class="py-3 px-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5">
+            @for (session of filteredSessions; track session.id) {
+              <tr class="table-row-hover transition-colors">
+                
+                <!-- Audit Session Title & Date -->
+                <td class="py-3.5 px-4">
+                  <div class="font-bold text-white text-sm">{{ session.title }}</div>
+                  <div class="text-[11px] text-gray-400 mt-0.5">
+                    {{ session.completed_at || session.created_at | date:'mediumDate' }} • By {{ session.counted_by_name }}
+                  </div>
+                </td>
+
+                <!-- Type -->
+                <td class="py-3.5 px-4">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
+                        [class.bg-green-500-20]="session.inventory_type === 'retail'"
+                        [class.text-green-400]="session.inventory_type === 'retail'"
+                        [class.bg-amber-500-20]="session.inventory_type === 'wholesale'"
+                        [class.text-amber-400]="session.inventory_type === 'wholesale'">
+                    {{ session.inventory_type }}
+                  </span>
+                </td>
+
+                <!-- Items Counted -->
+                <td class="py-3.5 px-4 text-center text-gray-300">
+                  <span class="font-bold text-white">{{ session.counted_products }}</span> / {{ session.total_products }}
+                </td>
+
+                <!-- Variance Breakdown -->
+                <td class="py-3.5 px-4 text-center">
+                  <div class="flex items-center justify-center gap-1.5 text-[11px]">
+                    <span class="text-green-400 font-semibold" title="Balanced Items">
+                      {{ session.balanced_count }} ✓
+                    </span>
+                    <span class="text-gray-500">|</span>
+                    <span class="text-red-400 font-semibold" title="Shortages">
+                      {{ session.shortage_count }} ⚠️
+                    </span>
+                    <span class="text-gray-500">|</span>
+                    <span class="text-amber-400 font-semibold" title="Overages">
+                      {{ session.overage_count }} +
+                    </span>
+                  </div>
+                </td>
+
+                <!-- Shortage Value -->
+                <td class="py-3.5 px-4 text-right font-semibold">
+                  @if (session.gross_shortage_value > 0) {
+                    <span class="text-red-400">-GH₵{{ session.gross_shortage_value | number:'1.2-2' }}</span>
+                  } @else {
+                    <span class="text-gray-400">GH₵0.00</span>
+                  }
+                </td>
+
+                <!-- Salary Deduction & Responsible Person -->
+                <td class="py-3.5 px-4 text-right">
+                  @if (session.deduction_amount > 0) {
+                    <div class="font-bold text-red-400">
+                      GH₵{{ session.deduction_amount | number:'1.2-2' }}
+                    </div>
+                    @if (session.deduction_responsible) {
+                      <div class="text-[10px] text-gray-400 truncate max-w-[140px] ml-auto" [title]="session.deduction_responsible">
+                        {{ session.deduction_responsible }}
+                      </div>
+                    }
+                  } @else {
+                    <span class="text-green-400 font-medium">None</span>
+                  }
+                </td>
+
+                <!-- Status -->
+                <td class="py-3.5 px-4">
+                  @if (session.status === 'completed') {
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-500/20 text-green-400 uppercase">
+                      Completed
+                    </span>
+                  } @else if (session.status === 'draft') {
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 uppercase">
+                      In Progress
+                    </span>
+                  } @else {
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-500/20 text-gray-400 uppercase">
+                      Cancelled
+                    </span>
+                  }
+                </td>
+
+                <!-- Actions -->
+                <td class="py-3.5 px-4 text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    @if (session.status === 'draft') {
+                      <a [routerLink]="['/inventory/stocktake', session.id]"
+                         class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors">
+                        Continue
+                      </a>
+                    } @else {
+                      <button (click)="viewReport(session)"
+                              class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center gap-1"
+                              title="Print / View Audit Report">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        Report
+                      </button>
+                    }
+
+                    <button (click)="promptDeleteSession(session)"
+                            class="p-1.5 text-gray-500 hover:text-red-400 transition-colors rounded-lg hover:bg-white/5"
+                            title="Delete Record">
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="8" class="py-12 text-center text-gray-500 text-sm">
+                  No stocktake records found. Click above to start your first monthly audit.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+  </div>
+
+</div>
+
+<!-- Start Stocktake Modal -->
+@if (showStartModal) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div class="w-full max-w-md rounded-2xl p-6 border shadow-2xl space-y-5"
+         style="background: #111e11; border-color: rgba(255,255,255,0.1);">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-white/10">
+        <div>
+          <h3 class="font-bold text-white text-base">
+            Start New {{ newStocktakeType === 'retail' ? 'Retail' : 'Wholesale' }} Stocktake
+          </h3>
+          <p class="text-xs text-gray-400">Initialize monthly physical stock count</p>
+        </div>
+        <button (click)="closeStartModal()" class="text-gray-400 hover:text-white">✕</button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block text-gray-300 mb-1 font-medium">Session Title</label>
+          <input type="text" [(ngModel)]="newStocktakeTitle"
+                 class="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white font-medium text-sm focus:outline-none focus:border-green-400">
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-green-500/10 border border-green-500/20 text-gray-300 space-y-1">
+          <p class="font-semibold text-green-400">⚡ Live System Snapshot</p>
+          <p class="text-[11px] leading-relaxed">
+            All active {{ newStocktakeType }} products will be snapshot into this session with their current expected quantities and cost prices. You can save drafts and count items in sections.
+          </p>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-2">
+        <button (click)="closeStartModal()"
+                [disabled]="isStarting"
+                class="px-4 py-2 text-xs text-gray-400 hover:text-white">
+          Cancel
+        </button>
+        <button (click)="startStocktake()"
+                [disabled]="isStarting"
+                class="px-5 py-2.5 rounded-xl text-xs font-bold text-black flex items-center gap-2 shadow-lg"
+                [style.background]="newStocktakeType === 'retail' ? '#4ade80' : '#fbbf24'">
+          @if (isStarting) {
+            <div class="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+            <span>Snapshotting Products...</span>
+          } @else {
+            <span>Start Stocktake →</span>
+          }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- Standalone Printable Audit Report Modal Component -->
+<app-stocktake-report-modal
+  [visible]="showReportModal"
+  [session]="selectedReportSession"
+  [items]="selectedReportItems"
+  (close)="showReportModal = false">
+</app-stocktake-report-modal>
+
+<!-- Confirm Delete Modal -->
+<app-confirm-modal
+  [visible]="showDeleteModal"
+  title="Delete Stocktake Record"
+  message="Are you sure you want to permanently delete this stocktake record? This will remove all audit data for this session."
+  confirmLabel="Delete"
+  (confirm)="confirmDeleteSession()"
+  (cancel)="showDeleteModal = false">
+</app-confirm-modal>
+

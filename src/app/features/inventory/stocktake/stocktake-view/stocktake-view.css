@@ -1,0 +1,14 @@
+.stocktake-hub {
+  min-height: calc(100vh - 5rem);
+}
+
+.hub-glass-card {
+  background: rgba(18, 30, 18, 0.6);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.table-row-hover:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+

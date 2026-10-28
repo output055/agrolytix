@@ -1,0 +1,603 @@
+<div class="active-container space-y-6 pb-20">
+  
+  @if (loading) {
+    <div class="flex flex-col items-center justify-center py-24 space-y-4">
+      <div class="w-12 h-12 border-4 border-green-500/20 border-t-green-400 rounded-full animate-spin"></div>
+      <p class="text-sm text-gray-400">Loading stocktake session...</p>
+    </div>
+  } @else if (!session) {
+    <div class="text-center py-20">
+      <p class="text-red-400 mb-4">Stocktake session not found.</p>
+      <a routerLink="/inventory/stocktake" class="px-4 py-2 bg-white/10 rounded-xl text-white text-sm">
+        Return to Stocktakes
+      </a>
+    </div>
+  } @else {
+
+    <!-- Sticky Header & Progress Cockpit -->
+    <div class="sticky top-0 z-30 frosted-glass rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        
+        <div class="flex items-center gap-4">
+          <a routerLink="/inventory/stocktake"
+             class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+             title="Save & Back to Hub">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+          </a>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">{{ session.title }}</h1>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider"
+                    [class.bg-green-500-20]="session.inventory_type === 'retail'"
+                    [class.text-green-400]="session.inventory_type === 'retail'"
+                    [class.bg-amber-500-20]="session.inventory_type === 'wholesale'"
+                    [class.text-amber-400]="session.inventory_type === 'wholesale'">
+                {{ session.inventory_type }}
+              </span>
+              @if (session.status === 'completed') {
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/20 text-blue-400 uppercase">
+                  Finalized & Reconciled
+                </span>
+              }
+            </div>
+            <p class="text-xs text-gray-400">
+              Branch: {{ session.business_name || 'Main Shop' }} • Auditor: {{ session.counted_by_name }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <button (click)="openReport()"
+                  class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white/10 hover:bg-white/15 text-white transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Print Report
+          </button>
+
+          @if (session.status === 'draft') {
+            <button (click)="openReconciliationModal()"
+                    class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-black transition-transform active:scale-95 shadow-lg shadow-green-500/20"
+                    style="background: #4ade80;">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Finalize & Reconcile
+            </button>
+          }
+        </div>
+
+      </div>
+
+      <!-- Realtime Progress & Statistics Bar -->
+      <div class="space-y-2">
+        <div class="flex justify-between items-center text-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-gray-400">Counting Progress:</span>
+            <span class="font-bold text-white">{{ stats.countedItems }} / {{ stats.totalItems }} items</span>
+            <span class="text-green-400 font-semibold">({{ progressPercent }}%)</span>
+          </div>
+          <div class="flex items-center gap-3">
+            @if (stats.grossShortageCost > 0) {
+              <span class="text-red-400 font-semibold">
+                Gross Shortage: -GH₵{{ stats.grossShortageCost | number:'1.2-2' }}
+              </span>
+            }
+            @if (stats.offsetAmount > 0) {
+              <span class="text-blue-400 font-semibold">
+                Offsets: GH₵{{ stats.offsetAmount | number:'1.2-2' }}
+              </span>
+            }
+            <span class="font-bold" [class.text-red-400]="stats.netDeduction > 0" [class.text-green-400]="stats.netDeduction === 0">
+              Salary Deduction: GH₵{{ stats.netDeduction | number:'1.2-2' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Progress Bar Line -->
+        <div class="w-full bg-white/10 h-2.5 rounded-full overflow-hidden flex">
+          <div class="h-full bg-green-500 transition-all duration-300" [style.width.%]="balancedPercent" title="Balanced"></div>
+          <div class="h-full bg-red-500 transition-all duration-300" [style.width.%]="shortagePercent" title="Shortage"></div>
+          <div class="h-full bg-amber-500 transition-all duration-300" [style.width.%]="overagePercent" title="Overage"></div>
+        </div>
+      </div>
+
+      <!-- Quick Category & Status Filter Tabs -->
+      <div class="flex flex-col sm:flex-row gap-3 pt-2">
+        <!-- Search -->
+        <div class="relative flex-1">
+          <svg class="absolute left-3.5 top-3 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input type="text"
+                 [(ngModel)]="searchQuery"
+                 (ngModelChange)="applyFilters(true)"
+                 placeholder="Search product by name or barcode..."
+                 class="w-full pl-10 pr-4 py-2 rounded-xl bg-black/40 border border-white/10 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-green-400 transition-colors">
+        </div>
+
+        <!-- Category Dropdown -->
+        <div class="sm:w-56">
+          <select [(ngModel)]="selectedCategory"
+                  (ngModelChange)="applyFilters(true)"
+                  class="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white text-sm focus:outline-none focus:border-green-400">
+            <option value="" style="background:#111;">All Categories</option>
+            @for (cat of categories; track cat) {
+              <option [value]="cat" style="background:#111;">{{ cat }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Filter Segment -->
+        <div class="flex bg-black/40 p-1 rounded-xl border border-white/10 overflow-x-auto text-xs font-medium">
+          <button (click)="setTab('all')"
+                  class="px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                  [class.bg-white-15]="activeTab === 'all'"
+                  [class.text-white]="activeTab === 'all'"
+                  [class.text-gray-400]="activeTab !== 'all'">
+            All ({{ items.length }})
+          </button>
+          <button (click)="setTab('uncounted')"
+                  class="px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                  [class.bg-white-15]="activeTab === 'uncounted'"
+                  [class.text-white]="activeTab === 'uncounted'"
+                  [class.text-gray-400]="activeTab !== 'uncounted'">
+            Needs Count ({{ stats.uncountedItems }})
+          </button>
+          <button (click)="setTab('shortage')"
+                  class="px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                  [class.bg-red-500-20]="activeTab === 'shortage'"
+                  [class.text-red-400]="activeTab === 'shortage'"
+                  [class.text-gray-400]="activeTab !== 'shortage'">
+            Shortages ({{ stats.shortageItems }})
+          </button>
+          <button (click)="setTab('overage')"
+                  class="px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                  [class.bg-amber-500-20]="activeTab === 'overage'"
+                  [class.text-amber-400]="activeTab === 'overage'"
+                  [class.text-gray-400]="activeTab !== 'overage'">
+            Overages ({{ stats.overageItems }})
+          </button>
+          <button (click)="setTab('balanced')"
+                  class="px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                  [class.bg-green-500-20]="activeTab === 'balanced'"
+                  [class.text-green-400]="activeTab === 'balanced'"
+                  [class.text-gray-400]="activeTab !== 'balanced'">
+            Balanced ({{ stats.balancedItems }})
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Product Counting Grid -->
+    <div class="space-y-3">
+      @for (item of paginatedItems; track item.id) {
+        <div class="item-card rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4"
+             [class.shortage]="item.status === 'shortage'"
+             [class.overage]="item.status === 'overage'"
+             [class.balanced]="item.status === 'balanced'"
+             [class.uncounted]="item.status === 'uncounted'">
+          
+          <!-- Product Info -->
+          <div class="space-y-1 md:max-w-md">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="font-bold text-base text-white">{{ item.product_name }}</h3>
+              @if ((item.sales_count || 0) > 0) {
+                <span class="text-[9px] font-black px-1.5 py-0.5 rounded-full border"
+                      style="background:rgba(251,146,60,0.1);color:#fb923c;border-color:rgba(251,146,60,0.2)"
+                      title="Popular on POS ({{ item.sales_count }} sales)">
+                  🔥 {{ item.sales_count }}
+                </span>
+              }
+              <span class="text-[11px] px-2 py-0.5 rounded bg-white/10 text-gray-300">
+                {{ item.category || 'General' }}
+              </span>
+            </div>
+            <div class="flex items-center gap-4 text-xs text-gray-400">
+              <span>Unit: <strong class="text-gray-300">{{ item.base_unit }}</strong></span>
+              <span>Cost: <strong class="text-gray-300">GH₵{{ item.cost_price | number:'1.2-2' }}</strong></span>
+              <span>Selling: <strong class="text-green-400">GH₵{{ item.sell_price | number:'1.2-2' }}</strong></span>
+            </div>
+          </div>
+
+          <!-- Expected vs Physical Input Controls -->
+          <div class="flex flex-wrap items-center gap-4 sm:gap-6">
+            
+            <!-- Expected System Stock -->
+            <div class="text-center sm:text-right">
+              <div class="text-[11px] text-gray-400 uppercase font-semibold">System Qty</div>
+              <div class="text-base font-bold text-gray-200">
+                {{ item.system_quantity }} <span class="text-xs text-gray-400 font-normal">{{ formatUnit(item.base_unit) }}</span>
+              </div>
+            </div>
+
+            <!-- Physical Count Input + Calculator Trigger -->
+            <div class="space-y-1">
+              <div class="text-[11px] text-gray-400 uppercase font-semibold flex items-center justify-between gap-2">
+                <span>Physical Count</span>
+                <!-- Smart Multi-Unit Calculator Trigger -->
+                @if (session.status === 'draft') {
+                  <button (click)="openCalculator(item)"
+                          class="text-[10px] text-green-400 hover:text-green-300 flex items-center gap-1 font-medium bg-green-500/10 px-1.5 py-0.5 rounded transition-colors"
+                          title="Count in boxes/cartons + loose">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    Box Calculator
+                  </button>
+                }
+              </div>
+
+              <div class="flex items-center gap-2">
+                <input type="number"
+                       [disabled]="session.status !== 'draft'"
+                       [ngModel]="item.physical_quantity"
+                       (ngModelChange)="onPhysicalCountChange(item, $event)"
+                       min="0"
+                       placeholder="Enter count"
+                       class="w-28 px-3 py-2 text-center rounded-xl bg-black/50 border border-white/10 text-white font-bold text-base focus:outline-none focus:border-green-400 transition-colors disabled:opacity-60">
+                
+                @if (session.status === 'draft' && item.physical_quantity !== item.system_quantity) {
+                  <button (click)="matchSystemQuantity(item)"
+                          class="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-green-400 transition-colors text-xs font-semibold"
+                          title="Quick match system quantity (0 variance)">
+                    ✓ Match
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Variance & Financial Impact Badge -->
+            <div class="min-w-[120px] text-right space-y-1">
+              <div class="text-[11px] text-gray-400 uppercase font-semibold">Variance</div>
+              @if (item.status === 'uncounted') {
+                <span class="inline-block px-2.5 py-1 rounded-lg text-xs font-medium bg-white/5 text-gray-400">
+                  Uncounted
+                </span>
+              } @else if (item.status === 'balanced') {
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-green-500/20 text-green-400">
+                  ✓ Balanced (0)
+                </span>
+              } @else if (item.status === 'shortage') {
+                <div class="flex flex-col items-end">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-bold bg-red-500/20 text-red-400">
+                    {{ item.variance }} {{ formatUnit(item.base_unit) }}
+                  </span>
+                  <span class="text-[11px] font-semibold text-red-400">
+                    -GH₵{{ Math.abs(item.cost_variance) | number:'1.2-2' }}
+                  </span>
+                </div>
+              } @else {
+                <div class="flex flex-col items-end">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-bold bg-amber-500/20 text-amber-400">
+                    +{{ item.variance }} {{ formatUnit(item.base_unit) }}
+                  </span>
+                  <span class="text-[11px] font-semibold text-amber-400">
+                    +GH₵{{ item.cost_variance | number:'1.2-2' }}
+                  </span>
+                </div>
+              }
+            </div>
+
+          </div>
+
+          <!-- Discrepancy Reason, Offset & Notes Bar (Revealed if variance !== 0) -->
+          @if (item.status === 'shortage' || item.status === 'overage') {
+            <div class="w-full pt-3 mt-2 border-t border-white/5 flex flex-wrap items-center justify-between gap-3 text-xs">
+              
+              <!-- Reason Selector -->
+              <div class="flex items-center gap-2">
+                <span class="text-gray-400">Reason:</span>
+                <select [disabled]="session.status !== 'draft'"
+                        [ngModel]="item.discrepancy_reason"
+                        (ngModelChange)="onReasonChange(item, $event)"
+                        class="px-2.5 py-1 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-green-400">
+                  <option [ngValue]="null" style="background:#111;">— Select Reason —</option>
+                  <option value="breakage" style="background:#111;">Breakage / Damage</option>
+                  <option value="expired" style="background:#111;">Expired Stock</option>
+                  <option value="theft" style="background:#111;">Theft / Unexplained Loss</option>
+                  <option value="miscount" style="background:#111;">Previous Miscount</option>
+                  <option value="unrecorded_sale" style="background:#111;">Unrecorded POS Sale</option>
+                  <option value="swapped_product" style="background:#111;">Swapped with Another Product</option>
+                  <option value="other" style="background:#111;">Other</option>
+                </select>
+              </div>
+
+              <!-- Offset with Overage / Waive Salary Deduction (Admin Tool) -->
+              @if (item.status === 'shortage') {
+                <div class="flex items-center gap-2">
+                  <label class="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox"
+                           [disabled]="session.status !== 'draft'"
+                           [checked]="item.offset_status === 'offset_with_overage' || item.offset_status === 'waived'"
+                           (change)="toggleOffsetStatus(item, $event)"
+                           class="w-4 h-4 rounded text-green-500 bg-black/40 border-white/20 focus:ring-green-400">
+                    <span class="text-gray-300">Offset with Overages / Waive Deduction</span>
+                  </label>
+                </div>
+              }
+
+              <!-- Note input -->
+              <div class="flex-1 min-w-[200px]">
+                <input type="text"
+                       [disabled]="session.status !== 'draft'"
+                       [ngModel]="item.notes"
+                       (blur)="onNotesBlur(item, $event)"
+                       placeholder="Audit note / explanation..."
+                       class="w-full px-2.5 py-1 rounded-lg bg-black/30 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-green-400">
+              </div>
+
+            </div>
+          }
+
+        </div>
+      } @empty {
+        <div class="text-center py-16 bg-white/5 rounded-2xl border border-white/10">
+          <p class="text-gray-400">No products match your filter criteria.</p>
+        </div>
+      }
+    </div>
+
+    <!-- Pagination Footer -->
+    @if (filteredItems.length > 0) {
+      <div class="frosted-glass rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 shadow-xl">
+        
+        <div class="flex items-center gap-3 text-xs text-gray-400">
+          <span>
+            Showing <strong class="text-white">{{ (currentPage - 1) * pageSize + 1 }}</strong> to 
+            <strong class="text-white">{{ Math.min(currentPage * pageSize, filteredItems.length) }}</strong> of 
+            <strong class="text-white">{{ filteredItems.length }}</strong> products
+          </span>
+
+          <span class="text-gray-600">|</span>
+
+          <div class="flex items-center gap-1.5">
+            <span>Per page:</span>
+            <select [ngModel]="pageSize"
+                    (ngModelChange)="onPageSizeChange($event)"
+                    class="bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-white focus:outline-none focus:border-green-400 text-xs">
+              @for (opt of pageSizeOptions; track opt) {
+                <option [value]="opt" style="background:#111;">{{ opt }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <!-- Page Buttons -->
+        <div class="flex items-center gap-1">
+          <button (click)="changePage(currentPage - 1)"
+                  [disabled]="currentPage === 1"
+                  class="p-2 rounded-xl bg-black/40 border border-white/10 text-gray-400 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                  title="Previous Page">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          @for (p of pagesArray; track $index) {
+            @if (p === -1) {
+              <span class="px-2 text-gray-600 text-xs">...</span>
+            } @else {
+              <button (click)="changePage(p)"
+                      [class.bg-green-500]="currentPage === p"
+                      [class.text-black]="currentPage === p"
+                      [class.font-bold]="currentPage === p"
+                      [class.bg-black-40]="currentPage !== p"
+                      [class.text-gray-300]="currentPage !== p"
+                      class="w-8 h-8 rounded-xl text-xs transition-colors border border-white/5 hover:border-white/20">
+                {{ p }}
+              </button>
+            }
+          }
+
+          <button (click)="changePage(currentPage + 1)"
+                  [disabled]="currentPage === totalPages"
+                  class="p-2 rounded-xl bg-black/40 border border-white/10 text-gray-400 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                  title="Next Page">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+
+      </div>
+    }
+
+  }
+
+</div>
+
+<!-- Smart Multi-Unit Box/Carton Calculator Modal -->
+@if (showCalculatorModal && calculatorItem) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div class="w-full max-w-md rounded-2xl p-6 border shadow-2xl space-y-5"
+         style="background: #111e11; border-color: rgba(255,255,255,0.1);">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-white/10">
+        <div>
+          <h3 class="font-bold text-white text-base">Box / Carton Multi-Unit Calculator</h3>
+          <p class="text-xs text-gray-400">{{ calculatorItem.product_name }}</p>
+        </div>
+        <button (click)="closeCalculator()" class="text-gray-400 hover:text-white">✕</button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block text-gray-300 mb-1 font-medium">Number of Full Boxes / Cartons</label>
+          <input type="number" [(ngModel)]="calcCartons" min="0"
+                 class="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white font-bold text-sm focus:outline-none focus:border-green-400">
+        </div>
+
+        <div>
+          <label class="block text-gray-300 mb-1 font-medium">Units per Box / Carton</label>
+          <input type="number" [(ngModel)]="calcUnitsPerCarton" min="1"
+                 class="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white font-bold text-sm focus:outline-none focus:border-green-400">
+        </div>
+
+        <div>
+          <label class="block text-gray-300 mb-1 font-medium">Plus Loose Units</label>
+          <input type="number" [(ngModel)]="calcLooseUnits" min="0"
+                 class="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white font-bold text-sm focus:outline-none focus:border-green-400">
+        </div>
+
+        <!-- Calculated Outcome Box -->
+        <div class="p-3.5 rounded-xl bg-green-500/10 border border-green-500/20 text-center">
+          <div class="text-xs text-gray-300">Total Calculated Count:</div>
+          <div class="text-2xl font-black text-green-400 mt-0.5">
+            {{ calculatedTotalUnits }} <span class="text-sm font-normal text-gray-300">{{ calculatorItem.base_unit }}s</span>
+          </div>
+          <div class="text-[11px] text-gray-400 mt-1">
+            ({{ calcCartons }} × {{ calcUnitsPerCarton }}) + {{ calcLooseUnits }}
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-2">
+        <button (click)="closeCalculator()" class="px-4 py-2 text-xs text-gray-400 hover:text-white">Cancel</button>
+        <button (click)="applyCalculatedUnits()"
+                class="px-5 py-2 rounded-xl text-xs font-bold text-black shadow-lg"
+                style="background: #4ade80;">
+          Insert Calculated Count
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- Finalize Reconciliation & Salary Deduction Modal -->
+@if (showReconciliationModal && session) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+    <div class="w-full max-w-xl rounded-2xl p-6 sm:p-8 border shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto"
+         style="background: #111d11; border-color: rgba(255,255,255,0.12);">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-white/10">
+        <div class="flex items-center gap-3">
+          <div class="p-2.5 rounded-xl bg-green-500/10 text-green-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-lg text-white">Review & Apply Reconciliation</h3>
+            <p class="text-xs text-gray-400">Final audit review & inventory synchronization</p>
+          </div>
+        </div>
+        <button (click)="closeReconciliationModal()" class="text-gray-400 hover:text-white">✕</button>
+      </div>
+
+      <!-- Financial Reconciliation Summary Card -->
+      <div class="grid grid-cols-2 gap-3 p-4 rounded-xl bg-black/40 border border-white/10 text-xs">
+        <div>
+          <span class="text-gray-400">Gross Shortage Value:</span>
+          <div class="text-base font-bold text-red-400 mt-0.5">
+            -GH₵{{ stats.grossShortageCost | number:'1.2-2' }}
+          </div>
+        </div>
+
+        <div>
+          <span class="text-gray-400">Gross Overage Value:</span>
+          <div class="text-base font-bold text-amber-400 mt-0.5">
+            +GH₵{{ stats.grossOverageCost | number:'1.2-2' }}
+          </div>
+        </div>
+
+        <div>
+          <span class="text-gray-400">Approved Offsets / Swaps:</span>
+          <div class="text-base font-bold text-blue-400 mt-0.5">
+            GH₵{{ stats.offsetAmount | number:'1.2-2' }}
+          </div>
+        </div>
+
+        <div>
+          <span class="text-gray-400">Items with Variance:</span>
+          <div class="text-base font-bold text-white mt-0.5">
+            {{ stats.shortageItems + stats.overageItems }} items
+          </div>
+        </div>
+      </div>
+
+      <!-- Salary Deduction Form Fields -->
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block text-gray-300 font-semibold mb-1">
+            Agreed Net Salary Deduction Amount (GH₵) *
+          </label>
+          <input type="number"
+                 [(ngModel)]="finalDeductionAmount"
+                 min="0"
+                 class="w-full px-3 py-2 rounded-xl bg-black/50 border border-red-500/30 text-red-400 font-bold text-base focus:outline-none focus:border-red-400">
+          <p class="text-[11px] text-gray-400 mt-1">
+            Defaults to Net Shortage minus Approved Offsets. You may adjust this if worker agreements apply.
+          </p>
+        </div>
+
+        <div>
+          <label class="block text-gray-300 font-semibold mb-1">
+            Accountable Staff / Worker Name(s)
+          </label>
+          <input type="text"
+                 [(ngModel)]="deductionResponsible"
+                 placeholder="e.g. John Mensah (Morning Shift), Cashier Desk"
+                 class="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white text-sm focus:outline-none focus:border-green-400">
+        </div>
+
+        <div>
+          <label class="block text-gray-300 font-semibold mb-1">
+            Reconciliation & Audit Notes
+          </label>
+          <textarea [(ngModel)]="reconciliationNotes"
+                    rows="2"
+                    placeholder="Provide any context on offsets, swapped fertilizers, or management decisions..."
+                    class="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white text-xs focus:outline-none focus:border-green-400"></textarea>
+        </div>
+      </div>
+
+      <!-- Critical Warning Box -->
+      <div class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300/90 space-y-1">
+        <div class="font-bold flex items-center gap-1.5 text-amber-400">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          Important System Stock Alignment
+        </div>
+        <p>
+          Applying reconciliation will reset the live system stock of all {{ session.inventory_type }} products to match today's physical count. This establishes a clean, accurate baseline so discrepancies do not repeat next month.
+        </p>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="flex justify-end gap-3 pt-2">
+        <button (click)="closeReconciliationModal()"
+                [disabled]="isSubmittingReconciliation"
+                class="px-4 py-2 rounded-xl text-xs text-gray-400 hover:text-white transition-colors">
+          Cancel
+        </button>
+        <button (click)="confirmReconciliation()"
+                [disabled]="isSubmittingReconciliation"
+                class="px-5 py-2.5 rounded-xl text-xs font-bold text-black shadow-lg shadow-green-500/20 flex items-center gap-2 disabled:opacity-50"
+                style="background: #4ade80;">
+          @if (isSubmittingReconciliation) {
+            <div class="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+            <span>Syncing Stock...</span>
+          } @else {
+            <span>Apply Reconciliation & Update Stock</span>
+          }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- Standalone Printable Audit Report Modal Component -->
+<app-stocktake-report-modal
+  [visible]="showReportModal"
+  [session]="session"
+  [items]="items"
+  (close)="showReportModal = false">
+</app-stocktake-report-modal>

@@ -1,0 +1,217 @@
+@if (visible && session) {
+  <div class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 report-modal-backdrop">
+    <div class="relative w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col max-h-[92vh] report-paper print-area">
+      
+      <!-- Top Action Bar (Hidden on print) -->
+      <div class="no-print flex items-center justify-between px-6 py-4 border-b border-white/10 shrink-0 bg-black/30 rounded-t-2xl">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-xl bg-green-500/10 text-green-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-lg text-white">Stocktake Audit & Deduction Report</h3>
+            <p class="text-xs text-gray-400">Ready for A4 printing or PDF export</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button (click)="printReport()"
+                  class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-black transition-transform active:scale-95 shadow-lg"
+                  style="background: #4ade80;">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Print / Save PDF
+          </button>
+          <button (click)="close.emit()" class="p-2 text-gray-400 hover:text-white rounded-xl bg-white/5 transition-colors">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Report Document Body -->
+      <div class="overflow-y-auto p-6 sm:p-8 space-y-6">
+        
+        <!-- Header Document Block -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 border-b border-white/10 gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-2xl font-black tracking-tight" style="color: #4ade80;">AGROLYTIX</span>
+              <span class="text-xs uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-white/10 text-gray-300">
+                {{ session.inventory_type }} Stocktake
+              </span>
+            </div>
+            <h1 class="text-xl font-bold mt-1 text-white print-text-dark">{{ session.title }}</h1>
+            <p class="text-sm text-gray-400 print-text-muted">
+              Branch: <strong class="text-white print-text-dark">{{ session.business_name || 'Main Shop' }}</strong>
+            </p>
+          </div>
+
+          <div class="text-left sm:text-right text-xs text-gray-400 print-text-muted space-y-1">
+            <p>Audited By: <span class="font-semibold text-gray-200 print-text-dark">{{ session.counted_by_name }}</span></p>
+            <p>Date: <span class="font-semibold text-gray-200 print-text-dark">{{ session.completed_at || session.created_at | date:'medium' }}</span></p>
+            <p>Status: <span class="font-bold uppercase tracking-wider text-green-400">{{ session.status }}</span></p>
+          </div>
+        </div>
+
+        <!-- Summary KPI Section -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 print-card p-4 rounded-xl border border-white/10 bg-white/5">
+          <div class="space-y-1">
+            <div class="text-xs text-gray-400 print-text-muted">Total Products</div>
+            <div class="text-lg font-bold text-white print-text-dark">{{ session.total_products }}</div>
+            <div class="text-[11px] text-green-400">{{ session.balanced_count }} balanced</div>
+          </div>
+
+          <div class="space-y-1">
+            <div class="text-xs text-gray-400 print-text-muted">Shortages (Missing)</div>
+            <div class="text-lg font-bold text-red-400">{{ session.shortage_count }} items</div>
+            <div class="text-[11px] text-red-400/90">-GH₵{{ session.gross_shortage_value | number:'1.2-2' }}</div>
+          </div>
+
+          <div class="space-y-1">
+            <div class="text-xs text-gray-400 print-text-muted">Overages (Surplus)</div>
+            <div class="text-lg font-bold text-amber-400">{{ session.overage_count }} items</div>
+            <div class="text-[11px] text-amber-400/90">+GH₵{{ session.gross_overage_value | number:'1.2-2' }}</div>
+          </div>
+
+          <div class="space-y-1">
+            <div class="text-xs text-gray-400 print-text-muted">Offset / Waived</div>
+            <div class="text-lg font-bold text-blue-400">GH₵{{ session.offset_amount | number:'1.2-2' }}</div>
+            <div class="text-[11px] text-gray-400">Cross-balanced</div>
+          </div>
+        </div>
+
+        <!-- High-Impact Salary Deduction Notice Banner -->
+        <div class="p-4 rounded-xl border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+             [style.background]="session.deduction_amount > 0 ? 'rgba(220, 38, 38, 0.12)' : 'rgba(74, 222, 128, 0.12)'"
+             [style.border-color]="session.deduction_amount > 0 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(74, 222, 128, 0.3)'">
+          <div>
+            <div class="text-xs font-bold uppercase tracking-wider"
+                 [style.color]="session.deduction_amount > 0 ? '#ef4444' : '#4ade80'">
+              {{ session.deduction_amount > 0 ? '⚠️ Actionable Salary Deduction' : '✅ Clean Audit - No Deductions' }}
+            </div>
+            <div class="text-xl font-black mt-0.5 print-text-dark"
+                 [style.color]="session.deduction_amount > 0 ? '#fca5a5' : '#86efac'">
+              GH₵{{ session.deduction_amount | number:'1.2-2' }}
+            </div>
+            @if (session.deduction_responsible) {
+              <div class="text-xs mt-1 text-gray-300 print-text-dark">
+                Accountable Staff / Team: <strong>{{ session.deduction_responsible }}</strong>
+              </div>
+            }
+          </div>
+          @if (session.deduction_notes) {
+            <div class="text-xs text-gray-300 print-text-muted max-w-md bg-black/20 p-2.5 rounded-lg border border-white/5">
+              <strong>Admin Note:</strong> {{ session.deduction_notes }}
+            </div>
+          }
+        </div>
+
+        <!-- Discrepancy Breakdown Table -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-sm text-gray-200 print-text-dark">Discrepancy Details & Reason Breakdown</h4>
+            <span class="text-xs text-gray-400 print-text-muted">Showing {{ discrepancyItems.length }} affected items</span>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-white/10 print-card">
+            <table class="w-full text-left text-xs print-table">
+              <thead class="bg-black/30 border-b border-white/10 text-gray-400 print-text-muted">
+                <tr>
+                  <th class="py-2.5 px-3">Product</th>
+                  <th class="py-2.5 px-3">Category</th>
+                  <th class="py-2.5 px-3 text-center">System</th>
+                  <th class="py-2.5 px-3 text-center">Physical</th>
+                  <th class="py-2.5 px-3 text-center">Variance</th>
+                  <th class="py-2.5 px-3 text-right">Cost Value</th>
+                  <th class="py-2.5 px-3">Reason / Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/5">
+                @for (item of discrepancyItems; track item.id) {
+                  <tr>
+                    <td class="py-2.5 px-3 font-medium text-white print-text-dark">
+                      {{ item.product_name }}
+                    </td>
+                    <td class="py-2.5 px-3 text-gray-400 print-text-muted">
+                      {{ item.category }}
+                    </td>
+                    <td class="py-2.5 px-3 text-center text-gray-300 print-text-dark">
+                      {{ item.system_quantity }} {{ item.base_unit }}
+                    </td>
+                    <td class="py-2.5 px-3 text-center font-bold text-white print-text-dark">
+                      {{ item.physical_quantity ?? '—' }} {{ item.base_unit }}
+                    </td>
+                    <td class="py-2.5 px-3 text-center font-bold">
+                      <span [class.text-red-400]="item.variance < 0" [class.text-amber-400]="item.variance > 0">
+                        {{ item.variance > 0 ? '+' : '' }}{{ item.variance }}
+                      </span>
+                    </td>
+                    <td class="py-2.5 px-3 text-right font-medium">
+                      <span [class.text-red-400]="item.cost_variance < 0" [class.text-amber-400]="item.cost_variance > 0">
+                        GH₵{{ Math.abs(item.cost_variance) | number:'1.2-2' }}
+                      </span>
+                    </td>
+                    <td class="py-2.5 px-3 text-gray-300 print-text-dark">
+                      <div class="flex flex-col gap-0.5">
+                        <span class="capitalize font-semibold text-gray-200 print-text-dark">
+                          {{ item.discrepancy_reason ? item.discrepancy_reason.replace('_', ' ') : 'Unspecified' }}
+                        </span>
+                        @if (item.offset_status !== 'none') {
+                          <span class="text-[10px] text-blue-400 print-text-muted">
+                            Action: {{ item.offset_status === 'offset_with_overage' ? 'Offset with Overages' : item.offset_status }}
+                          </span>
+                        }
+                        @if (item.notes) {
+                          <span class="text-[10px] text-gray-400 italic">{{ item.notes }}</span>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="7" class="py-6 text-center text-gray-400 print-text-muted">
+                      🎉 100% Balanced! No shortages or overages recorded in this audit session.
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Official Signatures & Acceptance Block -->
+        <div class="pt-8 border-t border-white/10 space-y-8">
+          <p class="text-xs text-gray-400 print-text-muted leading-relaxed">
+            <strong>Acknowledgment:</strong> By signing below, management and shop staff certify that the physical count recorded above is an accurate representation of shop stock on this date. Reconciled adjustments have been applied to the live inventory database to establish a fresh baseline for the upcoming month.
+          </p>
+
+          <div class="grid grid-cols-2 gap-12 pt-4">
+            <div class="space-y-10">
+              <div class="border-b border-gray-500/50 pb-1"></div>
+              <div>
+                <p class="text-xs font-bold text-white print-text-dark">Store Manager / Admin</p>
+                <p class="text-[11px] text-gray-400 print-text-muted">Signature & Date</p>
+              </div>
+            </div>
+
+            <div class="space-y-10">
+              <div class="border-b border-gray-500/50 pb-1"></div>
+              <div>
+                <p class="text-xs font-bold text-white print-text-dark">Responsible Staff / Worker</p>
+                <p class="text-[11px] text-gray-400 print-text-muted">Signature & Date</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+}
+
