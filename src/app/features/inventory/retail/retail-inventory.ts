@@ -790,6 +790,12 @@ export class RetailInventory implements OnInit, OnDestroy {
       next: (res: any) => {
         this.wholesaleProducts = Array.isArray(res) ? res : (res.data || []);
         this.destProducts = this.wholesaleProducts;
+        const match = this.destProducts.find(
+          p => p.name.trim().toLowerCase() === product.name.trim().toLowerCase()
+        );
+        if (match) {
+          this.transferDestId = match.id;
+        }
         this.cdr.detectChanges();
       },
       error: () => this.toastService.error('Failed to load wholesale products')
@@ -809,10 +815,18 @@ export class RetailInventory implements OnInit, OnDestroy {
 
   setTransferMode(mode: 'internal' | 'branch') {
     this.transferMode = mode;
-    this.transferDestId = null;
     this.transferBusinessId = null;
     this.branchDestType = 'wholesale';
-    this.destProducts = mode === 'internal' ? this.wholesaleProducts : [];
+    if (mode === 'internal') {
+      this.destProducts = this.wholesaleProducts;
+      const match = this.destProducts.find(
+        p => p.name.trim().toLowerCase() === this.selectedProduct?.name.trim().toLowerCase()
+      );
+      this.transferDestId = match ? match.id : null;
+    } else {
+      this.destProducts = [];
+      this.transferDestId = null;
+    }
   }
 
   onBranchSelected(businessId: number | null, defaultType: 'retail' | 'wholesale') {
@@ -822,6 +836,12 @@ export class RetailInventory implements OnInit, OnDestroy {
     this.inventoryService.getEligibleProducts(businessId, this.branchDestType).subscribe({
       next: (products) => {
         this.destProducts = products;
+        const match = this.destProducts.find(
+          p => p.name.trim().toLowerCase() === this.selectedProduct?.name.trim().toLowerCase()
+        );
+        if (match) {
+          this.transferDestId = match.id;
+        }
         this.cdr.detectChanges();
       },
       error: () => this.toastService.error('Failed to load destination products')
@@ -862,8 +882,9 @@ export class RetailInventory implements OnInit, OnDestroy {
         const dest = this.transferMode === 'branch'
           ? `${res.transfer?.to_business?.name || 'branch'} (${toType})`
           : toType;
+        const destName = res.destination?.name || res.transfer?.to_product_name || this.selectedProduct!.name;
         const msg = res.auto_created
-          ? `Transferred & auto-created "${res.destination.name}" in ${dest}.`
+          ? `Transferred & auto-created "${destName}" in ${dest}.`
           : `Transferred ${this.transferQty} ${this.transferUnitName} (${this.transferBaseQuantity} ${this.selectedProduct!.base_unit}s) to ${dest} successfully.`;
         this.toastService.success(msg);
         this.loadProducts();

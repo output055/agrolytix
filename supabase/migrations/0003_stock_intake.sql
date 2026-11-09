@@ -123,7 +123,16 @@ create trigger chat_messages_before_update
   before update on public.chat_messages
   for each row execute function public.agx_chat_messages_before_update();
 
--- 4. Update RLS policy to allow Admins to update stock_intake messages (approval/rejection)
+-- 4. Update RLS policy to allow users to insert stock_intake delivery messages
+drop policy if exists chat_messages_insert on public.chat_messages;
+create policy chat_messages_insert on public.chat_messages
+  for insert to authenticated
+  with check (
+    kind in ('text', 'image', 'stock_intake')
+    and public.agx_can_access_room(org_id, room)
+  );
+
+-- 5. Update RLS policy to allow Admins to update stock_intake messages (approval/rejection)
 drop policy if exists chat_messages_update on public.chat_messages;
 create policy chat_messages_update on public.chat_messages
   for update to authenticated
