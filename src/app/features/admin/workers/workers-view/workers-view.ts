@@ -11,14 +11,12 @@ const PERMISSIONS = [
   { id: 'pos.wholesale', label: 'Wholesale POS' },
   { id: 'sales.retail', label: 'Retail Sales' },
   { id: 'sales.wholesale', label: 'Wholesale Sales' },
-  { id: 'inventory.retail', label: 'Retail Inventory' },
-  { id: 'inventory.wholesale', label: 'Wholesale Inventory' },
   { id: 'clients', label: 'Clients' },
   { id: 'reversals', label: 'Reversals' },
 ];
 
 /** Preset permission sets for quick role assignment */
-const RETAILER_PERMISSIONS = ['pos.retail', 'sales.retail', 'inventory.retail'];
+const RETAILER_PERMISSIONS = ['pos.retail', 'sales.retail'];
 
 type UserRole = 'Admin' | 'Retailer' | 'Worker';
 
@@ -252,7 +250,7 @@ type UserRole = 'Admin' | 'Retailer' | 'Worker';
                   <span class="text-lg shrink-0">ℹ️</span>
                   <div>
                     <div class="text-xs font-bold mb-1" style="color: #4ade80;">Retailer Preset</div>
-                    <div class="text-xs" style="color: #6b7280;">Auto-grants: Retail POS, Retail Sales, Retail Inventory. No wholesale or admin access.</div>
+                    <div class="text-xs" style="color: #6b7280;">Auto-grants: Retail POS, Retail Sales. No wholesale, inventory or admin access.</div>
                   </div>
                 </div>
               }

@@ -57,10 +57,16 @@
           </p>
         </div>
       </div>
-      <a [routerLink]="['/inventory/stocktake', activeRetailDraft.session.id]"
-         class="px-4 py-2 rounded-xl text-xs font-bold text-black bg-green-400 hover:bg-green-300 text-center transition-colors">
-        Resume Retail Count →
-      </a>
+      <div class="flex items-center gap-2">
+        <button (click)="promptDeleteSession(activeRetailDraft.session)"
+                class="px-3 py-2 rounded-xl text-xs font-semibold text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-colors">
+          Discard Draft
+        </button>
+        <a [routerLink]="['/inventory/stocktake', activeRetailDraft.session.id]"
+           class="px-4 py-2 rounded-xl text-xs font-bold text-black bg-green-400 hover:bg-green-300 text-center transition-colors">
+          Resume Retail Count →
+        </a>
+      </div>
     </div>
   }
 
@@ -82,10 +88,16 @@
           </p>
         </div>
       </div>
-      <a [routerLink]="['/inventory/stocktake', activeWholesaleDraft.session.id]"
-         class="px-4 py-2 rounded-xl text-xs font-bold text-black bg-amber-400 hover:bg-amber-300 text-center transition-colors">
-        Resume Wholesale Count →
-      </a>
+      <div class="flex items-center gap-2">
+        <button (click)="promptDeleteSession(activeWholesaleDraft.session)"
+                class="px-3 py-2 rounded-xl text-xs font-semibold text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-colors">
+          Discard Draft
+        </button>
+        <a [routerLink]="['/inventory/stocktake', activeWholesaleDraft.session.id]"
+           class="px-4 py-2 rounded-xl text-xs font-bold text-black bg-amber-400 hover:bg-amber-300 text-center transition-colors">
+          Resume Wholesale Count →
+        </a>
+      </div>
     </div>
   }
 
@@ -328,6 +340,49 @@
         </button>
       </div>
 
+    </div>
+  </div>
+}
+
+<!-- Draft Conflict Modal -->
+@if (showDraftConflictModal && conflictDraft) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div class="w-full max-w-md rounded-2xl p-6 border border-white/10 shadow-2xl space-y-5"
+         style="background: #0f1c0f;">
+      <div class="flex items-start gap-3">
+        <div class="p-2.5 rounded-xl bg-amber-500/10 text-amber-400">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-bold text-white text-base">Draft Stocktake In Progress</h3>
+          <p class="text-xs text-gray-400 mt-1">
+            An in-progress {{ newStocktakeType }} stocktake (<strong>{{ conflictDraft.title }}</strong>) already exists.
+          </p>
+        </div>
+      </div>
+
+      <div class="p-3.5 rounded-xl bg-white/5 border border-white/10 text-xs text-gray-300 space-y-2">
+        <p>You can choose to resume the existing draft count, or discard it to take a brand new live snapshot of current inventory.</p>
+        <p class="text-[11px] text-gray-400">Tip: If you resume the draft, you can also click "Sync Live Stock" inside to refresh system stock quantities.</p>
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-center justify-end gap-2 pt-2">
+        <button (click)="showDraftConflictModal = false; conflictDraft = null"
+                class="w-full sm:w-auto px-4 py-2 text-xs text-gray-400 hover:text-white transition-colors">
+          Cancel
+        </button>
+        <button (click)="discardConflictDraftAndStartNew()"
+                class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-colors">
+          Discard & Start New
+        </button>
+        <button (click)="resumeConflictDraft()"
+                class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold text-black"
+                [style.background]="newStocktakeType === 'retail' ? '#4ade80' : '#fbbf24'">
+          Resume Draft →
+        </button>
+      </div>
     </div>
   </div>
 }

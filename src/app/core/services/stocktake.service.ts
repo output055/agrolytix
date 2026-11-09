@@ -465,6 +465,128 @@ export class StocktakeService {
   }
 
   /**
+   * Re-synchronizes a draft stocktake session with current live inventory quantities and prices.
+   * Updates system quantities, recalculates variances for counted items, adds any new products,
+   * and updates master session totals.
+   */
+  async syncSessionWithLiveInventory(session: StocktakeSession, currentItems: StocktakeItem[]): Promise<StocktakeItem[]> {
+    const client = await this.chatService.getClient();
+
+    // 1. Fetch current live products
+    let liveProducts: (Product | WholesaleProduct)[] = [];
+    if (session.inventory_type === 'retail') {
+      const res: any = await firstValueFrom(this.inventoryService.getRetailProducts({ paginate: 0, per_page: 9999 }));
+      liveProducts = Array.isArray(res) ? res : (res?.data || []);
+    } else {
+      const res: any = await firstValueFrom(this.inventoryService.getWholesaleProducts({ paginate: 0, per_page: 9999 }));
+      liveProducts = Array.isArray(res) ? res : (res?.data || []);
+    }
+
+    const liveMap = new Map<number, Product | WholesaleProduct>();
+    liveProducts.forEach(p => liveMap.set(p.id, p));
+
+    const updatedItems: StocktakeItem[] = [];
+    const existingProductIds = new Set<number>();
+
+    // 2. Update existing session items with current system quantities and prices
+    for (const item of currentItems) {
+      existingProductIds.add(item.product_id);
+      const live = liveMap.get(item.product_id);
+
+      if (live) {
+        const sysQty = Number(live.quantity || 0);
+        const costPrice = Number(live.cost_price || 0);
+        const sellPrice = Number(live.sell_price || 0);
+
+        let variance = 0;
+        let costVariance = 0;
+        let sellVariance = 0;
+        let status = item.status;
+
+        if (item.physical_quantity !== null && item.physical_quantity !== undefined) {
+          variance = Number(item.physical_quantity) - sysQty;
+          costVariance = variance * costPrice;
+          sellVariance = variance * sellPrice;
+          if (variance === 0) {
+            status = 'balanced';
+          } else if (variance < 0) {
+            status = 'shortage';
+          } else {
+            status = 'overage';
+          }
+        } else {
+          status = 'uncounted';
+        }
+
+        const updatePayload = {
+          product_name: live.name,
+          category: live.category || 'General',
+          base_unit: live.base_unit || 'unit',
+          system_quantity: sysQty,
+          cost_price: costPrice,
+          sell_price: sellPrice,
+          variance,
+          cost_variance: costVariance,
+          sell_variance: sellVariance,
+          status,
+          updated_at: new Date().toISOString()
+        };
+
+        const { data, error } = await client
+          .from('stocktake_items')
+          .update(updatePayload)
+          .eq('id', item.id)
+          .select('*')
+          .single();
+
+        if (data && !error) {
+          updatedItems.push(data as StocktakeItem);
+        } else {
+          updatedItems.push({ ...item, ...updatePayload });
+        }
+      } else {
+        // Product no longer exists in catalog, keep existing
+        updatedItems.push(item);
+      }
+    }
+
+    // 3. Add any new products that were added to inventory after the session was created
+    const newProducts = liveProducts.filter(p => !existingProductIds.has(p.id));
+    if (newProducts.length > 0) {
+      const newItemsPayload = newProducts.map(p => ({
+        session_id: session.id,
+        product_id: p.id,
+        product_name: p.name,
+        category: p.category || 'General',
+        base_unit: p.base_unit || 'unit',
+        cost_price: Number(p.cost_price || 0),
+        sell_price: Number(p.sell_price || 0),
+        system_quantity: Number(p.quantity || 0),
+        physical_quantity: null,
+        variance: 0,
+        cost_variance: 0,
+        sell_variance: 0,
+        status: 'uncounted',
+        offset_status: 'none',
+      }));
+
+      const { data: insertedData, error: insertErr } = await client
+        .from('stocktake_items')
+        .insert(newItemsPayload)
+        .select('*');
+
+      if (insertedData && !insertErr) {
+        updatedItems.push(...(insertedData as StocktakeItem[]));
+      }
+    }
+
+    // 4. Update session aggregates
+    await this.syncSessionTotals(session.id, updatedItems, { total_products: updatedItems.length });
+
+    return updatedItems;
+  }
+
+  /**
    * Cancel an in-progress session without applying changes.
    */
   async cancelSession(sessionId: string): Promise<void> {

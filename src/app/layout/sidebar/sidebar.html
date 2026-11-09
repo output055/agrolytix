@@ -112,10 +112,10 @@
     }
 
     <!-- Management Section -->
-    @if (isAdmin() || hasPermission('inventory.retail') || hasPermission('inventory.wholesale') || hasPermission('clients') || hasPermission('reversals')) {
+    @if (isAdmin() || hasPermission('clients') || hasPermission('reversals')) {
       <div class="px-4 py-2 mt-4 text-[10px] font-bold uppercase tracking-widest" style="color: #4b5563;">Management</div>
 
-      @if (isAdmin() || hasPermission('inventory.retail')) {
+      @if (isAdmin()) {
       <a routerLink="/inventory/retail" (click)="layoutService.closeSidebar()"
          routerLinkActive="nav-active-green"
          class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">
@@ -125,9 +125,7 @@
         </svg>
         Retail Inventory
       </a>
-      }
 
-      @if (isAdmin() || hasPermission('inventory.wholesale')) {
       <a routerLink="/inventory/wholesale" (click)="layoutService.closeSidebar()"
          routerLinkActive="nav-active-amber"
          class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group nav-link">

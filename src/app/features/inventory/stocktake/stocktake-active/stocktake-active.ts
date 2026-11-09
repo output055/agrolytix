@@ -100,6 +100,7 @@ export class StocktakeActive implements OnInit {
 
   // Report modal state
   showReportModal = false;
+  isSyncing = false;
 
   get categories(): string[] {
     const set = new Set<string>();
@@ -306,6 +307,36 @@ export class StocktakeActive implements OnInit {
       this.syncItemLocally(updated);
     } catch (e: any) {
       this.toastService.error('Failed to save note');
+    }
+  }
+
+  async syncWithLiveInventory() {
+    if (!this.session || this.session.status !== 'draft' || this.isSyncing) return;
+    this.isSyncing = true;
+    try {
+      const updated = await this.stocktakeService.syncSessionWithLiveInventory(this.session, this.items);
+      this.items = updated;
+      try {
+        const res: any = this.session.inventory_type === 'retail'
+          ? await firstValueFrom(this.inventoryService.getRetailProducts({ paginate: 0, per_page: 9999 }))
+          : await firstValueFrom(this.inventoryService.getWholesaleProducts({ paginate: 0, per_page: 9999 }));
+        const prods = Array.isArray(res) ? res : (res?.data || []);
+        const salesMap = new Map<number, number>();
+        prods.forEach((p: any) => salesMap.set(p.id, Number(p.sales_count || 0)));
+        this.items.forEach((it) => {
+          if (salesMap.has(it.product_id)) {
+            it.sales_count = salesMap.get(it.product_id) || 0;
+          }
+        });
+      } catch {}
+
+      this.applyFilters(false);
+      this.toastService.success(`Live stock synced! System quantities & variances updated.`);
+    } catch (err: any) {
+      this.toastService.error(err.message || 'Failed to sync with live inventory');
+    } finally {
+      this.isSyncing = false;
+      this.cdr.detectChanges();
     }
   }
 

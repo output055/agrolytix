@@ -48,6 +48,10 @@ export class StocktakeView implements OnInit {
   showDeleteModal = false;
   sessionToDelete: StocktakeSession | null = null;
 
+  // Conflict modal state (when a draft is already in progress)
+  showDraftConflictModal = false;
+  conflictDraft: StocktakeSession | null = null;
+
   get filteredSessions(): StocktakeSession[] {
     if (this.filterType === 'all') return this.sessions;
     return this.sessions.filter((s) => s.inventory_type === this.filterType);
@@ -78,22 +82,51 @@ export class StocktakeView implements OnInit {
   }
 
   openStartModal(type: InventoryType) {
-    // Check if there is already an active draft for this type
     if (type === 'retail' && this.activeRetailDraft) {
-      this.toastService.info('A retail stocktake is already in progress. Resuming session.');
-      this.router.navigate(['/inventory/stocktake', this.activeRetailDraft.session.id]);
+      this.conflictDraft = this.activeRetailDraft.session;
+      this.newStocktakeType = type;
+      this.showDraftConflictModal = true;
       return;
     }
     if (type === 'wholesale' && this.activeWholesaleDraft) {
-      this.toastService.info('A wholesale stocktake is already in progress. Resuming session.');
-      this.router.navigate(['/inventory/stocktake', this.activeWholesaleDraft.session.id]);
+      this.conflictDraft = this.activeWholesaleDraft.session;
+      this.newStocktakeType = type;
+      this.showDraftConflictModal = true;
       return;
     }
 
+    this.proceedToStartModal(type);
+  }
+
+  proceedToStartModal(type: InventoryType) {
     this.newStocktakeType = type;
     const dateStr = new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' }).format(new Date());
     this.newStocktakeTitle = `${dateStr} ${type === 'retail' ? 'Retail' : 'Wholesale'} Stocktake`;
     this.showStartModal = true;
+  }
+
+  resumeConflictDraft() {
+    if (!this.conflictDraft) return;
+    const id = this.conflictDraft.id;
+    this.showDraftConflictModal = false;
+    this.conflictDraft = null;
+    this.router.navigate(['/inventory/stocktake', id]);
+  }
+
+  async discardConflictDraftAndStartNew() {
+    if (!this.conflictDraft) return;
+    const draftId = this.conflictDraft.id;
+    const type = this.newStocktakeType;
+    try {
+      await this.stocktakeService.deleteSession(draftId);
+      this.toastService.info('Previous draft discarded.');
+      this.showDraftConflictModal = false;
+      this.conflictDraft = null;
+      await this.loadData();
+      this.proceedToStartModal(type);
+    } catch (e: any) {
+      this.toastService.error('Failed to discard draft: ' + e.message);
+    }
   }
 
   closeStartModal() {
