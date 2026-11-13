@@ -13,6 +13,8 @@ import {
   ChatTokenProfile,
   ChatTokenResponse,
   DeclareCashPayload,
+  CommunicationRecord,
+  CommunicationRule,
 } from '../models/chat.model';
 
 @Injectable({ providedIn: 'root' })
@@ -827,6 +829,221 @@ export class ChatService {
         }
       )
     );
+  }
+
+  /**
+   * Fetch communications table records (merged with historical/fallback chat_sms_logs)
+   */
+  async getCommunications(): Promise<CommunicationRecord[]> {
+    const client = await this.getClient();
+    const prof = this.profile();
+    if (!prof) return [];
+
+    const [{ data: commsData, error: commsErr }, { data: logsData }] = await Promise.all([
+      client
+        .from('communications')
+        .select('*')
+        .eq('org_id', prof.orgId)
+        .order('created_at', { ascending: false })
+        .limit(200),
+      client
+        .from('chat_sms_logs')
+        .select('*')
+        .eq('org_id', prof.orgId)
+        .order('created_at', { ascending: false })
+        .limit(200),
+    ]);
+
+    const comms: CommunicationRecord[] = (!commsErr && Array.isArray(commsData))
+      ? (commsData as CommunicationRecord[])
+      : [];
+
+    const logs: CommunicationRecord[] = (logsData || []).map((l: any) => ({
+      id: l.id,
+      org_id: l.org_id,
+      audience: l.event_type?.startsWith('client_') ? 'client' : (l.event_type?.includes('admin') || l.event_type === 'daily_summary' ? 'admin' : 'worker'),
+      mode: l.event_type === 'custom_sms' ? 'manual' : 'automated',
+      event_type: l.event_type,
+      recipients: l.recipients || [],
+      message: l.message,
+      status: l.status === 'success' ? 'sent' : l.status,
+      error_message: l.error_message,
+      created_at: l.created_at,
+    }));
+
+    // Merge logs that are not already represented in communications
+    const merged = [...comms];
+    for (const log of logs) {
+      const logTime = new Date(log.created_at).getTime();
+      const existsInComms = comms.some((c) =>
+        c.event_type === log.event_type &&
+        c.message === log.message &&
+        Math.abs(new Date(c.created_at).getTime() - logTime) < 10_000
+      );
+      if (!existsInComms) {
+        merged.push(log);
+      }
+    }
+
+    merged.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    return merged.slice(0, 200);
+  }
+
+  /**
+   * Send manual or bulk SMS communication to workers or clients
+   */
+  async sendCommunication(payload: {
+    audience: 'worker' | 'client' | 'admin' | 'all';
+    mode?: 'manual' | 'automated';
+    event_type?: string;
+    recipient_ids?: number[];
+    recipient_names?: string[];
+    phones: string[];
+    message: string;
+  }): Promise<any> {
+    const token = localStorage.getItem('auth_token') || '';
+    const headers = {
+      'apikey': this.supabaseAnonKey,
+      'Authorization': `Bearer ${this.supabaseAnonKey}`,
+      'x-agx-token': token,
+    };
+
+    try {
+      return await firstValueFrom(
+        this.http.post(`${this.functionsUrl}/agx-chat/send-communication`, payload, { headers })
+      );
+    } catch (err: any) {
+      if (err?.status === 404) {
+        const res: any = await firstValueFrom(
+          this.http.post(
+            `${this.functionsUrl}/agx-chat/send-sms`,
+            {
+              event: payload.event_type || 'custom_sms',
+              message: payload.message,
+              recipients: payload.phones,
+            },
+            { headers }
+          )
+        );
+
+        // Persist directly to communications table since old Edge Function only writes to chat_sms_logs
+        try {
+          const client = await this.getClient();
+          const prof = this.profile();
+          if (prof) {
+            await client.from('communications').insert({
+              org_id: prof.orgId,
+              business_id: prof.businessId,
+              audience: payload.audience,
+              mode: payload.mode || 'manual',
+              event_type: payload.event_type || 'custom_sms',
+              recipient_ids: payload.recipient_ids || [],
+              recipient_names: payload.recipient_names || [],
+              recipients: payload.phones,
+              message: payload.message,
+              status: res?.success ? 'sent' : 'failed',
+              sent_by_id: prof.userId,
+              sent_by_name: prof.name,
+              error_message: res?.success ? null : (res?.error || res?.message || null),
+            });
+          }
+        } catch { /* non-blocking */ }
+
+        return res;
+      }
+      throw err;
+    }
+  }
+
+  /**
+   * Fetch custom automated SMS rules
+   */
+  async getCommunicationRules(): Promise<CommunicationRule[]> {
+    const client = await this.getClient();
+    const prof = this.profile();
+    if (!prof) return [];
+
+    const { data, error } = await client
+      .from('communication_rules')
+      .select('*')
+      .eq('org_id', prof.orgId)
+      .order('created_at', { ascending: false });
+
+    if (error) return [];
+    return (data as CommunicationRule[]) || [];
+  }
+
+  /**
+   * Create or update an automated SMS rule
+   */
+  async saveCommunicationRule(rule: Partial<CommunicationRule>): Promise<CommunicationRule> {
+    const client = await this.getClient();
+    const prof = this.profile();
+    if (!prof) throw new Error('Not authenticated');
+
+    const cleanTemplates = (rule.message_templates || [])
+      .map((m) => m.trim())
+      .filter(Boolean);
+    const primaryTemplate = rule.message_template?.trim() || cleanTemplates[0] || '';
+
+    const payload: any = {
+      org_id: prof.orgId,
+      business_id: rule.business_id ?? prof.businessId,
+      name: rule.name?.trim(),
+      audience: rule.audience,
+      target_ids: rule.target_ids || [],
+      target_names: rule.target_names || [],
+      trigger_event: rule.trigger_event,
+      schedule_time: rule.schedule_time || null,
+      message_template: primaryTemplate,
+      message_templates: cleanTemplates.length > 0 ? cleanTemplates : (primaryTemplate ? [primaryTemplate] : []),
+      enabled: rule.enabled ?? true,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (rule.id) {
+      const { data, error } = await client
+        .from('communication_rules')
+        .update(payload)
+        .eq('id', rule.id)
+        .select('*')
+        .single();
+      if (error) throw new Error(error.message);
+      return data as CommunicationRule;
+    } else {
+      payload.created_by_id = prof.userId;
+      payload.created_by_name = prof.name;
+      const { data, error } = await client
+        .from('communication_rules')
+        .insert(payload)
+        .select('*')
+        .single();
+      if (error) throw new Error(error.message);
+      return data as CommunicationRule;
+    }
+  }
+
+  /**
+   * Delete an automated SMS rule
+   */
+  async deleteCommunicationRule(id: string): Promise<void> {
+    const client = await this.getClient();
+    const { error } = await client
+      .from('communication_rules')
+      .delete()
+      .eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  /**
+   * Update last_run_at timestamp for a rule
+   */
+  async markRuleRun(id: string): Promise<void> {
+    const client = await this.getClient();
+    await client
+      .from('communication_rules')
+      .update({ last_run_at: new Date().toISOString() })
+      .eq('id', id);
   }
 }
 

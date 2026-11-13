@@ -251,6 +251,10 @@ interface SmsSettingsRow {
   alert_missing_cash: boolean;
   alert_daily_summary: boolean;
   alert_low_balance: boolean;
+  alert_worker_cash_balanced_profit: boolean;
+  alert_client_sale_receipt: boolean;
+  alert_client_debt_reminder: boolean;
+  alert_client_debt_payment: boolean;
   low_balance_threshold: number;
   last_low_balance_alert_at?: string | null;
 }
@@ -279,6 +283,10 @@ async function getOrgSmsSettings(orgId: number): Promise<SmsSettingsRow> {
       alert_missing_cash: true,
       alert_daily_summary: true,
       alert_low_balance: true,
+      alert_worker_cash_balanced_profit: true,
+      alert_client_sale_receipt: false,
+      alert_client_debt_reminder: false,
+      alert_client_debt_payment: true,
       low_balance_threshold: 10,
     };
   }
@@ -287,6 +295,10 @@ async function getOrgSmsSettings(orgId: number): Promise<SmsSettingsRow> {
     ...data,
     arkesel_api_key: data.arkesel_api_key || envKey,
     sender_id: data.sender_id || envSender,
+    alert_worker_cash_balanced_profit: data.alert_worker_cash_balanced_profit ?? true,
+    alert_client_sale_receipt: data.alert_client_sale_receipt ?? false,
+    alert_client_debt_reminder: data.alert_client_debt_reminder ?? false,
+    alert_client_debt_payment: data.alert_client_debt_payment ?? true,
   };
 }
 
@@ -303,11 +315,22 @@ async function checkArkeselBalance(apiKey: string): Promise<any> {
   }
 }
 
+interface CommLogMeta {
+  audience?: 'worker' | 'client' | 'admin' | 'all';
+  mode?: 'manual' | 'automated';
+  businessId?: number;
+  recipientIds?: number[];
+  recipientNames?: string[];
+  sentById?: number;
+  sentByName?: string;
+}
+
 async function dispatchArkeselSms(
   orgId: number,
   eventType: string,
   rawRecipients: (string | null | undefined)[],
-  message: string
+  message: string,
+  commMeta?: CommLogMeta
 ): Promise<{ success: boolean; count: number; error?: string }> {
   const settings = await getOrgSmsSettings(orgId);
   if (!settings.enabled || !settings.arkesel_api_key) {
@@ -353,6 +376,26 @@ async function dispatchArkeselSms(
       response: body,
       error_message: res.ok ? null : (body?.message || `HTTP ${res.status}`),
     });
+
+    // Also log to public.communications table
+    try {
+      await admin.from('communications').insert({
+        org_id: orgId,
+        business_id: commMeta?.businessId ?? null,
+        audience: commMeta?.audience ?? (eventType.startsWith('client_') ? 'client' : 'worker'),
+        mode: commMeta?.mode ?? 'automated',
+        event_type: eventType,
+        recipient_ids: commMeta?.recipientIds ?? [],
+        recipient_names: commMeta?.recipientNames ?? [],
+        recipients: cleanRecipients,
+        message,
+        status: res.ok ? 'sent' : 'failed',
+        sent_by_id: commMeta?.sentById ?? null,
+        sent_by_name: commMeta?.sentByName ?? 'System',
+        error_message: res.ok ? null : (body?.message || `HTTP ${res.status}`),
+        response: body,
+      });
+    } catch { /* non-blocking if migration 0007 not yet run */ }
 
     // Check low balance alert if enabled
     if (res.ok && settings.alert_low_balance) {
@@ -404,6 +447,36 @@ async function getHqAdminPhones(orgId: number): Promise<string[]> {
     .eq('role', 'Admin');
 
   return (data || []).map(r => r.phone).filter(Boolean);
+}
+
+/** Get all Admin contacts for a specific branch (falls back to HQ admins if none synced for branch) */
+async function getBranchAdminPhones(orgId: number, businessId: number): Promise<{ phones: string[]; names: string[] }> {
+  const { data: branchAdmins } = await admin
+    .from('chat_contacts')
+    .select('phone, name')
+    .eq('org_id', orgId)
+    .eq('business_id', businessId)
+    .eq('role', 'Admin');
+
+  const validBranch = (branchAdmins || []).filter(r => !!r.phone);
+  if (validBranch.length > 0) {
+    return {
+      phones: validBranch.map(r => r.phone!),
+      names: validBranch.map(r => r.name || 'Admin'),
+    };
+  }
+
+  const { data: hqAdmins } = await admin
+    .from('chat_contacts')
+    .select('phone, name')
+    .eq('org_id', orgId)
+    .eq('role', 'Admin');
+
+  const validHq = (hqAdmins || []).filter(r => !!r.phone);
+  return {
+    phones: validHq.map(r => r.phone!),
+    names: validHq.map(r => r.name || 'Admin'),
+  };
 }
 
 /** Get worker phones for a specific branch */
@@ -625,20 +698,74 @@ async function actionDeclareCash(token: string, req: Request) {
   try {
     const settings = await getOrgSmsSettings(id.orgId);
     if (settings.enabled) {
-      const shouldSend =
-        (status === 'balanced' && settings.alert_cash_balanced) ||
-        (status !== 'balanced' && settings.alert_cash_imbalance);
+      const shouldSendBalanced =
+        status === 'balanced' && (settings.alert_cash_balanced || settings.alert_worker_cash_balanced_profit);
+      const shouldSendImbalance = status !== 'balanced' && settings.alert_cash_imbalance;
 
-      if (shouldSend) {
-        // Recipients: HQ Admins + Declaring Worker's contact
+      if (shouldSendBalanced) {
+        // Fetch day's profit for the branch (works for both workers & admins via /reconciliation/daily-profit)
+        let totalProfit: number | null = null;
+        let netProfit: number | null = null;
+        try {
+          const p = await agx<any>(`/reconciliation/daily-profit?date=${date}`, token);
+          if (p && p.total_profit !== undefined) {
+            totalProfit = round2(num(p.total_profit));
+            netProfit = round2(num(p.net_profit));
+          }
+        } catch {
+          try {
+            const s = await agx<any>(`/expenses/today-stats?date=${date}`, token);
+            if (s && s.total_profit !== undefined) {
+              totalProfit = round2(num(s.total_profit));
+              netProfit = round2(num(s.net_profit));
+            }
+          } catch { /* profit unavailable */ }
+        }
+
+        // Recipients: Worker who submitted the declaration + All Admins of that branch
+        const branchAdmins = await getBranchAdminPhones(id.orgId, id.businessId);
+        const recipients: string[] = [...branchAdmins.phones];
+        const recipientNames: string[] = [...branchAdmins.names];
+        if (id.contact) {
+          recipients.push(id.contact);
+          recipientNames.push(id.name);
+        }
+
+        const profitLines = netProfit !== null
+          ? `\nGross Profit: ${ghs(totalProfit ?? netProfit)}\nNet Profit: ${ghs(netProfit)}`
+          : '';
+
+        const smsText = `Agrolytix Cash Balanced: ${id.businessName} (${date})\nDeclared: ${ghs(amount)}\nStatus: BALANCED${profitLines}\nBy: ${id.name}`;
+
+        await dispatchArkeselSms(id.orgId, 'cash_declaration_balanced', recipients, smsText, {
+          audience: 'worker',
+          mode: 'automated',
+          businessId: id.businessId,
+          recipientNames,
+          sentById: id.userId,
+          sentByName: id.name,
+        });
+      } else if (shouldSendImbalance) {
+        const branchAdmins = await getBranchAdminPhones(id.orgId, id.businessId);
         const hqPhones = await getHqAdminPhones(id.orgId);
-        const recipients = [...hqPhones];
-        if (id.contact) recipients.push(id.contact);
+        const recipients = [...branchAdmins.phones, ...hqPhones];
+        const recipientNames = [...branchAdmins.names];
+        if (id.contact) {
+          recipients.push(id.contact);
+          recipientNames.push(id.name);
+        }
 
-        const statusLabel = status === 'balanced' ? 'BALANCED' : status === 'short' ? `SHORTAGE (${ghs(Math.abs(difference))})` : `SURPLUS (${ghs(Math.abs(difference))})`;
+        const statusLabel = status === 'short' ? `SHORTAGE (${ghs(Math.abs(difference))})` : `SURPLUS (${ghs(Math.abs(difference))})`;
         const smsText = `Agrolytix Cash Declared: ${id.businessName} (${date})\nAmount: ${ghs(amount)}\nStatus: ${statusLabel}\nBy: ${id.name}`;
 
-        await dispatchArkeselSms(id.orgId, `cash_declaration_${status}`, recipients, smsText);
+        await dispatchArkeselSms(id.orgId, `cash_declaration_${status}`, recipients, smsText, {
+          audience: 'admin',
+          mode: 'automated',
+          businessId: id.businessId,
+          recipientNames,
+          sentById: id.userId,
+          sentByName: id.name,
+        });
       }
     }
   } catch (smsErr) {
@@ -796,6 +923,34 @@ async function actionDailySummary(token: string, req: Request) {
   return await dispatchArkeselSms(id.orgId, 'daily_summary', hqPhones, summaryMsg);
 }
 
+// ─── Direct Communication Dispatch (Workers & Clients from Communications Table) ─
+async function actionSendCommunication(token: string, req: Request) {
+  const body = await req.json().catch(() => ({}));
+  const id = await identify(token, body);
+  if (id.role !== 'Admin') throw new HttpError(403, 'Only administrators can dispatch communications');
+
+  const audience = (['worker', 'client', 'admin', 'all'].includes(body?.audience) ? body.audience : 'client') as 'worker' | 'client' | 'admin' | 'all';
+  const mode = (body?.mode === 'automated' ? 'automated' : 'manual') as 'manual' | 'automated';
+  const eventType = String(body?.event_type || 'custom_sms');
+  const message = String(body?.message || '').trim();
+  const phones: string[] = Array.isArray(body?.phones) ? body.phones : [];
+  const recipientIds: number[] = Array.isArray(body?.recipient_ids) ? body.recipient_ids : [];
+  const recipientNames: string[] = Array.isArray(body?.recipient_names) ? body.recipient_names : [];
+
+  if (!message) throw new HttpError(422, 'Message body is required');
+  if (phones.length === 0) throw new HttpError(422, 'At least one recipient phone number is required');
+
+  return await dispatchArkeselSms(id.orgId, eventType, phones, message, {
+    audience,
+    mode,
+    businessId: id.businessId,
+    recipientIds,
+    recipientNames,
+    sentById: id.userId,
+    sentByName: id.name,
+  });
+}
+
 // ─── Arkesel Balance Check Action ───────────────────────────────────────────
 async function actionArkeselBalance(token: string, req: Request) {
   const id = await identify(token);
@@ -824,6 +979,7 @@ Deno.serve(async (req) => {
       case 'sign-upload':         return json(req, 200, await actionSignUpload(token));
       case 'declare-cash':        return json(req, 200, await actionDeclareCash(token, req));
       case 'send-sms':            return json(req, 200, await actionSendSms(token, req));
+      case 'send-communication':  return json(req, 200, await actionSendCommunication(token, req));
       case 'check-missing-cash':  return json(req, 200, await actionCheckMissingCash(token, req));
       case 'daily-summary':       return json(req, 200, await actionDailySummary(token, req));
       case 'arkesel-balance':     return json(req, 200, await actionArkeselBalance(token, req));

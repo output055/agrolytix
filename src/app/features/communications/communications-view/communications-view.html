@@ -1,0 +1,693 @@
+<div class="space-y-6 pb-12">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-black tracking-tight" style="color: #f0fdf4;">Communications & SMS</h1>
+      <p class="text-sm mt-0.5" style="color: #9ca3af;">
+        Control automated SMS alerts and send direct SMS to workers and clients.
+      </p>
+    </div>
+
+    <div class="flex items-center gap-3 flex-wrap">
+      @if (smsBalance()) {
+        <div class="px-3.5 py-2 rounded-xl text-xs font-bold border"
+             style="background: rgba(74,222,128,0.08); border-color: rgba(74,222,128,0.25); color: #4ade80;">
+          SMS Balance: {{ smsBalance().sms_balance ?? smsBalance().main_balance ?? 'Active' }} units
+        </div>
+      }
+      <button (click)="checkBalance()" [disabled]="checkingBalance()"
+              class="px-3.5 py-2 rounded-xl text-xs font-semibold border transition-colors"
+              style="background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.1); color: #d1d5db;">
+        {{ checkingBalance() ? 'Checking...' : 'Check SMS Balance' }}
+      </button>
+      <button (click)="activeTab.set('compose')"
+              class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-black transition-transform active:scale-95"
+              style="background: #4ade80;">
+        + Send SMS
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="flex items-center gap-2 border-b pb-3 overflow-x-auto" style="border-color: rgba(255,255,255,0.08);">
+    <button (click)="activeTab.set('log')"
+            class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap"
+            [style.background]="activeTab() === 'log' ? 'rgba(74,222,128,0.15)' : 'transparent'"
+            [style.color]="activeTab() === 'log' ? '#4ade80' : '#9ca3af'">
+      Communications Table ({{ records().length }})
+    </button>
+    <button (click)="activeTab.set('compose')"
+            class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap"
+            [style.background]="activeTab() === 'compose' ? 'rgba(74,222,128,0.15)' : 'transparent'"
+            [style.color]="activeTab() === 'compose' ? '#4ade80' : '#9ca3af'">
+      Send SMS (Workers & Clients)
+    </button>
+    <button (click)="activeTab.set('automation')"
+            class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap"
+            [style.background]="activeTab() === 'automation' ? 'rgba(251,191,36,0.15)' : 'transparent'"
+            [style.color]="activeTab() === 'automation' ? '#fbbf24' : '#9ca3af'">
+      Automated SMS Controls
+    </button>
+  </div>
+
+  <!-- ══ TAB 1: COMMUNICATIONS TABLE ═══════════════════════════════════════════ -->
+  @if (activeTab() === 'log') {
+    <div class="space-y-4">
+      <!-- Filters -->
+      <div class="flex flex-col sm:flex-row gap-3 justify-between items-stretch sm:items-center">
+        <input type="text"
+               [ngModel]="searchQuery()"
+               (ngModelChange)="searchQuery.set($event)"
+               placeholder="Search recipient, phone, event or message..."
+               class="w-full sm:w-80 bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-green-400">
+
+        <div class="flex items-center gap-2 flex-wrap">
+          <select [ngModel]="filterAudience()" (ngModelChange)="filterAudience.set($event)"
+                  class="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-green-400">
+            <option value="all">All Audiences</option>
+            <option value="worker">Workers</option>
+            <option value="client">Clients</option>
+            <option value="admin">Admins</option>
+          </select>
+
+          <select [ngModel]="filterMode()" (ngModelChange)="filterMode.set($event)"
+                  class="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-green-400">
+            <option value="all">All Modes</option>
+            <option value="automated">Automated</option>
+            <option value="manual">Manual</option>
+          </select>
+
+          <button (click)="loadAll()"
+                  class="px-3 py-2 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-gray-300 transition-colors">
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="rounded-2xl border overflow-hidden" style="background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.06);">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm" style="color: #d1d5db;">
+            <thead class="text-xs uppercase border-b" style="background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.06); color: #9ca3af;">
+              <tr>
+                <th class="px-5 py-3.5 font-semibold">Date & Time</th>
+                <th class="px-5 py-3.5 font-semibold">Audience</th>
+                <th class="px-5 py-3.5 font-semibold">Mode</th>
+                <th class="px-5 py-3.5 font-semibold">Event</th>
+                <th class="px-5 py-3.5 font-semibold">Recipients</th>
+                <th class="px-5 py-3.5 font-semibold">Message</th>
+                <th class="px-5 py-3.5 font-semibold text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y" style="border-color: rgba(255,255,255,0.05);">
+              @if (loading()) {
+                <tr>
+                  <td colspan="7" class="px-5 py-10 text-center text-gray-400 text-sm">Loading communications...</td>
+                </tr>
+              } @else if (filteredRecords().length === 0) {
+                <tr>
+                  <td colspan="7" class="px-5 py-10 text-center text-gray-500 text-sm">
+                    No SMS communications recorded yet.
+                  </td>
+                </tr>
+              } @else {
+                @for (rec of filteredRecords(); track rec.id) {
+                  <tr class="hover:bg-white/[0.03] transition-colors align-top">
+                    <td class="px-5 py-4 whitespace-nowrap text-xs text-gray-400">
+                      {{ rec.created_at | date:'medium' }}
+                    </td>
+                    <td class="px-5 py-4 whitespace-nowrap">
+                      <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase"
+                            [style.background]="rec.audience === 'client' ? 'rgba(59,130,246,0.15)' : rec.audience === 'worker' ? 'rgba(74,222,128,0.15)' : 'rgba(251,191,36,0.15)'"
+                            [style.color]="rec.audience === 'client' ? '#60a5fa' : rec.audience === 'worker' ? '#4ade80' : '#fbbf24'">
+                        {{ rec.audience }}
+                      </span>
+                    </td>
+                    <td class="px-5 py-4 whitespace-nowrap text-xs">
+                      <span class="px-2 py-0.5 rounded bg-white/5 text-gray-300 font-medium capitalize">
+                        {{ rec.mode }}
+                      </span>
+                    </td>
+                    <td class="px-5 py-4 whitespace-nowrap text-xs font-medium text-white">
+                      {{ formatEventLabel(rec.event_type) }}
+                    </td>
+                    <td class="px-5 py-4 text-xs">
+                      @if (rec.recipient_names && rec.recipient_names.length > 0) {
+                        <div class="font-medium text-white">{{ rec.recipient_names.join(', ') }}</div>
+                      }
+                      <div class="text-gray-400">{{ (rec.recipients || []).join(', ') }}</div>
+                    </td>
+                    <td class="px-5 py-4 text-xs text-gray-300 max-w-md whitespace-pre-line">
+                      {{ rec.message }}
+                    </td>
+                    <td class="px-5 py-4 whitespace-nowrap text-right">
+                      <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase"
+                            [style.background]="rec.status === 'sent' ? 'rgba(74,222,128,0.15)' : 'rgba(239,68,68,0.15)'"
+                            [style.color]="rec.status === 'sent' ? '#4ade80' : '#f87171'">
+                        {{ rec.status }}
+                      </span>
+                      @if (rec.error_message) {
+                        <div class="text-[10px] text-red-400 mt-1">{{ rec.error_message }}</div>
+                      }
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ══ TAB 2: SEND SMS TO WORKERS & CLIENTS ══════════════════════════════════ -->
+  @if (activeTab() === 'compose') {
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Left: Recipient Selector -->
+      <div class="lg:col-span-5 rounded-2xl p-5 border space-y-4"
+           style="background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.08);">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-bold text-white uppercase tracking-wider">1. Select Recipients</h2>
+          <span class="text-xs font-semibold text-green-400">{{ selectedIds().size }} selected</span>
+        </div>
+
+        <!-- Audience Toggle -->
+        <div class="grid grid-cols-3 gap-2 p-1 rounded-xl bg-black/40">
+          <button (click)="setComposeAudience('client')"
+                  class="py-2 rounded-lg text-xs font-bold transition-colors"
+                  [style.background]="composeAudience() === 'client' ? 'rgba(59,130,246,0.2)' : 'transparent'"
+                  [style.color]="composeAudience() === 'client' ? '#60a5fa' : '#9ca3af'">
+            Clients
+          </button>
+          <button (click)="setComposeAudience('debtors')"
+                  class="py-2 rounded-lg text-xs font-bold transition-colors"
+                  [style.background]="composeAudience() === 'debtors' ? 'rgba(251,191,36,0.2)' : 'transparent'"
+                  [style.color]="composeAudience() === 'debtors' ? '#fbbf24' : '#9ca3af'">
+            Debtors
+          </button>
+          <button (click)="setComposeAudience('worker')"
+                  class="py-2 rounded-lg text-xs font-bold transition-colors"
+                  [style.background]="composeAudience() === 'worker' ? 'rgba(74,222,128,0.2)' : 'transparent'"
+                  [style.color]="composeAudience() === 'worker' ? '#4ade80' : '#9ca3af'">
+            Workers
+          </button>
+        </div>
+
+        <!-- Search & Bulk Actions -->
+        <div class="flex items-center gap-2">
+          <input type="text"
+                 [ngModel]="recipientSearch()"
+                 (ngModelChange)="recipientSearch.set($event)"
+                 placeholder="Filter by name or phone..."
+                 class="flex-1 bg-black/30 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-green-400">
+          <button (click)="selectAllWithPhone()"
+                  class="px-3 py-2 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-green-400">
+            Select All
+          </button>
+          <button (click)="clearSelection()"
+                  class="px-3 py-2 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-gray-400">
+            Clear
+          </button>
+        </div>
+
+        <!-- Checklist -->
+        <div class="max-h-80 overflow-y-auto space-y-1.5 pr-1">
+          @if (availableRecipients().length === 0) {
+            <div class="text-xs text-gray-500 text-center py-6">No recipients found.</div>
+          } @else {
+            @for (r of availableRecipients(); track r.id) {
+              <div (click)="toggleRecipient(r.id, !!r.phone)"
+                   class="flex items-center justify-between p-3 rounded-xl border transition-colors"
+                   [class.cursor-pointer]="!!r.phone"
+                   [class.opacity-50]="!r.phone"
+                   [style.background]="selectedIds().has(r.id) ? 'rgba(74,222,128,0.08)' : 'rgba(0,0,0,0.2)'"
+                   [style.border-color]="selectedIds().has(r.id) ? 'rgba(74,222,128,0.3)' : 'rgba(255,255,255,0.05)'">
+                <div class="flex items-center gap-3 min-w-0">
+                  <input type="checkbox"
+                         [checked]="selectedIds().has(r.id)"
+                         [disabled]="!r.phone"
+                         class="w-4 h-4 accent-green-500 rounded pointer-events-none">
+                  <div class="truncate">
+                    <div class="text-xs font-bold text-white truncate">{{ r.name }}</div>
+                    <div class="text-[11px] text-gray-400 truncate">{{ r.subtitle }}</div>
+                  </div>
+                </div>
+                <div class="text-xs font-mono shrink-0 ml-2"
+                     [style.color]="r.phone ? '#9ca3af' : '#f87171'">
+                  {{ r.phone || 'No phone' }}
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Right: Message Composer -->
+      <div class="lg:col-span-7 rounded-2xl p-5 border space-y-4 flex flex-col justify-between"
+           style="background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.08);">
+        <div class="space-y-4">
+          <h2 class="text-sm font-bold text-white uppercase tracking-wider">2. Compose SMS Message</h2>
+
+          <!-- Quick Templates -->
+          <div class="flex flex-wrap gap-2">
+            <button type="button"
+                    (click)="applyTemplate('Dear Customer, this is a friendly reminder regarding your outstanding balance with us. Please reach out to settle at your earliest convenience. Thank you!')"
+                    class="px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-white/5 hover:bg-white/10 text-amber-400">
+              Debt Reminder Template
+            </button>
+            <button type="button"
+                    (click)="applyTemplate('New agro-inputs and fresh stock have arrived at our shop! Visit us today for the best wholesale and retail prices.')"
+                    class="px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-white/5 hover:bg-white/10 text-green-400">
+              New Stock Promo
+            </button>
+            <button type="button"
+                    (click)="applyTemplate('Notice to all staff: Please ensure all daily sales and cash declarations are submitted before closing today.')"
+                    class="px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-white/5 hover:bg-white/10 text-blue-400">
+              Staff Notice
+            </button>
+          </div>
+
+          <div>
+            <textarea [(ngModel)]="composeMessage"
+                      rows="7"
+                      placeholder="Type your SMS message here..."
+                      class="w-full bg-black/30 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-green-400 resize-none"></textarea>
+            <div class="flex justify-between text-[11px] text-gray-400 mt-1.5">
+              <span>{{ composeMessage.length }} characters</span>
+              <span>~{{ Math.max(1, Math.ceil((composeMessage.length || 1) / 160)) }} SMS page(s) per recipient</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-3 border-t" style="border-color: rgba(255,255,255,0.08);">
+          <div class="text-xs text-gray-400">
+            Sending to <strong class="text-white">{{ selectedIds().size }}</strong> {{ composeAudience() }}
+          </div>
+          <button (click)="sendManualSms()"
+                  [disabled]="sendingSms() || selectedIds().size === 0 || !composeMessage.trim()"
+                  class="px-6 py-2.5 rounded-xl text-sm font-bold text-black disabled:opacity-50 transition-transform active:scale-95"
+                  style="background: #4ade80;">
+            {{ sendingSms() ? 'Sending SMS...' : 'Send SMS Now' }}
+          </button>
+        </div>
+      </div>
+
+    </div>
+  }
+
+  <!-- ══ TAB 3: AUTOMATED SMS CONTROLS ═════════════════════════════════════════ -->
+  @if (activeTab() === 'automation') {
+    <div class="rounded-2xl p-6 border space-y-6"
+         style="background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.08);">
+
+      <!-- Master Toggle -->
+      <div class="flex items-center justify-between p-4 rounded-xl border"
+           style="background: rgba(74,222,128,0.06); border-color: rgba(74,222,128,0.2);">
+        <div>
+          <div class="text-sm font-bold text-white">Master Automated SMS Switch</div>
+          <div class="text-xs text-gray-400">Enable or pause all automated worker & client SMS notifications</div>
+        </div>
+        <input type="checkbox" [(ngModel)]="smsForm.enabled" class="w-5 h-5 accent-green-500 rounded cursor-pointer">
+      </div>
+
+      <!-- Arkesel Credentials -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1.5">Arkesel API Key</label>
+          <input type="password" [(ngModel)]="smsForm.arkesel_api_key" placeholder="Enter Arkesel API Key"
+                 class="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-green-400">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1.5">Sender ID (max 11 chars)</label>
+          <input type="text" [(ngModel)]="smsForm.sender_id" maxlength="11" placeholder="Agrolytix"
+                 class="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-green-400">
+        </div>
+      </div>
+
+      <!-- Worker & Branch Admin Automated SMS -->
+      <div class="space-y-3">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-green-400">Worker & Branch Admin Automated SMS</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label class="flex items-start justify-between gap-3 p-4 rounded-xl bg-black/25 border border-white/5 cursor-pointer">
+            <div>
+              <div class="text-xs font-bold text-white">Balanced Cash Declaration + Profit SMS</div>
+              <div class="text-[11px] text-gray-400 mt-0.5">
+                Automatically SMS the day's profit to the declaring worker and all admins of that branch when cash balances.
+              </div>
+            </div>
+            <input type="checkbox" [(ngModel)]="smsForm.alert_worker_cash_balanced_profit" class="w-4 h-4 accent-green-500 mt-0.5">
+          </label>
+
+          <label class="flex items-start justify-between gap-3 p-4 rounded-xl bg-black/25 border border-white/5 cursor-pointer">
+            <div>
+              <div class="text-xs font-bold text-white">Cash Imbalance Alert (Shortage / Surplus)</div>
+              <div class="text-[11px] text-gray-400 mt-0.5">
+                Alert branch & HQ admins immediately when a cash declaration has a variance.
+              </div>
+            </div>
+            <input type="checkbox" [(ngModel)]="smsForm.alert_cash_imbalance" class="w-4 h-4 accent-amber-500 mt-0.5">
+          </label>
+
+          <label class="flex items-start justify-between gap-3 p-4 rounded-xl bg-black/25 border border-white/5 cursor-pointer">
+            <div>
+              <div class="text-xs font-bold text-white">Missing Cash Declaration Reminder</div>
+              <div class="text-[11px] text-gray-400 mt-0.5">
+                Remind branch workers and alert admins if cash hasn't been declared for the day.
+              </div>
+            </div>
+            <input type="checkbox" [(ngModel)]="smsForm.alert_missing_cash" class="w-4 h-4 accent-amber-500 mt-0.5">
+          </label>
+
+          <label class="flex items-start justify-between gap-3 p-4 rounded-xl bg-black/25 border border-white/5 cursor-pointer">
+            <div>
+              <div class="text-xs font-bold text-white">Stock Intake & Price Change Alerts</div>
+              <div class="text-[11px] text-gray-400 mt-0.5">
+                Notify admins when new stock is added or product prices are changed.
+              </div>
+            </div>
+            <input type="checkbox" [(ngModel)]="smsForm.alert_stock_intake" class="w-4 h-4 accent-amber-500 mt-0.5">
+          </label>
+        </div>
+      </div>
+
+      <!-- Client Automated SMS -->
+      <div class="space-y-3">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-blue-400">Client Automated SMS</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <label class="flex items-start justify-between gap-3 p-4 rounded-xl bg-black/25 border border-white/5 cursor-pointer">
+            <div>
+              <div class="text-xs font-bold text-white">Wholesale Sale Receipt SMS</div>
+              <div class="text-[11px] text-gray-400 mt-0.5">Send thank-you & receipt total to client after wholesale checkout.</div>
+            </div>
+            <input type="checkbox" [(ngModel)]="smsForm.alert_client_sale_receipt" class="w-4 h-4 accent-blue-500 mt-0.5">
+          </label>
+
+          <label class="flex items-start justify-between gap-3 p-4 rounded-xl bg-black/25 border border-white/5 cursor-pointer">
+            <div>
+              <div class="text-xs font-bold text-white">Debt Payment Confirmation</div>
+              <div class="text-[11px] text-gray-400 mt-0.5">Send SMS confirmation & remaining balance when a client pays debt.</div>
+            </div>
+            <input type="checkbox" [(ngModel)]="smsForm.alert_client_debt_payment" class="w-4 h-4 accent-blue-500 mt-0.5">
+          </label>
+
+          <label class="flex items-start justify-between gap-3 p-4 rounded-xl bg-black/25 border border-white/5 cursor-pointer">
+            <div>
+              <div class="text-xs font-bold text-white">Automated Debt Reminders</div>
+              <div class="text-[11px] text-gray-400 mt-0.5">Allow automated reminders for clients with overdue balances.</div>
+            </div>
+            <input type="checkbox" [(ngModel)]="smsForm.alert_client_debt_reminder" class="w-4 h-4 accent-blue-500 mt-0.5">
+          </label>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <button (click)="saveAutomationSettings()" [disabled]="savingSettings()"
+                class="px-6 py-2.5 rounded-xl text-sm font-bold text-black disabled:opacity-50"
+                style="background: #4ade80;">
+          {{ savingSettings() ? 'Saving...' : 'Save Automated SMS Controls' }}
+        </button>
+      </div>
+
+      <!-- Custom Automated SMS Rules -->
+      <div class="glass-panel rounded-2xl p-5 border border-white/10 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-sm font-bold text-white">Custom Automated SMS Rules</h2>
+            <p class="text-xs text-gray-400 mt-0.5">Create your own automated SMS templates for specific events or recurring schedules.</p>
+          </div>
+          <button (click)="openRuleModal()"
+                  class="px-4 py-2 rounded-xl text-xs font-bold text-black transition-all hover:opacity-90"
+                  style="background: #4ade80;">
+            + Create Automated SMS
+          </button>
+        </div>
+
+        @if (rules().length === 0) {
+          <div class="rounded-xl bg-black/25 border border-white/5 p-6 text-center text-xs text-gray-400">
+            No custom automated SMS rules yet. Click <span class="text-white font-semibold">+ Create Automated SMS</span> to add one.
+          </div>
+        } @else {
+          <div class="space-y-3">
+            @for (rule of rules(); track rule.id) {
+              <div class="rounded-xl bg-black/25 border border-white/10 p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="space-y-1.5 flex-1 min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-sm font-bold text-white">{{ rule.name }}</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase"
+                          [class]="rule.enabled ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-400'">
+                      {{ rule.enabled ? 'Active' : 'Paused' }}
+                    </span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-blue-500/15 text-blue-300">
+                      {{ rule.audience === 'custom' ? 'Specific Users' : rule.audience }}
+                    </span>
+                    @if (rule.target_names && rule.target_names.length > 0) {
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/15 text-purple-300">
+                        {{ rule.target_names.length }} user{{ rule.target_names.length > 1 ? 's' : '' }}:
+                        {{ rule.target_names.slice(0, 2).join(', ') }}{{ rule.target_names.length > 2 ? ' +' + (rule.target_names.length - 2) : '' }}
+                      </span>
+                    } @else {
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/10 text-gray-300">
+                        All in group
+                      </span>
+                    }
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-300">
+                      {{ formatEventLabel(rule.trigger_event) }}
+                      @if (rule.schedule_time && (rule.trigger_event.includes('schedule') || !presetTriggers.includes(rule.trigger_event))) {
+                        · {{ rule.schedule_time }}
+                      }
+                    </span>
+                    @if (rule.message_templates && rule.message_templates.length > 1) {
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-300">
+                        {{ rule.message_templates.length }} messages
+                      </span>
+                    }
+                  </div>
+                  <p class="text-xs text-gray-300 break-words">{{ rule.message_template }}</p>
+                  @if (rule.last_run_at) {
+                    <p class="text-[11px] text-gray-500">Last run: {{ rule.last_run_at | date:'medium' }}</p>
+                  }
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 shrink-0">
+                  <button (click)="runRuleNow(rule)" [disabled]="runningRuleId() === rule.id"
+                          class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-500/15 text-green-300 hover:bg-green-500/25 disabled:opacity-50">
+                    {{ runningRuleId() === rule.id ? 'Running...' : 'Run Now' }}
+                  </button>
+                  <button (click)="toggleRule(rule)"
+                          class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/5 text-gray-200 hover:bg-white/10">
+                    {{ rule.enabled ? 'Pause' : 'Enable' }}
+                  </button>
+                  <button (click)="openRuleModal(rule)"
+                          class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/5 text-gray-200 hover:bg-white/10">
+                    Edit
+                  </button>
+                  <button (click)="deleteRule(rule)"
+                          class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/15 text-red-300 hover:bg-red-500/25">
+                    Delete
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Create / Edit Custom Automated SMS Modal -->
+  @if (showRuleModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div class="glass-panel w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-white/15 p-6 space-y-4 shadow-2xl">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-white">
+            {{ ruleForm.id ? 'Edit Automated SMS Rule' : 'Create Automated SMS Rule' }}
+          </h3>
+          <button (click)="closeRuleModal()" class="text-gray-400 hover:text-white text-sm font-bold">✕</button>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-300 mb-1">Rule Name</label>
+            <input type="text" [(ngModel)]="ruleForm.name" placeholder="e.g. Daily Closing Reminder"
+                   class="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm text-white focus:outline-none focus:border-green-400">
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-gray-300 mb-1">Target Audience</label>
+              <select [ngModel]="ruleForm.audience" (ngModelChange)="onRuleAudienceChange($event)"
+                      class="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm text-white focus:outline-none focus:border-green-400">
+                <option value="worker">Workers</option>
+                <option value="admin">Branch Admins</option>
+                <option value="client">Clients</option>
+                <option value="debtors">Debtors</option>
+                <option value="custom">Specific / Mixed Users</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-300 mb-1">Trigger Event</label>
+              <select [(ngModel)]="ruleTriggerType"
+                      class="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm text-white focus:outline-none focus:border-green-400">
+                <option value="cash_balanced">Cash Balanced</option>
+                <option value="cash_imbalance">Cash Imbalance</option>
+                <option value="wholesale_sale">Wholesale Sale</option>
+                <option value="debt_payment">Debt Payment</option>
+                <option value="daily_schedule">Daily Schedule</option>
+                <option value="weekly_schedule">Weekly Schedule</option>
+                <option value="custom">Custom Trigger Event...</option>
+              </select>
+            </div>
+          </div>
+
+          @if (ruleTriggerType === 'custom') {
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Custom Trigger Event Name</label>
+                <input type="text" [(ngModel)]="customTriggerName" placeholder="e.g. Low Stock Alert or Month-End Bonus"
+                       class="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm text-white focus:outline-none focus:border-green-400">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-300 mb-1">Schedule Time (Optional)</label>
+                <input type="time" [(ngModel)]="ruleForm.schedule_time"
+                       class="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm text-white focus:outline-none focus:border-green-400">
+              </div>
+            </div>
+          } @else if (ruleTriggerType.includes('schedule')) {
+            <div>
+              <label class="block text-xs font-semibold text-gray-300 mb-1">Schedule Time</label>
+              <input type="time" [(ngModel)]="ruleForm.schedule_time"
+                     class="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm text-white focus:outline-none focus:border-green-400">
+            </div>
+          }
+
+          <!-- Individual Recipient Picker -->
+          <div class="rounded-xl bg-black/30 border border-white/10 p-3 space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <span class="text-xs font-semibold text-gray-200">Target Individual Users</span>
+                <span class="text-[11px] text-gray-400 ml-1.5">
+                  @if (ruleForm.audience === 'custom') {
+                    ({{ ruleSelectedIds().size }} selected — required)
+                  } @else {
+                    ({{ ruleSelectedIds().size > 0 ? ruleSelectedIds().size + ' selected' : 'Optional — leave empty for all' }})
+                  }
+                </span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button type="button" (click)="selectAllRuleTargets()"
+                        class="px-2 py-1 rounded bg-white/10 text-[11px] text-gray-200 hover:bg-white/20">
+                  Select All
+                </button>
+                <button type="button" (click)="clearRuleTargets()"
+                        class="px-2 py-1 rounded bg-white/5 text-[11px] text-gray-400 hover:bg-white/10">
+                  Clear
+                </button>
+              </div>
+            </div>
+
+            <input type="text" [ngModel]="ruleTargetSearch()" (ngModelChange)="ruleTargetSearch.set($event)"
+                   placeholder="Search individual worker, admin, or client..."
+                   class="w-full px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-xs text-white focus:outline-none focus:border-green-400">
+
+            <div class="max-h-36 overflow-y-auto space-y-1 pr-1">
+              @if (ruleTargetCandidates().length === 0) {
+                <div class="text-[11px] text-gray-500 py-2 text-center">No matching users found.</div>
+              } @else {
+                @for (u of ruleTargetCandidates(); track u.id) {
+                  <label class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-black/25 hover:bg-white/5 cursor-pointer">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <input type="checkbox"
+                             [checked]="ruleSelectedIds().has(u.id)"
+                             [disabled]="!u.phone"
+                             (change)="toggleRuleTarget(u.id)"
+                             class="w-3.5 h-3.5 accent-green-500 shrink-0">
+                      <span class="text-xs text-white truncate">{{ u.name }}</span>
+                      <span class="text-[10px] text-gray-400 truncate">{{ u.subtitle }}</span>
+                    </div>
+                    <span class="text-[10px] shrink-0" [class]="u.phone ? 'text-green-400' : 'text-red-400'">
+                      {{ u.phone || 'No valid phone' }}
+                    </span>
+                  </label>
+                }
+              }
+            </div>
+          </div>
+
+          <!-- Multiple Messages & Quick Presets -->
+          <div class="space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <label class="text-xs font-semibold text-gray-300">Messages ({{ ruleMessages.length }})</label>
+              <div class="flex flex-wrap gap-1">
+                <button type="button" (click)="insertVariable('{name}')" class="px-1.5 py-0.5 rounded bg-white/10 text-[10px] text-gray-200 hover:bg-white/20">{{ '{name}' }}</button>
+                <button type="button" (click)="insertVariable('{branch}')" class="px-1.5 py-0.5 rounded bg-white/10 text-[10px] text-gray-200 hover:bg-white/20">{{ '{branch}' }}</button>
+                <button type="button" (click)="insertVariable('{date}')" class="px-1.5 py-0.5 rounded bg-white/10 text-[10px] text-gray-200 hover:bg-white/20">{{ '{date}' }}</button>
+                <button type="button" (click)="insertVariable('{profit}')" class="px-1.5 py-0.5 rounded bg-white/10 text-[10px] text-gray-200 hover:bg-white/20">{{ '{profit}' }}</button>
+                <button type="button" (click)="insertVariable('{amount}')" class="px-1.5 py-0.5 rounded bg-white/10 text-[10px] text-gray-200 hover:bg-white/20">{{ '{amount}' }}</button>
+              </div>
+            </div>
+
+            <!-- Quick Preset Multi-Select -->
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="text-[10px] text-gray-400">Quick templates:</span>
+              @for (preset of messagePresets; track preset.label) {
+                <button type="button" (click)="togglePresetMessage(preset.text)"
+                        class="px-2 py-0.5 rounded-full text-[10px] font-semibold border transition-colors"
+                        [class]="isPresetSelected(preset.text) ? 'bg-green-500/20 border-green-400/50 text-green-300' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'">
+                  {{ isPresetSelected(preset.text) ? '✓ ' : '+ ' }}{{ preset.label }}
+                </button>
+              }
+            </div>
+
+            <div class="space-y-2">
+              @for (msg of ruleMessages; track trackByIndex($index); let i = $index) {
+                <div class="rounded-xl bg-black/30 border border-white/10 p-2.5 space-y-1.5">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-semibold text-gray-400">Message #{{ i + 1 }}</span>
+                    @if (ruleMessages.length > 1) {
+                      <button type="button" (click)="removeRuleMessage(i)"
+                              class="text-[11px] text-red-400 hover:text-red-300">
+                        Remove
+                      </button>
+                    }
+                  </div>
+                  <textarea rows="3"
+                            [(ngModel)]="ruleMessages[i]"
+                            (focus)="activeMessageIndex = i"
+                            placeholder="Hello {name}, ..."
+                            class="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-sm text-white focus:outline-none focus:border-green-400"></textarea>
+                </div>
+              }
+            </div>
+
+            <button type="button" (click)="addRuleMessage()"
+                    class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 text-gray-200 hover:bg-white/15">
+              + Add Another Message
+            </button>
+          </div>
+
+          <label class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+            <input type="checkbox" [(ngModel)]="ruleForm.enabled" class="w-4 h-4 accent-green-500">
+            <span>Enable this automated rule immediately</span>
+          </label>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" (click)="closeRuleModal()"
+                  class="px-4 py-2 rounded-xl text-xs font-semibold bg-white/5 text-gray-300 hover:bg-white/10">
+            Cancel
+          </button>
+          <button type="button" (click)="saveRule()" [disabled]="savingRule()"
+                  class="px-5 py-2 rounded-xl text-xs font-bold text-black disabled:opacity-50"
+                  style="background: #4ade80;">
+            {{ savingRule() ? 'Saving...' : 'Save Rule' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>
+

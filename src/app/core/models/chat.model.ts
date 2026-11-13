@@ -158,8 +158,50 @@ export interface ChatSmsSettings {
   alert_missing_cash: boolean;
   alert_daily_summary: boolean;
   alert_low_balance: boolean;
+  alert_worker_cash_balanced_profit?: boolean;
+  alert_client_sale_receipt?: boolean;
+  alert_client_debt_reminder?: boolean;
+  alert_client_debt_payment?: boolean;
   low_balance_threshold: number;
   last_low_balance_alert_at?: string | null;
+}
+
+export interface CommunicationRecord {
+  id: string;
+  org_id: number;
+  business_id?: number | null;
+  audience: 'worker' | 'client' | 'admin' | 'all';
+  mode: 'manual' | 'automated';
+  event_type: string;
+  recipient_ids?: number[];
+  recipient_names?: string[];
+  recipients: string[];
+  message: string;
+  status: 'sent' | 'failed' | 'skipped';
+  sent_by_id?: number | null;
+  sent_by_name?: string | null;
+  error_message?: string | null;
+  created_at: string;
+}
+
+export interface CommunicationRule {
+  id?: string;
+  org_id?: number;
+  business_id?: number | null;
+  name: string;
+  audience: 'worker' | 'client' | 'debtors' | 'admin' | 'custom';
+  target_ids?: number[];
+  target_names?: string[];
+  trigger_event: string;
+  schedule_time?: string | null;
+  message_template: string;
+  message_templates?: string[];
+  enabled: boolean;
+  created_by_id?: number | null;
+  created_by_name?: string | null;
+  last_run_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface ChatSmsLog {
@@ -172,5 +214,25 @@ export interface ChatSmsLog {
   response?: any;
   error_message?: string | null;
   created_at: string;
+}
+
+export interface CommunicationRule {
+  id?: string;
+  org_id?: number;
+  business_id?: number | null;
+  name: string;
+  audience: 'worker' | 'client' | 'debtors' | 'admin' | 'custom';
+  target_ids?: number[];
+  target_names?: string[];
+  trigger_event: string;
+  schedule_time?: string | null;
+  message_template: string;
+  message_templates?: string[];
+  enabled: boolean;
+  created_by_id?: number | null;
+  created_by_name?: string | null;
+  last_run_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 

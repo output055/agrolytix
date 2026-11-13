@@ -91,6 +91,11 @@ export const routes: Routes = [
         loadChildren: () => import('./features/clients/clients.routes').then(m => m.CLIENTS_ROUTES)
       },
       {
+        path: 'communications',
+        canActivate: [adminGuard],
+        loadChildren: () => import('./features/communications/communications.routes').then(m => m.COMMUNICATIONS_ROUTES)
+      },
+      {
         path: 'admin/workers',
         canActivate: [adminGuard],
         loadChildren: () => import('./features/admin/workers/workers.routes').then(m => m.WORKERS_ROUTES)
